@@ -1,0 +1,136 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information and roles.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string", "description": "URL to profile picture." },
+        "bio": { "type": "string", "description": "A short spiritual bio." },
+        "role": { "type": "string", "enum": ["admin", "member"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Resource": {
+      "title": "Choir Resource",
+      "description": "Materials for choir practice.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string", "enum": ["Hymn", "Sheet Music", "Liturgical Guide", "Audio"] },
+        "content": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "uploadedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "uploadedBy"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Spiritual guidance chat.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "model"] },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "role", "text", "timestamp"]
+    },
+    "PrayerPetition": {
+      "title": "Prayer Petition",
+      "description": "A prayer request submitted by a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "text": { "type": "string" },
+        "isPublic": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "text", "isPublic", "timestamp"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Catholic Action upcoming event.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "location": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "date", "createdAt"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Payment record for dues or contributions.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userName": { "type": "string" },
+        "amount": { "type": "number" },
+        "purpose": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "verified"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "purpose", "status", "timestamp"]
+    },
+    "Trivia": {
+      "title": "Trivia",
+      "description": "Religious trivia question.",
+      "type": "object",
+      "properties": {
+        "question": { "type": "string" },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "correctAnswer": { "type": "number" },
+        "category": { "type": "string" }
+      },
+      "required": ["question", "options", "correctAnswer"]
+    },
+    "DailyControl": {
+      "title": "Daily Control",
+      "description": "Global settings for daily verse and saint.",
+      "type": "object",
+      "properties": {
+        "verse": { "type": "string" },
+        "reference": { "type": "string" },
+        "saintName": { "type": "string" },
+        "saintInfo": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["verse", "reference", "updatedAt"]
+    },
+    "CommunityMessage": {
+      "title": "Community Message",
+      "description": "Messages sent in the community chat.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderPhoto": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["text", "senderId", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "Users." },
+    "/resources/{resourceId}": { "schema": "Resource", "description": "Resources." },
+    "/users/{userId}/chatHistory/{messageId}": { "schema": "ChatMessage", "description": "Chat." },
+    "/petitions/{id}": { "schema": "PrayerPetition", "description": "Prayer requests." },
+    "/events/{id}": { "schema": "Event", "description": "Events." },
+    "/payments/{id}": { "schema": "Payment", "description": "Payments." },
+    "/trivia/{id}": { "schema": "Trivia", "description": "Trivia Questions." },
+    "/control/daily_bread": { "schema": "DailyControl", "description": "Daily content." },
+    "/community_chat/{id}": { "schema": "CommunityMessage", "description": "Main community messages." }
+  }
+}
