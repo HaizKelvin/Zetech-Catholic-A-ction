@@ -15,6 +15,9 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
         setDaily(doc.data() as DailyControl);
       }
       setLoading(false);
+    }, (error) => {
+      console.error("Dashboard error:", error);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);

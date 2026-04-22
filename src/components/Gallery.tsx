@@ -52,6 +52,8 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
     const q = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as GalleryItem[]);
+    }, (error) => {
+      console.error("Gallery snapshot error:", error);
     });
     return () => unsubscribe();
   }, []);

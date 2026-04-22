@@ -57,6 +57,11 @@
   background-color: var(--card-bg);
 }
 
+.glass-dark {
+  @apply backdrop-blur-2xl border border-white/10 shadow-2xl;
+  background-color: rgba(28, 25, 23, 0.85);
+}
+
 .serif-display {
   @apply font-serif italic tracking-tight;
 }

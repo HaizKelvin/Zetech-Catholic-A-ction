@@ -10,7 +10,8 @@ import {
   getDocs
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { UserProfile } from '../types';
+import { UserProfile, OperationType } from '../types';
+import { handleFirestoreError } from '../utils';
 import { 
   Send, 
   User as UserIcon, 
@@ -62,6 +63,8 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
       });
       setMessages(msgs);
       setTimeout(scrollToBottom, 100);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'community_chat');
     });
 
     return () => unsubscribe();

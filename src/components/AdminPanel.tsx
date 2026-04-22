@@ -37,6 +37,8 @@ export default function AdminPanel() {
           saintInfo: data.saintInfo
         });
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'control/daily_bread');
     });
 
     return () => { unsubscribe(); subControl(); };
