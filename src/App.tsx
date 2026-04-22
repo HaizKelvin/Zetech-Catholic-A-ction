@@ -25,6 +25,7 @@ import Dashboard from './components/Dashboard';
 import Petitions from './components/Petitions';
 import Events from './components/Events';
 import Payments from './components/Payments';
+import Gallery from './components/Gallery';
 import TriviaComponent from './components/Trivia';
 import AdminPanel from './components/AdminPanel';
 import ChatPage from './components/ChatPage';
@@ -51,11 +52,16 @@ import {
   Twitter,
   Instagram,
   Youtube,
-  User as UserIcon
+  User as UserIcon,
+  Image as ImageIcon,
+  Home,
+  Hash,
+  CreditCard,
+  Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'choir' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin';
+type TabType = 'home' | 'choir' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -326,7 +332,7 @@ export default function App() {
             </div>
             {isSidebarOpen && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="whitespace-nowrap">
-                <h1 className="text-xl font-black tracking-tighter text-brand-900 dark:text-brand-400">Zetech CA</h1>
+                <h1 className="text-xl font-black tracking-tighter text-brand-900 dark:text-brand-400">ZUCA</h1>
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Catholic Action Hub</p>
               </motion.div>
             )}
@@ -334,18 +340,19 @@ export default function App() {
 
           {/* Menu Items */}
           <nav className="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
-            <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard />} label="Overview" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'chat'} onClick={() => setActiveTab('chat')} icon={<MessageCircle />} label="Community Hub" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'choir'} onClick={() => setActiveTab('choir')} icon={<Music />} label="Choir Library" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'petitions'} onClick={() => setActiveTab('petitions')} icon={<Heart />} label="Prayer Petitions" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'events'} onClick={() => setActiveTab('events')} icon={<Calendar />} label="Events" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon={<DollarSign />} label="Payments" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'trivia'} onClick={() => setActiveTab('trivia')} icon={<HelpCircle />} label="Daily Trivia" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-5 h-5" />} label="Overview" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'chat'} onClick={() => setActiveTab('chat')} icon={<Hash className="w-5 h-5" />} label="Community Hub" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'gallery'} onClick={() => setActiveTab('gallery')} icon={<ImageIcon className="w-5 h-5" />} label="Activities" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'choir'} onClick={() => setActiveTab('choir')} icon={<Music className="w-5 h-5" />} label="Choir Library" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'petitions'} onClick={() => setActiveTab('petitions')} icon={<Heart className="w-5 h-5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'events'} onClick={() => setActiveTab('events')} icon={<Calendar className="w-5 h-5" />} label="Events" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon={<CreditCard className="w-5 h-5" />} label="Payments" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'trivia'} onClick={() => setActiveTab('trivia')} icon={<Trophy className="w-5 h-5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
             
             {isAdmin && (
               <div className="pt-6 mt-6 border-t border-stone-100 dark:border-stone-800">
                 {isSidebarOpen && <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-300 ml-4 mb-4">Admin Only</p>}
-                <NavItem active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} icon={<Shield />} label="Admin Panel" isOpen={isSidebarOpen} admin />
+                <NavItem active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} icon={<Shield className="w-5 h-5" />} label="Admin Panel" isOpen={isSidebarOpen} admin />
               </div>
             )}
           </nav>
@@ -457,6 +464,11 @@ export default function App() {
                 <ChatPage currentUser={profile} />
               </motion.div>
             )}
+            {activeTab === 'gallery' && (
+              <motion.div key="gallery" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <Gallery profile={profile} />
+              </motion.div>
+            )}
             {activeTab === 'choir' && (
               <motion.div key="choir" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <Resources role={profile?.role || 'member'} />
@@ -510,40 +522,19 @@ export default function App() {
               
               <h3 className="text-3xl font-bold mb-8">Spiritual Profile</h3>
               <form onSubmit={handleUpdateProfile} className="space-y-6">
-                <div className="flex justify-center mb-8">
-                   <div className="relative group">
-                      <div className="w-24 h-24 rounded-[32px] overflow-hidden bg-brand-50 flex items-center justify-center border-4 border-white shadow-xl">
+                <div className="flex flex-col items-center gap-6 mb-10">
+                   <div className="relative">
+                      <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-stone-800 shadow-2xl relative">
                         {editForm.photoURL ? (
                           <img src={editForm.photoURL} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
-                          <UserIcon className="w-10 h-10 text-brand-300" />
+                          <div className="w-full h-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+                            <UserIcon className="w-12 h-12 text-stone-300" />
+                          </div>
                         )}
                       </div>
-                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Display Name</label>
-                    <input 
-                      type="text" 
-                      value={editForm.displayName} 
-                      onChange={e => setEditForm({...editForm, displayName: e.target.value})} 
-                      className="w-full px-6 py-4 rounded-2xl" 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Profile Picture</label>
-                    <div className="flex gap-4 items-center">
-                       <input 
-                        type="url" 
-                        value={editForm.photoURL} 
-                        onChange={e => setEditForm({...editForm, photoURL: e.target.value})} 
-                        placeholder="Image URL..." 
-                        className="flex-1 px-4 py-3 rounded-xl bg-stone-50 dark:bg-white/5 border-none outline-none text-sm" 
-                      />
-                      <label className="cursor-pointer bg-brand-900 text-white px-4 py-3 rounded-xl text-xs font-bold hover:bg-brand-800 transition-all shrink-0">
-                        Upload
+                      <label className="absolute -bottom-2 left-1/2 -translate-x-1/2 cursor-pointer bg-brand-900 text-white p-2.5 rounded-full shadow-xl hover:bg-brand-800 transition-all border-4 border-white dark:border-stone-900 z-10 scale-110 active:scale-95">
+                        <ImageIcon className="w-4 h-4" />
                         <input 
                           type="file" 
                           accept="image/*" 
@@ -561,7 +552,32 @@ export default function App() {
                           }}
                         />
                       </label>
-                    </div>
+                   </div>
+                   <div className="text-center">
+                      <h2 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">{profile?.displayName || 'Faithful Soul'}</h2>
+                      <p className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-widest uppercase">{profile?.role}</p>
+                   </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Display Name</label>
+                    <input 
+                      type="text" 
+                      value={editForm.displayName} 
+                      onChange={e => setEditForm({...editForm, displayName: e.target.value})} 
+                      className="w-full px-6 py-4 rounded-2xl" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Profile Picture URL</label>
+                    <input 
+                        type="url" 
+                        value={editForm.photoURL} 
+                        onChange={e => setEditForm({...editForm, photoURL: e.target.value})} 
+                        placeholder="Image URL..." 
+                        className="w-full px-6 py-4 rounded-2xl" 
+                    />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Spiritual Bio</label>
