@@ -6,13 +6,16 @@ import {
   query, 
   orderBy, 
   onSnapshot, 
-  serverTimestamp 
+  serverTimestamp,
+  doc,
+  deleteDoc,
+  Timestamp 
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { ChatMessage, OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
 import Markdown from 'react-markdown';
-import { Send, Bot, User, Loader2, MessageCircle, X, Minus } from 'lucide-react';
+import { Send, Bot, User, Loader2, MessageCircle, X, Minus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Chatbot() {
@@ -21,6 +24,32 @@ export default function Chatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Message expiration cleanup (10 minutes)
+  useEffect(() => {
+    if (!auth.currentUser || messages.length === 0) return;
+    
+    const now = Timestamp.now().toMillis();
+    const tenMinutes = 10 * 60 * 1000;
+    const path = `users/${auth.currentUser.uid}/chatHistory`;
+
+    const cleanup = async () => {
+      const expiredMessages = messages.filter(msg => {
+        const msgTime = msg.timestamp instanceof Timestamp ? msg.timestamp.toMillis() : 0;
+        return msgTime && (now - msgTime > tenMinutes);
+      });
+
+      for (const msg of expiredMessages) {
+        try {
+          await deleteDoc(doc(db, path, msg.id));
+        } catch (err) {
+          console.error("Auto-deletion failed:", err);
+        }
+      }
+    };
+
+    cleanup();
+  }, [messages]);
 
   useEffect(() => {
     if (!auth.currentUser || !isOpen) return;
@@ -69,22 +98,28 @@ export default function Chatbot() {
       
       // Constructing history for context
       const history = messages.slice(-5).map(m => ({
-        role: m.role,
+        role: m.role as any,
         parts: [{ text: m.text }]
       }));
 
-      const result = await ai.models.generateContent({
+      // Use streaming for faster response
+      const result = await ai.models.generateContentStream({
         model: "gemini-3-flash-preview",
         contents: [
            ...history,
            { role: 'user', parts: [{ text: userText }] }
         ],
         config: {
-          systemInstruction: "You are a spiritual guide for the ZUCA (Zetech University Catholic Action) community. Provide encouraging, biblically-sound, and Catholic-oriented guidance. Be compassionate and wise. Use a warm, editorial tone. Refer to the user as a fellow seeker and member of ZUCA."
+          systemInstruction: "You are a spiritual guide for the ZUCA (Zetech University Catholic Action) community. Provide encouraging, biblically-sound, and Catholic-oriented guidance. Be compassionate and wise. ALWAYS provide summarized and concise replies unless explicitly asked for a detailed explanation. Use a warm, editorial tone. Refer to the user as a fellow seeker."
         }
       });
       
-      const aiResponse = result.text || "I am reflecting on your words. Pray for a moment and ask again.";
+      let aiResponse = "";
+      for await (const chunk of result) {
+        aiResponse += chunk.text || "";
+      }
+
+      if (!aiResponse) aiResponse = "I am reflecting on your words. Pray for a moment and ask again.";
 
       await addDoc(collection(db, path), {
         userId: auth.currentUser.uid,

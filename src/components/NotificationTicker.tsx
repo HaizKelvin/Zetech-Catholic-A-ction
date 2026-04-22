@@ -129,30 +129,21 @@ export default function NotificationTicker() {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] flex justify-center pointer-events-none pt-4">
-      <div className="w-full max-w-lg mx-4 pointer-events-auto">
+    <div className="fixed top-0 left-0 right-0 z-[60] flex justify-center pointer-events-none pt-2">
+      <div className="w-full max-w-xs mx-4 pointer-events-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentAlert.id}
-            initial={{ y: -50, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 20, opacity: 0, scale: 0.95 }}
-            className="flex items-center gap-3 px-6 py-3 rounded-[24px] glass-dark border border-white/10 shadow-2xl backdrop-blur-2xl"
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 10, opacity: 0 }}
+            className="flex items-center gap-2 px-4 py-2 rounded-[20px] glass-dark border border-white/10 shadow-xl backdrop-blur-3xl"
           >
-            <div className="shrink-0 w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center shadow-inner">
+            <div className="shrink-0 w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
               {getIcon(currentAlert.type)}
             </div>
             <div className="flex-1 min-w-0">
-               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 leading-none mb-1">Sanctuary Alert</p>
-               <p className="text-xs font-bold text-white truncate">{currentAlert.text}</p>
-            </div>
-            <div className="shrink-0 flex gap-1">
-              {alerts.map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`w-1 h-1 rounded-full transition-all duration-300 ${i === currentIndex ? 'bg-brand-500 w-3' : 'bg-white/20'}`} 
-                />
-              ))}
+               <p className="text-[10px] font-bold text-white truncate">{currentAlert.text}</p>
             </div>
           </motion.div>
         </AnimatePresence>

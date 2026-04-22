@@ -233,82 +233,122 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden">
-        {/* Full screen background */}
+      <div className="min-h-screen relative flex items-center justify-center p-4 md:p-6 overflow-hidden bg-[#0c0a09]">
+        {/* Full screen background with layered overlays */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
-            alt="ZUCA Sanctuary" 
-            className="w-full h-full object-cover"
-            onError={(e) => {
-               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1549413243-7f28ed020993?auto=format&fit=crop&q=80&w=2000';
-            }}
+            src="https://images.unsplash.com/photo-1515233599467-41e97df40cf6?auto=format&fit=crop&q=80&w=2000" 
+            alt="Sanctuary" 
+            className="w-full h-full object-cover opacity-60"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-stone-950 via-stone-950/80 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-stone-950 to-transparent" />
         </div>
 
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 max-w-[1000px] w-full grid grid-cols-1 lg:grid-cols-2 bg-white/10 dark:bg-stone-900/40 backdrop-blur-3xl rounded-[48px] overflow-hidden border border-white/20 shadow-2xl"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="relative z-10 max-w-[1100px] w-full grid grid-cols-1 lg:grid-cols-12 glass shadow-2xl rounded-[40px] overflow-hidden border border-white/10"
         >
-          {/* Left: Brand Identity */}
-          <div className="p-8 md:p-16 flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute inset-0 faith-bg opacity-5 pointer-events-none" />
+          {/* Left Side (7 columns) - Brand & Inspiration */}
+          <div className="lg:col-span-7 p-8 md:p-14 lg:p-20 flex flex-col justify-between relative overflow-hidden bg-stone-900/20">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
             
             <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-12">
-                <div className="w-12 h-12 bg-brand-900 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-900/40 rotate-3">
-                  <Church className="w-6 h-6 text-white" />
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex items-center gap-4 mb-16"
+              >
+                <div className="w-14 h-14 bg-brand-900 rounded-2xl flex items-center justify-center shadow-2xl shadow-brand-900/40 rotate-6 border border-white/10">
+                  <Church className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black tracking-tighter text-white">ZUCA</h1>
-                  <p className="text-[8px] font-black uppercase tracking-[0.3em] text-brand-300">Sanctuary Hub</p>
+                  <h1 className="text-3xl font-black tracking-tighter text-white">ZUCA</h1>
+                  <p className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-400">Catholic Action Sanctuary</p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="space-y-6">
-                <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tighter leading-none">
-                  Seek. Serve. <br />
-                  <span className="serif-display italic font-light text-brand-300">Sanctify.</span>
-                </h2>
-                <div className="h-1 w-20 bg-brand-500 rounded-full" />
-                <p className="text-brand-100/80 text-sm md:text-lg font-serif italic max-w-sm">
-                  "Let your light so shine before men, that they may see your good works..."
-                </p>
+              <div className="space-y-8">
+                <motion.h2 
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-5xl md:text-7xl font-bold text-white tracking-tighter leading-[0.9] lg:max-w-md"
+                >
+                  Seek. Serve. <span className="serif-display italic font-light text-brand-500">Sanctify.</span>
+                </motion.h2>
+                
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7 }}
+                  className="flex items-center gap-4 text-brand-200/60"
+                >
+                  <div className="h-[1px] w-12 bg-current" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">Spiritual Excellence</span>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                  className="p-6 md:p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md max-w-sm"
+                >
+                  <p className="text-lg md:text-xl font-serif italic text-white/90 leading-relaxed mb-4">
+                    "I am the light of the world. Whoever follows me will never walk in darkness, but will have the light of life."
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">John 8:12</span>
+                  </div>
+                </motion.div>
               </div>
             </div>
 
-            <div className="mt-20 flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Faithfully Active</span>
+            <div className="mt-12 flex items-center gap-6 text-white/20">
+               <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                 <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Live Sanctuary</span>
+               </div>
+               <div className="h-4 w-[1px] bg-white/10" />
+               <span className="text-[10px] font-medium tracking-tight italic">Rooted in Faith, Growing in Action.</span>
             </div>
           </div>
 
-          {/* Right: Login Form */}
-          <div className="bg-white dark:bg-stone-950 p-8 md:p-16 flex flex-col justify-center">
-            <div className="mb-12">
-              <h3 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight mb-4 italic">Welcome Home.</h3>
-              <p className="text-stone-500 text-sm leading-relaxed">
-                Connect with the Zetech University Catholic Action community and grow in your spiritual journey.
+          {/* Right Side (5 columns) - The Gateway */}
+          <div className="lg:col-span-5 bg-white dark:bg-stone-950 p-8 md:p-14 lg:p-20 flex flex-col justify-center relative">
+            <div className="mb-14">
+              <h3 className="text-4xl font-bold text-stone-900 dark:text-stone-100 tracking-tight mb-4 flex items-center gap-3">
+                Welcome <span className="serif-display italic font-medium text-brand-600">Home</span>.
+              </h3>
+              <p className="text-stone-500 text-sm md:text-base leading-relaxed">
+                Connect with the Zetech University Catholic Action community. Access choir resources, community chats, and spiritual guidance.
               </p>
             </div>
 
-            <button
-              onClick={handleLogin}
-              className="group relative w-full flex items-center justify-center gap-4 bg-brand-900 text-white py-5 rounded-[28px] hover:bg-brand-800 transition-all font-bold shadow-xl shadow-brand-900/30 active:scale-[0.98]"
-            >
-              <div className="w-8 h-8 bg-white rounded-full p-1.5 flex items-center justify-center shadow-inner">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-              </div>
-              <span className="text-lg tracking-tight">Login with Google</span>
-            </button>
+            <div className="space-y-6">
+              <button
+                onClick={handleLogin}
+                className="group relative w-full flex items-center justify-center gap-4 bg-stone-950 text-white dark:bg-white dark:text-stone-950 py-5 rounded-[24px] hover:scale-[1.02] active:scale-[0.98] transition-all font-bold shadow-2xl shadow-black/20"
+              >
+                <div className="w-8 h-8 bg-white dark:bg-stone-50 rounded-full p-1.5 flex items-center justify-center shadow-inner">
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                </div>
+                <span className="text-lg tracking-tight">Login with Google</span>
+              </button>
 
-            <div className="mt-12 pt-8 border-t border-stone-100 dark:border-stone-800">
-              <p className="text-center text-[10px] text-stone-400 uppercase tracking-[0.5em] font-black mb-6">Fellowship</p>
-              <div className="flex justify-center gap-8">
+              <p className="text-center text-[11px] text-stone-400 font-medium">
+                By signing in, you agree to join our community of fellowship.
+              </p>
+            </div>
+
+            <div className="mt-16 pt-10 border-t border-stone-100 dark:border-stone-900">
+              <p className="text-center text-[9px] text-stone-300 dark:text-stone-700 uppercase tracking-[0.6em] font-black mb-8">Sanctuary Fellowship</p>
+              <div className="flex justify-center gap-6">
                 <SocialLink href="#" icon={<Facebook className="w-5 h-5" />} />
                 <SocialLink href="#" icon={<Twitter className="w-5 h-5" />} />
                 <SocialLink href="#" icon={<Instagram className="w-5 h-5" />} />
@@ -316,7 +356,7 @@ export default function App() {
               </div>
             </div>
             
-            <p className="mt-12 text-[10px] text-center text-stone-300 font-bold uppercase tracking-widest">
+            <p className="mt-16 text-[9px] text-center text-stone-300 dark:text-stone-800 font-bold uppercase tracking-[0.2em]">
               © 2026 Zetech University Catholic Action
             </p>
           </div>
