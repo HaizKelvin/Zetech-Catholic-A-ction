@@ -153,7 +153,7 @@ export default function AdminPanel() {
                        </div>
                        <div>
                         <p className="font-bold text-sm text-stone-900 dark:text-stone-100">{u.displayName}</p>
-                        <p className="text-[10px] text-stone-400 font-bold">{u.email}</p>
+                        <p className="text-[10px] text-stone-400 dark:text-stone-500 font-bold">{u.email}</p>
                       </div>
                     </div>
                     <span className="text-[8px] font-black uppercase tracking-[0.2em] bg-white dark:bg-stone-800 px-2 py-1 rounded-full border border-stone-100 dark:border-stone-800">

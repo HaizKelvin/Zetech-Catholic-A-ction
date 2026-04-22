@@ -60,10 +60,10 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
         >
           <Quote className="absolute -top-4 -right-4 w-32 h-32 text-brand-900/5" />
           <div className="flex items-center gap-4 mb-10">
-            <div className="p-3 rounded-2xl bg-brand-50 dark:bg-brand-950 text-brand-900 dark:text-brand-400">
+            <div className="p-3 rounded-2xl bg-brand-50 dark:bg-brand-900/30 text-brand-900 dark:text-brand-400">
               <BookOpen className="w-6 h-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Daily Verse</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">Daily Verse</span>
           </div>
           {loading ? (
             <div className="py-10 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-600" /></div>
@@ -93,10 +93,10 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
         >
           <div>
             <div className="flex items-center gap-4 mb-10">
-              <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-950 text-orange-600">
+              <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400">
                 <UserIcon className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Saint of the Day</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">Saint of the Day</span>
             </div>
             {loading ? (
               <div className="py-10 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-orange-600" /></div>
@@ -122,7 +122,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
 
       {/* Action Hub */}
       <div className="space-y-6">
-        <h3 className="text-xs font-black uppercase tracking-[0.4em] text-stone-400 text-center md:text-left">Quick Sanctuary Actions</h3>
+        <h3 className="text-xs font-black uppercase tracking-[0.4em] text-stone-400 dark:text-stone-500 text-center md:text-left">Quick Sanctuary Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <QuickAction onClick={() => onTabChange('choir')} title="Choir Hub" icon={<Music />} color="text-brand-600 bg-brand-50/50 dark:bg-brand-900/20" />
           <QuickAction onClick={() => onTabChange('petitions')} title="Prayer Desk" icon={<Heart />} color="text-red-600 bg-red-50/50 dark:bg-red-900/20" />

@@ -123,8 +123,8 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
                 onClick={() => handleAnswer(i)}
                 className={`p-6 rounded-2xl text-left font-medium transition-all flex items-center justify-between group ${
                   isAnswered 
-                    ? (i === questions[currentIndex].correctAnswer ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : (selectedOption === i ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-stone-50 dark:bg-stone-900/50 text-stone-400'))
-                    : 'glass hover:border-brand-500 hover:bg-brand-50/30'
+                    ? (i === questions[currentIndex].correctAnswer ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : (selectedOption === i ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-stone-50 dark:bg-stone-900/50 text-stone-400 dark:text-stone-500'))
+                    : 'glass hover:border-brand-500 hover:bg-brand-50/30 dark:hover:bg-brand-900/20'
                 }`}
               >
                 {opt}

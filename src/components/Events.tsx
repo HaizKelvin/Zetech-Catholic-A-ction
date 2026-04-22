@@ -87,8 +87,8 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
     <div className="space-y-12">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-5xl font-bold tracking-tighter">Upcoming <span className="serif-display text-brand-600">Events</span>.</h1>
-          <p className="text-stone-500 mt-2">Join us in our journey of faith and fellowship.</p>
+          <h1 className="text-5xl font-bold tracking-tighter text-stone-900 dark:text-stone-100">Upcoming <span className="serif-display text-brand-600 dark:text-brand-400">Events</span>.</h1>
+          <p className="text-stone-500 dark:text-stone-400 mt-2">Join us in our journey of faith and fellowship.</p>
         </div>
         {isAdmin && (
           <div className="flex gap-4">
@@ -126,7 +126,7 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
                 key={ev.id}
                 className="glass p-8 md:p-12 rounded-[40px] shadow-sm flex flex-col md:flex-row gap-12 group hover:shadow-xl transition-all duration-500"
               >
-                <div className="md:w-48 shrink-0 flex flex-col items-center justify-center p-8 bg-brand-50 dark:bg-brand-900/30 rounded-[32px] text-brand-900 dark:text-brand-400 group-hover:bg-brand-900 group-hover:text-white transition-colors duration-500">
+        <div className="md:w-48 shrink-0 flex flex-col items-center justify-center p-8 bg-brand-50 dark:bg-brand-900/30 rounded-[32px] text-brand-900 dark:text-brand-400 group-hover:bg-brand-900 group-hover:text-stone-100 transition-colors duration-500">
                   <span className="text-xs font-black uppercase tracking-[0.2em] mb-2">{ev.date?.toDate().toLocaleDateString(undefined, { month: 'short' })}</span>
                   <span className="text-6xl font-bold tracking-tighter">{ev.date?.toDate().getDate()}</span>
                   <span className="text-xs font-bold mt-2">{ev.date?.toDate().getFullYear()}</span>
@@ -140,7 +140,7 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
                       </button>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-6 text-sm font-bold text-stone-400 uppercase tracking-widest">
+                  <div className="flex flex-wrap gap-6 text-sm font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-brand-600" />
                       {ev.date?.toDate().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}

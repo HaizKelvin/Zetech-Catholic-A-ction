@@ -67,15 +67,24 @@ export default function Chatbot() {
 
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
       
+      // Constructing history for context
+      const history = messages.slice(-5).map(m => ({
+        role: m.role,
+        parts: [{ text: m.text }]
+      }));
+
       const result = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: userText,
+        contents: [
+           ...history,
+           { role: 'user', parts: [{ text: userText }] }
+        ],
         config: {
-          systemInstruction: "You are a spiritual guide for the Zetech University Catholic Action community. Provide encouraging, biblically-sound, and Catholic-oriented guidance. Be compassionate and wise. Use a warm, editorial tone."
+          systemInstruction: "You are a spiritual guide for the ZUCA (Zetech University Catholic Action) community. Provide encouraging, biblically-sound, and Catholic-oriented guidance. Be compassionate and wise. Use a warm, editorial tone. Refer to the user as a fellow seeker and member of ZUCA."
         }
       });
       
-      const aiResponse = result.text || "I am reflecting on your words. Please try again in a moment.";
+      const aiResponse = result.text || "I am reflecting on your words. Pray for a moment and ask again.";
 
       await addDoc(collection(db, path), {
         userId: auth.currentUser.uid,

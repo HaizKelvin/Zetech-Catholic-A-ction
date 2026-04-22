@@ -238,9 +238,10 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                     {(isMine || currentUser?.role === 'admin') && (
                       <button 
                         onClick={() => handleDeleteMessage(msg.id)}
-                        className={`absolute -top-2 ${isMine ? '-left-2' : '-right-2'} p-1 bg-white dark:bg-stone-900 rounded-full shadow-lg border border-stone-100 dark:border-stone-800 opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:text-red-500 text-stone-400`}
+                        className={`absolute -top-3 ${isMine ? '-left-3' : '-right-3'} p-1.5 bg-white dark:bg-stone-900 rounded-full shadow-xl border border-stone-100 dark:border-stone-800 opacity-0 group-hover:opacity-100 transition-all z-20 hover:text-red-500 text-stone-400 hover:scale-110 active:scale-95`}
+                        title="Delete Message"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                     {!isMine && (

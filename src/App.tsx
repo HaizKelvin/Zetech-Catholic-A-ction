@@ -140,15 +140,15 @@ export default function App() {
         const data = userDoc.data() as UserProfile;
         setProfile(data);
         setEditForm({ 
-          displayName: data.displayName || '', 
-          photoURL: data.photoURL || '', 
+          displayName: data.displayName || firebaseUser.displayName || '', 
+          photoURL: data.photoURL || firebaseUser.photoURL || '', 
           bio: data.bio || '' 
         });
       } else {
         const newProfile: UserProfile = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
-          displayName: firebaseUser.displayName,
+          displayName: firebaseUser.displayName || 'Faithful Member',
           photoURL: firebaseUser.photoURL || '',
           bio: '',
           role: firebaseUser.email === 'wachirakevin65@gmail.com' ? 'admin' : 'member',
@@ -159,14 +159,25 @@ export default function App() {
           createdAt: serverTimestamp()
         });
         setProfile(newProfile);
-        setEditForm({ 
-          displayName: newProfile.displayName || '', 
-          photoURL: newProfile.photoURL || '', 
-          bio: '' 
+        setEditForm({
+          displayName: newProfile.displayName || '',
+          photoURL: newProfile.photoURL || '',
+          bio: ''
         });
       }
     } catch (error) {
-      handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
+       console.error("Profile fetch error:", error);
+       // Attempt to set a fallback profile to allow entry
+       const fallback: UserProfile = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          displayName: firebaseUser.displayName || 'Faithful Member',
+          photoURL: firebaseUser.photoURL || '',
+          bio: '',
+          role: 'member',
+          createdAt: Timestamp.now()
+       };
+       setProfile(fallback);
     }
   };
 
@@ -221,95 +232,94 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#FBFBFA] dark:bg-stone-950 flex flex-col md:flex-row relative overflow-hidden">
-        <div className="faith-bg opacity-30" />
-        
-        {/* Banner Section */}
-        <div className="w-full md:w-[55%] h-[45vh] md:h-screen relative bg-brand-950">
+      <div className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden">
+        {/* Full screen background */}
+        <div className="absolute inset-0 z-0">
           <img 
             src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
-            alt="Zetech Campus" 
-            className="absolute inset-0 w-full h-full object-cover"
+            alt="ZUCA Sanctuary" 
+            className="w-full h-full object-cover"
             onError={(e) => {
                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1549413243-7f28ed020993?auto=format&fit=crop&q=80&w=2000';
             }}
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-900/40 to-transparent" />
-          <div className="absolute inset-0 bg-stone-950/30 backdrop-blur-[1px]" />
-          
-          <div className="absolute bottom-12 md:bottom-24 left-8 md:left-20 right-8 text-white">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h1 className="text-4xl md:text-7xl font-bold tracking-tighter mb-4 leading-none">
-                Seek. Serve. <br />
-                <span className="serif-display italic font-light text-brand-300">Sanctify.</span>
-              </h1>
-              <p className="text-brand-100 font-medium tracking-widest uppercase text-[10px] md:text-xs font-bold tracking-[0.4em]">
-                Zetech University Catholic Action
-              </p>
-            </motion.div>
+          <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-[2px]" />
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-[1000px] w-full grid grid-cols-1 lg:grid-cols-2 bg-white/10 dark:bg-stone-900/40 backdrop-blur-3xl rounded-[48px] overflow-hidden border border-white/20 shadow-2xl"
+        >
+          {/* Left: Brand Identity */}
+          <div className="p-8 md:p-16 flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute inset-0 faith-bg opacity-5 pointer-events-none" />
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-12">
+                <div className="w-12 h-12 bg-brand-900 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-900/40 rotate-3">
+                  <Church className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-black tracking-tighter text-white">ZUCA</h1>
+                  <p className="text-[8px] font-black uppercase tracking-[0.3em] text-brand-300">Sanctuary Hub</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tighter leading-none">
+                  Seek. Serve. <br />
+                  <span className="serif-display italic font-light text-brand-300">Sanctify.</span>
+                </h2>
+                <div className="h-1 w-20 bg-brand-500 rounded-full" />
+                <p className="text-brand-100/80 text-sm md:text-lg font-serif italic max-w-sm">
+                  "Let your light so shine before men, that they may see your good works..."
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-20 flex items-center gap-2">
+               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Faithfully Active</span>
+            </div>
           </div>
-        </div>
-        
-        {/* Form Section */}
-        <div className="w-full md:w-[45%] flex items-center justify-center p-4 md:p-12 lg:p-24 relative z-10 -mt-16 md:mt-0">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-md w-full bg-white/95 dark:bg-stone-900/95 backdrop-blur-3xl p-8 md:p-12 rounded-[40px] md:rounded-[48px] shadow-2xl relative overflow-hidden border border-white/20"
-          >
-            <div className="flex items-center gap-4 mb-10 md:mb-12 relative">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-900 rounded-[18px] md:rounded-[20px] flex items-center justify-center shadow-2xl shadow-brand-900/40 rotate-6 group hover:rotate-0 transition-transform duration-500">
-                <Church className="w-6 h-6 md:w-7 md:h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl md:text-2xl font-black tracking-tighter text-stone-900 dark:text-stone-100 uppercase">Zetech CA</h1>
-                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Divine Wisdom Hub</p>
-              </div>
-            </div>
 
-            <div className="space-y-4 md:space-y-6 mb-10 md:mb-12">
-              <h2 className="text-3xl md:text-5xl font-bold text-stone-900 dark:text-stone-100 tracking-tight leading-[1.1]">
-                Welcome to our <br className="hidden md:block" />
-                <span className="text-brand-600 dark:text-brand-400">Sanctuary.</span>
-              </h2>
-              <p className="text-stone-500 dark:text-stone-400 text-sm md:text-lg leading-relaxed font-serif italic line-clamp-3">
-                "For where two or three are gathered in my name, there am I among them." — <span className="font-bold">Matthew 18:20</span>
+          {/* Right: Login Form */}
+          <div className="bg-white dark:bg-stone-950 p-8 md:p-16 flex flex-col justify-center">
+            <div className="mb-12">
+              <h3 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight mb-4 italic">Welcome Home.</h3>
+              <p className="text-stone-500 text-sm leading-relaxed">
+                Connect with the Zetech University Catholic Action community and grow in your spiritual journey.
               </p>
             </div>
-            
-            <div className="space-y-8">
-              <button
-                onClick={handleLogin}
-                className="group relative w-full flex items-center justify-center gap-4 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 py-4 md:py-5 rounded-[20px] md:rounded-[24px] hover:bg-stone-800 dark:hover:bg-white transition-all font-bold shadow-xl shadow-stone-950/20 active:scale-[0.98] overflow-hidden"
-              >
-                <div className="w-6 h-6 bg-white rounded-full p-1 flex items-center justify-center">
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
-                </div>
-                <span className="text-base md:text-lg">Google Sign In</span>
-              </button>
 
-              <div className="pt-8 border-t border-stone-100 dark:border-stone-800">
-                <p className="text-center text-[9px] md:text-[10px] text-stone-400 uppercase tracking-[0.4em] font-black mb-6">Our Community</p>
-                <div className="flex justify-center gap-4 md:gap-6">
-                  <SocialLink href="#" icon={<Facebook className="w-4 h-4 md:w-5 md:h-5" />} />
-                  <SocialLink href="#" icon={<Twitter className="w-4 h-4 md:w-5 md:h-5" />} />
-                  <SocialLink href="#" icon={<Instagram className="w-4 h-4 md:w-5 md:h-5" />} />
-                  <SocialLink href="#" icon={<Youtube className="w-4 h-4 md:w-5 md:h-5" />} />
-                </div>
+            <button
+              onClick={handleLogin}
+              className="group relative w-full flex items-center justify-center gap-4 bg-brand-900 text-white py-5 rounded-[28px] hover:bg-brand-800 transition-all font-bold shadow-xl shadow-brand-900/30 active:scale-[0.98]"
+            >
+              <div className="w-8 h-8 bg-white rounded-full p-1.5 flex items-center justify-center shadow-inner">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+              </div>
+              <span className="text-lg tracking-tight">Login with Google</span>
+            </button>
+
+            <div className="mt-12 pt-8 border-t border-stone-100 dark:border-stone-800">
+              <p className="text-center text-[10px] text-stone-400 uppercase tracking-[0.5em] font-black mb-6">Fellowship</p>
+              <div className="flex justify-center gap-8">
+                <SocialLink href="#" icon={<Facebook className="w-5 h-5" />} />
+                <SocialLink href="#" icon={<Twitter className="w-5 h-5" />} />
+                <SocialLink href="#" icon={<Instagram className="w-5 h-5" />} />
+                <SocialLink href="#" icon={<Youtube className="w-5 h-5" />} />
               </div>
             </div>
             
-            <div className="mt-10 md:mt-16 pt-6 md:pt-8 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-black text-stone-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
-              <span>Est. 2026</span>
-            </div>
-          </motion.div>
-        </div>
+            <p className="mt-12 text-[10px] text-center text-stone-300 font-bold uppercase tracking-widest">
+              © 2026 Zetech University Catholic Action
+            </p>
+          </div>
+        </motion.div>
       </div>
     );
   }
@@ -386,9 +396,9 @@ export default function App() {
                   <button onClick={() => setIsProfileModalOpen(true)} className="text-[8px] font-medium text-brand-600 dark:text-brand-400 uppercase tracking-widest text-left">Edit Profile</button>
                 </div>
               )}
-              <button onClick={handleLogout} className="p-2 text-stone-300 hover:text-red-500 transition-colors">
-                <LogOut className="w-5 h-5" />
-              </button>
+            <button onClick={handleLogout} className="p-2 text-stone-300 dark:text-stone-600 hover:text-red-500 transition-colors">
+                 <LogOut className="w-5 h-5" />
+            </button>
             </div>
           </div>
         </div>

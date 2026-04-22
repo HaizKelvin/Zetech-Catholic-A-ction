@@ -78,7 +78,7 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!profile?.role === 'admin' && !window.confirm('Delete this post?')) return;
+    if (!window.confirm('Delete this post?')) return;
     try {
       await deleteDoc(doc(db, 'gallery', id));
     } catch (error) {
@@ -90,8 +90,8 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
     <div className="space-y-12 pb-24">
       <div className="flex justify-between items-center px-4">
         <div>
-          <h1 className="text-5xl font-bold tracking-tighter">Activity <span className="serif-display text-brand-600">Gallery</span>.</h1>
-          <p className="text-stone-500 mt-2">Relive our moments of worship and fellowship.</p>
+          <h1 className="text-5xl font-bold tracking-tighter">Activity <span className="serif-display text-brand-600 dark:text-brand-400">Gallery</span>.</h1>
+          <p className="text-stone-500 dark:text-stone-400 mt-2">Relive our moments of worship and fellowship.</p>
         </div>
         <button 
           onClick={() => setShowAdd(true)}

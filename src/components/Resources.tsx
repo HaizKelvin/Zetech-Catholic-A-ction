@@ -123,11 +123,11 @@ export default function Resources({ role }: ResourcesProps) {
               className="glass p-8 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-500 group relative flex flex-col h-full"
             >
               <div className="flex items-start justify-between mb-8">
-                <div className={`p-4 rounded-2xl transition-colors duration-500 ${
-                  resource.category === 'Hymn' ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600' :
-                  resource.category === 'Sheet Music' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600' :
-                  resource.category === 'Audio' ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600' :
-                  'bg-stone-50 dark:bg-stone-900/30 text-stone-600'
+        <div className={`p-4 rounded-2xl transition-colors duration-500 ${
+                  resource.category === 'Hymn' ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400' :
+                  resource.category === 'Sheet Music' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
+                  resource.category === 'Audio' ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' :
+                  'bg-stone-50 dark:bg-stone-900/30 text-stone-600 dark:text-stone-400'
                 }`}>
                   {getIcon(resource.category)}
                 </div>
@@ -142,7 +142,7 @@ export default function Resources({ role }: ResourcesProps) {
               </div>
               
               <div className="flex-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-2 block">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500 mb-2 block">
                   {resource.category}
                 </span>
                 <h4 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-4 leading-tight group-hover:text-brand-600 transition-colors">

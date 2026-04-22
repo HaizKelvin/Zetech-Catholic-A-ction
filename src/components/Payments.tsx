@@ -214,12 +214,12 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-2">
                         {p.status === 'verified' ? (
-                          <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full text-[10px] font-bold">
+                          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full text-[10px] font-bold">
                              <CheckCircle2 className="w-3 h-3" />
                              VERIFIED
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full text-[10px] font-bold">
+                          <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full text-[10px] font-bold">
                              <Clock className="w-3 h-3 animate-pulse" />
                              PENDING
                           </div>
