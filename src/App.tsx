@@ -221,11 +221,11 @@ export default function App() {
         {/* Banner Section */}
         <div className="w-full md:w-[55%] h-[45vh] md:h-screen relative bg-brand-950">
           <img 
-            src="https://images.unsplash.com/photo-1549413243-7f28ed020993?auto=format&fit=crop&q=80&w=2000" 
-            alt="Sanctuary" 
+            src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
+            alt="Zetech Campus" 
             className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => {
-               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1548625342-df751508db83?auto=format&fit=crop&q=80&w=2000';
+               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1549413243-7f28ed020993?auto=format&fit=crop&q=80&w=2000';
             }}
             referrerPolicy="no-referrer"
           />
@@ -299,7 +299,6 @@ export default function App() {
             </div>
             
             <div className="mt-10 md:mt-16 pt-6 md:pt-8 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-black text-stone-300">
-              <span>Nairobi Chapter</span>
               <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
               <span>Est. 2026</span>
             </div>

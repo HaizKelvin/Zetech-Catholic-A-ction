@@ -13,8 +13,9 @@ import {
 import { db, auth } from '../firebase';
 import { Event, OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Calendar, MapPin, Clock, Plus, Trash2, X, Bell } from 'lucide-react';
+import { Calendar, MapPin, Clock, Plus, Trash2, X, Bell, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getDocs, writeBatch } from 'firebase/firestore';
 
 export default function Events({ isAdmin }: { isAdmin: boolean }) {
   const [events, setEvents] = useState<Event[]>([]);
@@ -60,6 +61,28 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
     }
   };
 
+  const handleDeleteExpired = async () => {
+    if (!isAdmin || !window.confirm('Delete all past events?')) return;
+    const now = new Date();
+    const expiredEvents = events.filter(ev => ev.date?.toDate() < now);
+    
+    if (expiredEvents.length === 0) {
+      alert('No expired events found.');
+      return;
+    }
+
+    try {
+      const batch = writeBatch(db);
+      expiredEvents.forEach(ev => {
+        batch.delete(doc(db, 'events', ev.id));
+      });
+      await batch.commit();
+      alert(`Deleted ${expiredEvents.length} expired events.`);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'events_cleanup');
+    }
+  };
+
   return (
     <div className="space-y-12">
       <div className="flex justify-between items-center">
@@ -68,13 +91,22 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
           <p className="text-stone-500 mt-2">Join us in our journey of faith and fellowship.</p>
         </div>
         {isAdmin && (
-          <button 
-            onClick={() => setShowAdd(true)}
-            className="bg-brand-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20"
-          >
-            <Plus className="w-5 h-5" />
-            Post Event
-          </button>
+          <div className="flex gap-4">
+            <button 
+              onClick={handleDeleteExpired}
+              className="bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-stone-200 transition-all active:scale-95"
+            >
+              <Sparkles className="w-5 h-5 text-amber-500" />
+              Clean Up
+            </button>
+            <button 
+              onClick={() => setShowAdd(true)}
+              className="bg-brand-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 active:scale-95"
+            >
+              <Plus className="w-5 h-5" />
+              Post Event
+            </button>
+          </div>
         )}
       </div>
 

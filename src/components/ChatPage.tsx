@@ -21,9 +21,11 @@ import {
   Smile,
   Paperclip,
   Users as UsersIcon,
-  ChevronLeft
+  ChevronLeft,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { deleteDoc, doc } from 'firebase/firestore';
 
 interface Message {
   id: string;
@@ -91,6 +93,15 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
       setNewMessage('');
     } catch (error) {
       console.error("Error sending message:", error);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!window.confirm('Delete this message?')) return;
+    try {
+      await deleteDoc(doc(db, 'community_chat', messageId));
+    } catch (error) {
+      console.error("Error deleting message:", error);
     }
   };
 
@@ -224,6 +235,14 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                       ? 'bg-brand-900 text-white rounded-br-none' 
                       : 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-100 dark:border-stone-700'
                   }`}>
+                    {(isMine || currentUser?.role === 'admin') && (
+                      <button 
+                        onClick={() => handleDeleteMessage(msg.id)}
+                        className={`absolute -top-2 ${isMine ? '-left-2' : '-right-2'} p-1 bg-white dark:bg-stone-900 rounded-full shadow-lg border border-stone-100 dark:border-stone-800 opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:text-red-500 text-stone-400`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
                     {!isMine && (
                       <span className="block text-[9px] md:text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-tight mb-0.5 md:mb-1">
                         {msg.senderName}
