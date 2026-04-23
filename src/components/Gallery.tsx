@@ -90,16 +90,16 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
 
   return (
     <div className="space-y-12 pb-24">
-      <div className="flex justify-between items-center px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 px-4">
         <div>
-          <h1 className="text-5xl font-bold tracking-tighter">Activity <span className="serif-display text-brand-600 dark:text-brand-400">Gallery</span>.</h1>
-          <p className="text-stone-500 dark:text-stone-400 mt-2">Relive our moments of worship and fellowship.</p>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">Activity <span className="serif-display text-brand-600 dark:text-brand-400">Gallery</span>.</h1>
+          <p className="text-stone-500 dark:text-stone-400 mt-2 text-sm md:text-base">Relive our moments of worship and fellowship.</p>
         </div>
         <button 
           onClick={() => setShowAdd(true)}
-          className="bg-brand-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20"
+          className="w-full sm:w-auto bg-brand-900 text-white px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 text-sm"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4 md:w-5 md:h-5" />
           Share Moment
         </button>
       </div>

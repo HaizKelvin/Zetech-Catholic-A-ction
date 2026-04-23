@@ -77,29 +77,29 @@ export default function Petitions() {
             className="w-full p-6 h-40 text-lg resize-none"
             required
           />
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-6 p-2 bg-white/30 dark:bg-stone-900/30 rounded-2xl">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-4 p-1.5 md:p-2 bg-white/30 dark:bg-stone-900/30 rounded-2xl overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => setIsPublic(true)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${isPublic ? 'bg-white dark:bg-stone-800 shadow-sm text-brand-600' : 'text-stone-400'}`}
+                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all whitespace-nowrap ${isPublic ? 'bg-white dark:bg-stone-800 shadow-sm text-brand-600' : 'text-stone-400'}`}
               >
                 <Globe className="w-4 h-4" />
-                <span className="text-sm font-bold">Public</span>
+                <span className="text-xs md:text-sm font-bold">Public</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsPublic(false)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${!isPublic ? 'bg-white dark:bg-stone-800 shadow-sm text-brand-600' : 'text-stone-400'}`}
+                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all whitespace-nowrap ${!isPublic ? 'bg-white dark:bg-stone-800 shadow-sm text-brand-600' : 'text-stone-400'}`}
               >
                 <Lock className="w-4 h-4" />
-                <span className="text-sm font-bold">Private (Admin only)</span>
+                <span className="text-xs md:text-sm font-bold">Private</span>
               </button>
             </div>
             <button
               type="submit"
               disabled={loading || !text.trim()}
-              className="bg-brand-900 text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 disabled:opacity-50"
+              className="w-full bg-brand-900 text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 disabled:opacity-50 text-sm"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               Submit Request

@@ -85,25 +85,25 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <div className="space-y-12">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-5xl font-bold tracking-tighter text-stone-900 dark:text-stone-100">Upcoming <span className="serif-display text-brand-600 dark:text-brand-400">Events</span>.</h1>
-          <p className="text-stone-500 dark:text-stone-400 mt-2">Join us in our journey of faith and fellowship.</p>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-stone-900 dark:text-stone-100">Upcoming <span className="serif-display text-brand-600 dark:text-brand-400">Events</span>.</h1>
+          <p className="text-stone-500 dark:text-stone-400 mt-2 text-sm md:text-base">Join us in our journey of faith and fellowship.</p>
         </div>
         {isAdmin && (
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4 w-full sm:w-auto">
             <button 
               onClick={handleDeleteExpired}
-              className="bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-stone-200 transition-all active:scale-95"
+              className="flex-1 sm:flex-none justify-center bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-4 py-2.5 md:px-6 md:py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-stone-200 transition-all active:scale-95 text-xs md:text-sm"
             >
-              <Sparkles className="w-5 h-5 text-amber-500" />
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
               Clean Up
             </button>
             <button 
               onClick={() => setShowAdd(true)}
-              className="bg-brand-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 active:scale-95"
+              className="flex-1 sm:flex-none justify-center bg-brand-900 text-white px-4 py-2.5 md:px-6 md:py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 active:scale-95 text-xs md:text-sm"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4 md:w-5 md:h-5" />
               Post Event
             </button>
           </div>

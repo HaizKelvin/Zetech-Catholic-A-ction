@@ -87,11 +87,11 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <div className="max-w-3xl mx-auto space-y-12">
-      <div className="flex justify-between items-center">
-        <h1 className="text-5xl font-bold tracking-tighter text-stone-900 dark:text-stone-100">Religious <span className="serif-display text-brand-600 dark:text-brand-400">Trivia</span>.</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-stone-900 dark:text-stone-100">Religious <span className="serif-display text-brand-600 dark:text-brand-400">Trivia</span>.</h1>
         {isAdmin && (
-           <button onClick={() => setShowAdd(true)} className="bg-brand-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20">
-             <Plus className="w-5 h-5" /> Add Question
+           <button onClick={() => setShowAdd(true)} className="w-full sm:w-auto bg-brand-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 text-sm">
+             <Plus className="w-4 h-4 md:w-5 md:h-5" /> Add Question
            </button>
         )}
       </div>

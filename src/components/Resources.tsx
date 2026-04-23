@@ -106,18 +106,18 @@ export default function Resources({ role }: ResourcesProps) {
 
   return (
     <div className="space-y-12">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-        <div className="space-y-2">
-           <h1 className="text-5xl font-bold tracking-tighter">Divine <span className="serif-display text-brand-600 dark:text-brand-400">Library</span>.</h1>
-           <p className="text-stone-500 dark:text-stone-400 italic">"Study to show thyself approved..." — 2 Timothy 2:15</p>
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 px-4">
+        <div>
+           <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">Divine <span className="serif-display text-brand-600 dark:text-brand-400">Library</span>.</h1>
+           <p className="text-sm md:text-base text-stone-500 dark:text-stone-400 italic">"Study to show thyself approved..." — 2 Timothy 2:15</p>
         </div>
         
         {role === 'admin' && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-3 bg-brand-900 text-white px-8 py-4 rounded-3xl hover:bg-brand-800 transition-all font-bold shadow-xl shadow-brand-900/20 active:scale-95 group"
+            className="w-full sm:w-auto flex items-center justify-center gap-3 bg-brand-900 text-white px-6 py-3.5 md:px-8 md:py-4 rounded-2xl md:rounded-3xl hover:bg-brand-800 transition-all font-bold shadow-xl shadow-brand-900/20 active:scale-95 group text-sm"
           >
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+            <Plus className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-90 transition-transform" />
             Publish New Content
           </button>
         )}

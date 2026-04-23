@@ -57,6 +57,7 @@ export interface Payment {
   amount: number;
   purpose: string;
   transactionId?: string;
+  method: 'mpesa' | 'paypal' | 'manual';
   status: 'pending' | 'verified';
   timestamp: Timestamp;
 }

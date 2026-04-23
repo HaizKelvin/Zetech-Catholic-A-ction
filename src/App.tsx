@@ -4,7 +4,10 @@ import {
   signInWithPopup, 
   GoogleAuthProvider, 
   signOut,
-  User
+  User,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 import { 
   doc, 
@@ -86,6 +89,10 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark';
@@ -210,10 +217,36 @@ export default function App() {
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
+    setAuthLoading(true);
+    setAuthError('');
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
+      setAuthError(error.message || 'Login failed');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError('');
+    
+    try {
+      if (authMode === 'signup') {
+        const { user: newUser } = await createUserWithEmailAndPassword(auth, authForm.email, authForm.password);
+        await updateProfile(newUser, { displayName: authForm.name });
+        // fetchOrCreateProfile will be triggered by onAuthStateChanged
+      } else {
+        await signInWithEmailAndPassword(auth, authForm.email, authForm.password);
+      }
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      setAuthError(error.message || 'Authentication failed');
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -300,36 +333,101 @@ export default function App() {
           </div>
 
           {/* Login Side - Simplified Glass */}
-          <div className="lg:col-span-5 bg-white/10 dark:bg-black/20 backdrop-blur-2xl p-10 md:p-16 lg:p-24 flex flex-col justify-center relative border-l border-white/10">
-            <div className="mb-16 space-y-4">
-              <h3 className="text-4xl md:text-5xl font-bold text-white tracking-tighter italic serif-display">
-                Welcome Home.
+          <div className="lg:col-span-5 bg-white/10 dark:bg-black/20 backdrop-blur-2xl p-8 md:p-12 lg:p-16 flex flex-col justify-center relative border-l border-white/10 overflow-y-auto">
+            <div className="mb-8 space-y-2">
+              <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tighter italic serif-display">
+                {authMode === 'login' ? 'Welcome Home.' : 'Join the Sanctuary.'}
               </h3>
-              <p className="text-white/60 text-sm md:text-base leading-relaxed max-w-xs font-medium">
-                Connect with the Zetech University Catholic community in a digital space dedicated to faith and growth.
+              <p className="text-white/60 text-xs md:text-sm leading-relaxed max-w-xs font-medium">
+                {authMode === 'login' 
+                  ? 'Connect with the Zetech University Catholic community in a digital space dedicated to faith.'
+                  : 'Be part of our vibrant CA spiritual ecosystem and grow in faith with fellow students.'}
               </p>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-6">
+              <form onSubmit={handleEmailAuth} className="space-y-4">
+                {authMode === 'signup' && (
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-4">Full Name</label>
+                    <input 
+                      required
+                      type="text"
+                      placeholder="e.g. John Doe"
+                      value={authForm.name}
+                      onChange={e => setAuthForm({...authForm, name: e.target.value})}
+                      className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-white/20"
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-4">Email Address</label>
+                  <input 
+                    required
+                    type="email"
+                    placeholder="name@university.com"
+                    value={authForm.email}
+                    onChange={e => setAuthForm({...authForm, email: e.target.value})}
+                    className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-white/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-4">Password</label>
+                  <input 
+                    required
+                    type="password"
+                    placeholder="••••••••"
+                    value={authForm.password}
+                    onChange={e => setAuthForm({...authForm, password: e.target.value})}
+                    className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-white/20"
+                  />
+                </div>
+
+                {authError && (
+                  <p className="text-red-400 text-[10px] font-bold text-center bg-red-400/10 py-2 rounded-xl border border-red-400/20">
+                    {authError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full bg-brand-900 text-white py-4 rounded-[22px] hover:bg-brand-800 hover:scale-[1.01] active:scale-[0.99] transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2"
+                >
+                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (authMode === 'login' ? 'Enter Sanctuary' : 'Create Account')}
+                </button>
+              </form>
+
+              <div className="flex items-center gap-4 w-full">
+                <div className="h-[1px] flex-1 bg-white/10" />
+                <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">OR</span>
+                <div className="h-[1px] flex-1 bg-white/10" />
+              </div>
+
               <button
                 onClick={handleLogin}
-                className="group relative w-full flex items-center justify-center gap-4 bg-white text-stone-950 py-4 rounded-[22px] hover:bg-stone-50 hover:scale-[1.02] active:scale-[0.98] transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-black/50 overflow-hidden"
+                disabled={authLoading}
+                className="group relative w-full flex items-center justify-center gap-4 bg-white text-stone-950 py-4 rounded-[22px] hover:bg-stone-50 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-lg overflow-hidden disabled:opacity-50"
               >
-                <div className="absolute inset-0 bg-brand-500/5 group-hover:bg-transparent transition-colors" />
-                <div className="w-8 h-8 bg-stone-100 rounded-lg p-2 flex items-center justify-center shadow-inner group-hover:rotate-12 transition-transform relative z-10">
+                <div className="w-6 h-6 bg-stone-100 rounded-lg p-1.5 flex items-center justify-center shadow-inner relative z-10">
                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-full h-full" />
                 </div>
-                <span className="relative z-10">Enter Sanctuary</span>
+                <span className="relative z-10">Continue with Google</span>
               </button>
 
-              <div className="flex flex-col items-center gap-6">
-                <div className="flex items-center gap-4 w-full">
-                  <div className="h-[1px] flex-1 bg-white/10" />
-                  <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.5em]">Fellowship</span>
-                  <div className="h-[1px] flex-1 bg-white/10" />
-                </div>
-                
-                <div className="flex justify-center gap-6">
+              <div className="text-center">
+                <button 
+                  onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setAuthError(''); }}
+                  className="text-[10px] font-bold text-white/40 hover:text-brand-400 uppercase tracking-widest transition-colors"
+                >
+                  {authMode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
+                </button>
+              </div>
+
+              <div className="flex flex-col items-center gap-4 border-t border-white/5 pt-8">
+                <div className="flex justify-center gap-4">
                   <SocialLink href="#" icon={<MessageSquare className="w-4 h-4" />} /> 
                   <SocialLink href="#" icon={<Twitter className="w-4 h-4" />} />
                   <SocialLink href="#" icon={<Instagram className="w-4 h-4" />} />
@@ -338,7 +436,7 @@ export default function App() {
               </div>
             </div>
             
-            <p className="mt-24 text-[9px] text-center text-white/20 font-black uppercase tracking-[0.5em]">
+            <p className="mt-12 text-[8px] text-center text-white/20 font-black uppercase tracking-[0.4em]">
               ZUCA • Excellentia Pro Deo • 2026
             </p>
           </div>
