@@ -10,8 +10,8 @@ import {
   getDocs
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { UserProfile, OperationType } from '../types';
-import { handleFirestoreError } from '../utils';
+import { UserProfile, DailyControl, OperationType } from '../types';
+import { handleFirestoreError, compressImage } from '../utils';
 import { 
   Send, 
   User as UserIcon, 
@@ -23,19 +23,26 @@ import {
   Paperclip,
   Users as UsersIcon,
   ChevronLeft,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { deleteDoc, doc } from 'firebase/firestore';
 
 interface Message {
   id: string;
-  text: string;
+  text?: string;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video' | 'sticker';
   senderId: string;
   senderName: string;
   senderPhoto?: string;
   timestamp: any;
 }
+
+const STICKERS = [
+  '🙏', '🙌', '✨', '🕊️', '⛪', '📖', '🕯️', '🛡️', '✝️', '🫂', '🔥', '❤️', '🌟', '🌈', '☀️', '🌸'
+];
 
 export default function ChatPage({ currentUser }: { currentUser: UserProfile | null }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -44,7 +51,10 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
   const [searchQuery, setSearchQuery] = useState('');
   const [showMembers, setShowMembers] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showStickers, setShowStickers] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClearHistory = async () => {
     if (!currentUser || currentUser.role !== 'admin') return;
@@ -97,22 +107,59 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
     fetchUsers();
   }, []);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !currentUser) return;
+  const handleSendMessage = async (e?: React.FormEvent, media?: { url: string, type: Message['mediaType'] }) => {
+    e?.preventDefault();
+    if (!newMessage.trim() && !media && !currentUser) return;
+    if (!currentUser) return;
 
     try {
       await addDoc(collection(db, 'community_chat'), {
         text: newMessage,
+        mediaUrl: media?.url || null,
+        mediaType: media?.type || null,
         senderId: currentUser.uid,
         senderName: currentUser.displayName,
         senderPhoto: currentUser.photoURL || '',
         timestamp: serverTimestamp()
       });
       setNewMessage('');
+      setShowStickers(false);
     } catch (error) {
       console.error("Error sending message:", error);
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    setIsUploading(true);
+    try {
+      if (file.type.startsWith('image/')) {
+        const base64 = await compressImage(file, 800, 800, 0.7);
+        await handleSendMessage(undefined, { url: base64, type: 'image' });
+      } else if (file.type.startsWith('video/')) {
+        // Video storage usually requires a bucket, but we'll try a small check or just notify
+        if (file.size > 1024 * 1024) {
+          alert('Video too large. Please share videos smaller than 1MB or use a link.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async (event) => {
+          await handleSendMessage(undefined, { url: event.target?.result as string, type: 'video' });
+        };
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const sendSticker = (sticker: string) => {
+    handleSendMessage(undefined, { url: sticker, type: 'sticker' });
   };
 
   const handleDeleteMessage = async (messageId: string) => {
@@ -294,60 +341,73 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
               return (
                 <motion.div 
                   key={msg.id}
-                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  className={`flex items-end gap-2 md:gap-3 ${isMine ? 'justify-end' : 'justify-start'}`}
+                  className={`flex items-end gap-3 md:gap-4 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}
                 >
-                  {!isMine && (
-                    <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-sm border-2 border-white dark:border-stone-800">
-                      {msg.senderPhoto ? (
-                        <img src={msg.senderPhoto} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center">
-                          <UserIcon className="w-4 h-4 text-brand-300" />
-                        </div>
-                      )}
+                  <div className={`w-9 h-9 md:w-10 md:h-10 shrink-0 transform transition-transform group-hover:scale-110`}>
+                    <div className={`w-full h-full rounded-[14px] md:rounded-[18px] p-[2px] transition-all bg-gradient-to-br ${
+                      isMine ? 'from-brand-400 to-brand-600 shadow-lg shadow-brand-500/20' : 'from-stone-200 to-stone-300 dark:from-stone-700 dark:to-stone-600 shadow-md'
+                    }`}>
+                      <div className="w-full h-full rounded-[12px] md:rounded-[16px] overflow-hidden bg-white dark:bg-stone-900 border border-white/50 dark:border-stone-800">
+                        {msg.senderPhoto ? (
+                          <img src={msg.senderPhoto} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-stone-50 dark:bg-stone-800 flex items-center justify-center">
+                            <UserIcon className="w-4 h-4 text-stone-300" />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                   
-                  <div className={`max-w-[85%] md:max-w-[70%] group relative px-4 md:px-6 py-3 md:py-4 rounded-[24px] md:rounded-[32px] transition-all ${
+                  <div className={`max-w-[85%] md:max-w-[70%] group relative px-4 md:px-6 py-3 md:py-4 rounded-[28px] md:rounded-[36px] transition-all ${
                     isMine 
-                      ? 'bg-brand-900 text-white rounded-br-none shadow-xl shadow-brand-900/20' 
+                      ? 'bg-brand-900 text-white rounded-br-none shadow-xl shadow-brand-900/10' 
                       : 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-100 dark:border-stone-700 shadow-sm'
                   }`}>
                     {(isMine || currentUser?.role === 'admin') && (
                       <button 
                         onClick={() => handleDeleteMessage(msg.id)}
-                        className={`absolute -top-3 ${isMine ? '-left-3' : '-right-3'} p-2 bg-white dark:bg-stone-900 rounded-full shadow-2xl border border-stone-100 dark:border-stone-800 md:opacity-0 group-hover:opacity-100 transition-all z-20 hover:text-red-500 text-stone-400 hover:scale-110 active:scale-95`}
+                        className={`absolute -top-3 ${isMine ? 'right-0' : 'left-0'} p-2 bg-white dark:bg-stone-900 rounded-full shadow-2xl border border-stone-100 dark:border-stone-800 md:opacity-0 group-hover:opacity-100 transition-all z-20 hover:text-red-500 text-stone-400 hover:scale-110 active:scale-95`}
                         title="Delete Message"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
                     {!isMine && (
-                      <span className="block text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1">
+                      <span className="block text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1.5">
                         {msg.senderName}
                       </span>
                     )}
-                    <p className="text-xs md:text-[15px] leading-relaxed font-medium">{msg.text}</p>
-                    <div className={`flex items-center gap-1 mt-2 ${isMine ? 'justify-end opacity-60' : 'justify-start opacity-40'}`}>
-                      <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest">
+
+                    <div className="space-y-2">
+                      {msg.mediaUrl && (
+                        <div className="rounded-2xl overflow-hidden mb-2 shadow-inner bg-black/5 dark:bg-white/5">
+                          {msg.mediaType === 'image' && (
+                            <img src={msg.mediaUrl} alt="Shared" className="w-full h-auto max-h-[300px] object-cover hover:scale-[1.02] transition-transform cursor-pointer" />
+                          )}
+                          {msg.mediaType === 'video' && (
+                            <video src={msg.mediaUrl} controls className="w-full h-auto max-h-[300px]" />
+                          )}
+                          {msg.mediaType === 'sticker' && (
+                            <div className="text-5xl py-4 flex justify-center animate-bounce-slow">
+                              {msg.mediaUrl}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {msg.text && (
+                        <p className="text-xs md:text-[15px] leading-relaxed font-medium">{msg.text}</p>
+                      )}
+                    </div>
+
+                    <div className={`flex items-center gap-1.5 mt-2 ${isMine ? 'justify-end opacity-60' : 'justify-start opacity-40'}`}>
+                      <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em]">
                         {msg.timestamp?.toDate?.()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '...' }
                       </span>
                     </div>
                   </div>
-
-                  {isMine && (
-                    <div className="w-6 h-6 rounded-lg overflow-hidden shrink-0 opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all">
-                      {msg.senderPhoto ? (
-                        <img src={msg.senderPhoto} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center">
-                          <UserIcon className="w-3 h-3 text-stone-400" />
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </motion.div>
               );
             })}
@@ -358,8 +418,53 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         {/* Message Input */}
         <div className="p-4 md:p-6 bg-white/60 dark:bg-stone-900/60 backdrop-blur-md z-10 border-t border-stone-100 dark:border-stone-800">
           <form onSubmit={handleSendMessage} className="flex items-center gap-2 md:gap-4 max-w-4xl mx-auto">
-            <div className="flex items-center">
-              <button type="button" className="p-2 md:p-3 text-stone-400 hover:text-brand-600 transition-colors"><Smile className="w-5 h-5 md:w-6 md:h-6" /></button>
+            <div className="flex items-center gap-1 relative">
+              <button 
+                type="button" 
+                onClick={() => setShowStickers(!showStickers)}
+                className={`p-2 md:p-3 hover:text-brand-600 transition-colors ${showStickers ? 'text-brand-600' : 'text-stone-400'}`}
+              >
+                <Smile className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
+              
+              <AnimatePresence>
+                {showStickers && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                    animate={{ opacity: 1, y: -10, scale: 1 }}
+                    exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                    className="absolute bottom-full left-0 mb-4 p-4 bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-stone-100 dark:border-stone-800 grid grid-cols-4 gap-3 w-48 z-50 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 faith-bg opacity-10 pointer-events-none" />
+                    {STICKERS.map((s, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => sendSticker(s)}
+                        className="text-2xl hover:scale-125 hover:rotate-12 transition-all active:scale-95"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="p-2 md:p-3 text-stone-400 hover:text-brand-600 transition-colors disabled:opacity-50"
+              >
+                {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5 md:w-6 md:h-6" />}
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/*,video/*"
+                className="hidden"
+              />
             </div>
             
             <div className="flex-1 relative">
@@ -374,7 +479,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
 
             <button 
               type="submit"
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() && !isUploading}
               className={`p-3 md:p-4 rounded-full transition-all flex items-center justify-center shadow-lg active:scale-90 ${
                 newMessage.trim() 
                   ? 'bg-brand-900 text-white shadow-brand-900/20' 

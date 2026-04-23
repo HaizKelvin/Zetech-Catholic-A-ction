@@ -12,7 +12,7 @@ import {
 import { db, auth } from '../firebase';
 import { Resource, OperationType, UserRole } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Music, FileText, Play, Plus, Trash2, ExternalLink, Search, X, Book, Heart, ScrollText } from 'lucide-react';
+import { Music, FileText, Play, Plus, Trash2, ExternalLink, Search, X, Book, Heart, ScrollText, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ResourcesProps {
@@ -158,6 +158,33 @@ export default function Resources({ role }: ResourcesProps) {
         {/* Resources Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence mode="popLayout">
+            {/* Spiritual Guide CTA Card */}
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="lg:col-span-1 glass p-10 rounded-[48px] border-2 border-brand-500/20 bg-brand-50/50 dark:bg-brand-900/10 flex flex-col justify-between group relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
+              <div className="relative z-10">
+                <div className="w-14 h-14 rounded-2xl bg-brand-900 text-white flex items-center justify-center shadow-lg mb-8 group-hover:scale-110 transition-transform">
+                  <Bot className="w-7 h-7" />
+                </div>
+                <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-4 tracking-tighter leading-tight">
+                  Guided <br />
+                  <span className="serif-display italic text-brand-600">Scholarship</span>.
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-medium leading-relaxed mb-6">
+                  Need help interpreting a text or finding a specific hymn? Our Spiritual Guide is here to assist your study.
+                </p>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-black/20 border border-brand-200 dark:border-white/5 w-fit">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Guide Online</span>
+                </div>
+              </div>
+              <p className="mt-8 text-[9px] font-black uppercase tracking-[0.3em] text-brand-600 underline cursor-pointer">Start Consultation →</p>
+            </motion.div>
+
             {filteredResources.length === 0 ? (
                <motion.div 
                  initial={{ opacity: 0 }} 

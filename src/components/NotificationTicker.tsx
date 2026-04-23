@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, orderBy, limit, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, Timestamp, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, Zap, Star, Info, User } from 'lucide-react';
@@ -86,6 +86,22 @@ export default function NotificationTicker() {
       });
     }, (err) => console.error("Ticker resources error:", err)));
 
+    // Listen for Dashboard updates
+    unsubscribers.push(onSnapshot(doc(db, 'control', 'daily_bread'), (d) => {
+      if (d.exists()) {
+        const data = d.data();
+        if (data.updatedAt) {
+          const newAlert: AlertItem = {
+            id: 'dashboard-update-' + (data.updatedAt.toMillis?.() || Date.now()),
+            type: 'activity',
+            text: `Daily Inspiration has been updated!`,
+            timestamp: data.updatedAt
+          };
+          addAlertIfNotExpired(newAlert);
+        }
+      }
+    }));
+
     return () => unsubscribers.forEach(unsub => unsub());
   }, []);
 
@@ -114,10 +130,6 @@ export default function NotificationTicker() {
     return () => clearTimeout(timer);
   }, [alerts]);
 
-  if (alerts.length === 0) return null;
-
-  const currentAlert = alerts[0];
-
   const getIcon = (type: string) => {
     switch (type) {
       case 'member': return <User className="w-3 h-3 text-emerald-500" />;
@@ -128,26 +140,29 @@ export default function NotificationTicker() {
     }
   };
 
+  if (alerts.length === 0) return null;
+
+  const currentAlert = alerts[0];
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] flex justify-center pointer-events-none pt-2">
-      <div className="w-full max-w-xs mx-4 pointer-events-auto">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentAlert.id}
-            initial={{ y: -30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 10, opacity: 0 }}
-            className="flex items-center gap-2 px-4 py-2 rounded-[20px] glass-dark border border-white/10 shadow-xl backdrop-blur-3xl"
-          >
-            <div className="shrink-0 w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
-              {getIcon(currentAlert.type)}
-            </div>
-            <div className="flex-1 min-w-0">
-               <p className="text-[10px] font-bold text-white truncate">{currentAlert.text}</p>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
+    <div className="fixed top-16 left-0 right-0 z-[60] flex justify-center pointer-events-none px-4">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentAlert.id}
+          initial={{ scale: 0.5, opacity: 0, y: -20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.5, opacity: 0, y: 10 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className="pointer-events-auto flex items-center gap-3 px-5 py-2.5 rounded-full glass-dark border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.4)] backdrop-blur-3xl w-fit max-w-[280px] ring-1 ring-white/10"
+        >
+          <div className="shrink-0 w-6 h-6 rounded-full bg-brand-900/20 flex items-center justify-center shadow-inner">
+            {getIcon(currentAlert.type)}
+          </div>
+          <div className="min-w-0">
+             <p className="text-[10px] leading-tight font-black text-white truncate">{currentAlert.text}</p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

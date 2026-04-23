@@ -52,7 +52,7 @@ export default function AdminPanel() {
         ...dailyForm,
         updatedAt: serverTimestamp()
       });
-      alert('Updated successfully!');
+      // Admin update notification is handled by NotificationTicker listening to 'control' collection
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, 'control/daily_bread');
     } finally {
