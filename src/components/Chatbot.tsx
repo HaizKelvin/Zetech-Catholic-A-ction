@@ -18,7 +18,7 @@ import Markdown from 'react-markdown';
 import { Send, Bot, User, Loader2, MessageCircle, X, Minus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-export default function Chatbot() {
+export default function Chatbot({ userName }: { userName?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -110,7 +110,7 @@ export default function Chatbot() {
            { role: 'user', parts: [{ text: userText }] }
         ],
         config: {
-          systemInstruction: "You are a spiritual guide for the ZUCA (Zetech University Catholic Action) community. Provide encouraging, biblically-sound, and Catholic-oriented guidance. Be compassionate and wise. ALWAYS provide summarized and concise replies unless explicitly asked for a detailed explanation. Use a warm, editorial tone. Refer to the user as a fellow seeker."
+          systemInstruction: `You are a spiritual guide for the ZUCA (Zetech University Catholic Action) community. ${userName ? `You are speaking with ${userName}. ` : ""}Provide encouraging, biblically-sound, and Catholic-oriented guidance. Be compassionate and wise. ALWAYS provide summarized and concise replies unless explicitly asked for a detailed explanation. Use a warm, editorial tone. Refer to the user as a fellow seeker.`
         }
       });
       

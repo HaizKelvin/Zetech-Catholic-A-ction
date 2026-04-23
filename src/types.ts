@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string;
   displayName: string | null;
   photoURL?: string;
+  contactNumber?: string;
   bio?: string;
   role: UserRole;
   createdAt: Timestamp;

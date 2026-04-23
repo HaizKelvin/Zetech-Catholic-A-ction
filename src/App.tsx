@@ -87,7 +87,43 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabType>('home');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    // Initial state from URL if present
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab') as TabType;
+      return tab || 'home';
+    }
+    return 'home';
+  });
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state?.tab) {
+        setActiveTab(event.state.tab);
+      } else {
+        setActiveTab('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Update URL and history when tab changes
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    
+    // Only push state if the tab is different from the current one in history
+    if (window.history.state?.tab !== tab) {
+      window.history.pushState({ tab }, '', url.toString());
+    }
+    
+    if (window.innerWidth < 768) setIsSidebarOpen(false);
+  };
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
@@ -100,7 +136,7 @@ export default function App() {
     return false;
   });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ displayName: '', photoURL: '', bio: '' });
+  const [editForm, setEditForm] = useState({ displayName: '', photoURL: '', contactNumber: '', bio: '' });
   const [isMenuVisible, setIsMenuVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -153,6 +189,7 @@ export default function App() {
         setEditForm({ 
           displayName: data.displayName || firebaseUser.displayName || '', 
           photoURL: data.photoURL || firebaseUser.photoURL || '', 
+          contactNumber: data.contactNumber || '', 
           bio: data.bio || '' 
         });
       } else {
@@ -173,6 +210,7 @@ export default function App() {
         setEditForm({
           displayName: newProfile.displayName || '',
           photoURL: newProfile.photoURL || '',
+          contactNumber: '',
           bio: ''
         });
       }
@@ -200,6 +238,7 @@ export default function App() {
       await updateDoc(userDocRef, {
         displayName: editForm.displayName,
         photoURL: editForm.photoURL,
+        contactNumber: editForm.contactNumber,
         bio: editForm.bio
       });
       
@@ -207,6 +246,7 @@ export default function App() {
         ...prev, 
         displayName: editForm.displayName,
         photoURL: editForm.photoURL,
+        contactNumber: editForm.contactNumber,
         bio: editForm.bio
       } : null);
       setIsProfileModalOpen(false);
@@ -471,20 +511,20 @@ export default function App() {
 
           {/* Menu Items */}
           <nav className="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
-            <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-5 h-5" />} label="Overview" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'chat'} onClick={() => setActiveTab('chat')} icon={<Hash className="w-5 h-5" />} label="Community Hub" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'gallery'} onClick={() => setActiveTab('gallery')} icon={<ImageIcon className="w-5 h-5" />} label="Activities" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'resources'} onClick={() => setActiveTab('resources')} icon={<Library className="w-5 h-5" />} label="Divine Library" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'petitions'} onClick={() => setActiveTab('petitions')} icon={<Heart className="w-5 h-5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'events'} onClick={() => setActiveTab('events')} icon={<Calendar className="w-5 h-5" />} label="Events" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon={<CreditCard className="w-5 h-5" />} label="Payments" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'trivia'} onClick={() => setActiveTab('trivia')} icon={<Trophy className="w-5 h-5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'contact'} onClick={() => setActiveTab('contact')} icon={<Mail className="w-5 h-5" />} label="Contact Us" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-5 h-5" />} label="Overview" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-5 h-5" />} label="Community Hub" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-5 h-5" />} label="Activities" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-5 h-5" />} label="Divine Library" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-5 h-5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-5 h-5" />} label="Events" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} icon={<CreditCard className="w-5 h-5" />} label="Payments" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-5 h-5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'contact'} onClick={() => handleTabChange('contact')} icon={<Mail className="w-5 h-5" />} label="Contact Us" isOpen={isSidebarOpen} />
             
             {isAdmin && (
               <div className="pt-6 mt-6 border-t border-stone-100 dark:border-stone-800">
                 {isSidebarOpen && <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-300 ml-4 mb-4">Admin Only</p>}
-                <NavItem active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} icon={<Shield className="w-5 h-5" />} label="Admin Panel" isOpen={isSidebarOpen} admin />
+                <NavItem active={activeTab === 'admin'} onClick={() => handleTabChange('admin')} icon={<Shield className="w-5 h-5" />} label="Admin Panel" isOpen={isSidebarOpen} admin />
               </div>
             )}
           </nav>
@@ -529,15 +569,27 @@ export default function App() {
       {/* Mobile & Desktop Menu Trigger */}
       <AnimatePresence>
         {!isSidebarOpen && isMenuVisible && (
-          <motion.button 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={() => setIsSidebarOpen(true)}
-            className="fixed top-3 left-3 md:top-4 md:left-4 z-40 p-2.5 glass rounded-xl shadow-lg border border-white/10 group hover:bg-brand-900 transition-colors"
-          >
-            <Menu className="w-4 h-4 md:w-5 md:h-5 text-brand-900 dark:text-brand-400 group-hover:text-white" />
-          </motion.button>
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed top-0 inset-x-0 h-32 pointer-events-none z-30"
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-stone-950/20 to-transparent dark:from-brand-900/5" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-32 bg-brand-400/5 blur-[80px] rounded-full animate-pulse" />
+              <div className="absolute top-2 left-4 w-32 h-1 bg-gradient-to-r from-brand-600/20 to-transparent rounded-full" />
+            </motion.div>
+            <motion.button 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={() => setIsSidebarOpen(true)}
+              className="fixed top-3 left-3 md:top-4 md:left-4 z-40 p-2.5 glass rounded-xl shadow-lg border border-white/10 group hover:bg-brand-900 transition-colors"
+            >
+              <Menu className="w-4 h-4 md:w-5 md:h-5 text-brand-900 dark:text-brand-400 group-hover:text-white" />
+            </motion.button>
+          </>
         )}
       </AnimatePresence>
 
@@ -586,7 +638,7 @@ export default function App() {
               <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <Dashboard 
                   userName={profile?.displayName?.split(' ')[0] || 'Member'} 
-                  onTabChange={(tab) => setActiveTab(tab)}
+                  onTabChange={(tab) => handleTabChange(tab)}
                 />
               </motion.div>
             )}
@@ -706,12 +758,12 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Profile Picture URL</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Contact Number</label>
                     <input 
-                        type="url" 
-                        value={editForm.photoURL} 
-                        onChange={e => setEditForm({...editForm, photoURL: e.target.value})} 
-                        placeholder="Image URL..." 
+                        type="tel" 
+                        value={editForm.contactNumber} 
+                        onChange={e => setEditForm({...editForm, contactNumber: e.target.value})} 
+                        placeholder="+254..." 
                         className="w-full px-6 py-4 rounded-2xl" 
                     />
                   </div>
@@ -740,7 +792,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Floating Chat */}
-      <Chatbot />
+      <Chatbot userName={profile?.displayName?.split(' ')[0]} />
       <NotificationTicker />
     </div>
   );
