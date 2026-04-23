@@ -101,7 +101,7 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
           key={currentIndex}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="glass p-12 rounded-[40px] shadow-2xl"
+          className="glass p-6 md:p-12 rounded-[32px] md:rounded-[40px] shadow-2xl"
         >
           <div className="flex justify-between items-center mb-8">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1 rounded-full">

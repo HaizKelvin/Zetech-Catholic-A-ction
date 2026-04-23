@@ -174,9 +174,9 @@ function QuickAction({ title, icon, color, bg, onClick }: { title: string, icon:
       whileHover={{ scale: 1.05, y: -8 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`p-8 md:p-10 rounded-[40px] glass ${bg} flex flex-col items-center justify-center text-center gap-5 cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 border border-white/20`}
+      className={`p-6 md:p-10 rounded-[32px] md:rounded-[40px] glass ${bg} flex flex-col items-center justify-center text-center gap-4 md:gap-5 cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 border border-white/20`}
     >
-      <div className={`w-16 h-16 flex items-center justify-center bg-white dark:bg-black/40 rounded-3xl shadow-xl ${color} ring-4 ring-black/5`}>{icon}</div>
+      <div className={`w-12 h-12 md:w-16 md:h-16 flex items-center justify-center bg-white dark:bg-black/40 rounded-2xl md:rounded-3xl shadow-xl ${color} ring-4 ring-black/5`}>{icon}</div>
       <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">{title}</span>
     </motion.button>
   );

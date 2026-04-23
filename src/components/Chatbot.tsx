@@ -136,14 +136,14 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed bottom-6 right-6 z-[110] flex flex-col items-end">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="mb-4 w-[calc(100vw-2rem)] md:w-[320px] h-[calc(100vh-12rem)] md:h-[480px] bg-white/90 dark:bg-stone-950/90 backdrop-blur-3xl rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/20 dark:border-white/5 overflow-hidden flex flex-col"
+            className="mb-4 w-[calc(100vw-3rem)] md:w-[300px] h-[55vh] md:h-[420px] bg-white/90 dark:bg-stone-950/90 backdrop-blur-3xl rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 dark:border-white/5 overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="p-4 bg-brand-900 text-white flex items-center justify-between">

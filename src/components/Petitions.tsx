@@ -65,7 +65,7 @@ export default function Petitions() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-12">
-      <div className="glass rounded-[40px] p-8 md:p-12 shadow-xl italic">
+      <div className="glass rounded-[32px] md:rounded-[40px] p-6 md:p-12 shadow-xl italic">
         <h2 className="text-3xl font-bold text-stone-900 dark:text-stone-100 mb-4 ">Submit a Prayer Request</h2>
         <p className="text-stone-500 dark:text-stone-400 mb-8">"For where two or three are gathered in my name, there am I among them." — Matthew 18:20</p>
         
