@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { DailyControl } from '../types';
-import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Music, Heart } from 'lucide-react';
+import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Music, Heart, Library } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function Dashboard({ userName, onTabChange }: { userName: string, onTabChange: (tab: any) => void }) {
@@ -158,7 +158,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
           <div className="h-[1px] flex-1 bg-stone-100 dark:bg-white/5" />
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <QuickAction onClick={() => onTabChange('choir')} title="Choir Hub" icon={<Music className="w-6 h-6" />} color="text-brand-600" bg="bg-brand-50/50 dark:bg-brand-900/10" />
+          <QuickAction onClick={() => onTabChange('resources')} title="Divine Library" icon={<Library className="w-6 h-6" />} color="text-brand-600" bg="bg-brand-50/50 dark:bg-brand-900/10" />
           <QuickAction onClick={() => onTabChange('petitions')} title="Prayer Desk" icon={<Heart className="w-6 h-6" />} color="text-rose-600" bg="bg-rose-50/50 dark:bg-rose-900/10" />
           <QuickAction onClick={() => onTabChange('events')} title="Events Wall" icon={<Calendar className="w-6 h-6" />} color="text-indigo-600" bg="bg-indigo-50/50 dark:bg-indigo-900/10" />
           <QuickAction onClick={() => onTabChange('trivia')} title="Holy Trivia" icon={<BookOpen className="w-6 h-6" />} color="text-amber-600" bg="bg-amber-50/50 dark:bg-amber-900/10" />

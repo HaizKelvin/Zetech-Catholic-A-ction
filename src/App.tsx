@@ -56,6 +56,7 @@ import {
   Youtube,
   User as UserIcon,
   Image as ImageIcon,
+  Library,
   Home,
   Hash,
   CreditCard,
@@ -64,7 +65,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'choir' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact';
+type TabType = 'home' | 'resources' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -375,7 +376,7 @@ export default function App() {
             <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-5 h-5" />} label="Overview" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'chat'} onClick={() => setActiveTab('chat')} icon={<Hash className="w-5 h-5" />} label="Community Hub" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'gallery'} onClick={() => setActiveTab('gallery')} icon={<ImageIcon className="w-5 h-5" />} label="Activities" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'choir'} onClick={() => setActiveTab('choir')} icon={<Music className="w-5 h-5" />} label="Choir Library" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'resources'} onClick={() => setActiveTab('resources')} icon={<Library className="w-5 h-5" />} label="Divine Library" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'petitions'} onClick={() => setActiveTab('petitions')} icon={<Heart className="w-5 h-5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'events'} onClick={() => setActiveTab('events')} icon={<Calendar className="w-5 h-5" />} label="Events" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon={<CreditCard className="w-5 h-5" />} label="Payments" isOpen={isSidebarOpen} />
@@ -501,8 +502,8 @@ export default function App() {
                 <Gallery profile={profile} />
               </motion.div>
             )}
-            {activeTab === 'choir' && (
-              <motion.div key="choir" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+            {activeTab === 'resources' && (
+              <motion.div key="resources" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <Resources role={profile?.role || 'member'} />
               </motion.div>
             )}

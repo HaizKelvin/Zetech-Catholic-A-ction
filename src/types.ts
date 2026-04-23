@@ -15,7 +15,8 @@ export interface UserProfile {
 export interface Resource {
   id: string;
   title: string;
-  category: 'Hymn' | 'Sheet Music' | 'Liturgical Guide' | 'Audio';
+  category: 'Hymn' | 'Sheet Music' | 'Liturgical Guide' | 'Audio' | 'Document' | 'Rosary Guide' | 'Scripture' | 'Other';
+  description?: string;
   content?: string;
   fileUrl?: string;
   uploadedBy: string;
