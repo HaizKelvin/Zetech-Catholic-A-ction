@@ -236,37 +236,42 @@ export default function App() {
   if (!user) {
     return (
       <div className="min-h-screen relative flex items-center justify-center p-4 md:p-6 overflow-hidden bg-stone-950">
-        {/* Full screen background with Zetech image integrated - ensuring responsive siting */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
-            alt="Zetech UI" 
-            className="w-full h-full object-cover object-center opacity-60 contrast-125 scale-105"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-stone-950/80 via-stone-950/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-[70vh] bg-gradient-to-t from-stone-950 via-stone-950/60 to-transparent" />
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-900/10 blur-[150px] rounded-full -mr-96 -mt-96" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-900/5 blur-[120px] rounded-full -ml-48 -mb-48" />
         </div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 max-w-[1200px] w-full grid grid-cols-1 lg:grid-cols-12 rounded-[48px] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)]"
+          className="relative z-10 max-w-[1100px] w-full grid grid-cols-1 lg:grid-cols-12 rounded-[40px] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-stone-900"
         >
-          {/* Brand Motto - Large and Bold over the image */}
-          <div className="lg:col-span-7 p-10 md:p-16 lg:p-28 flex flex-col justify-center relative overflow-hidden">
+          {/* Brand Side with contained image */}
+          <div className="lg:col-span-7 p-10 md:p-14 lg:p-24 flex flex-col justify-center relative overflow-hidden min-h-[400px]">
+             {/* The image is now contained within this side */}
+             <div className="absolute inset-0 z-0">
+               <img 
+                src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
+                alt="Zetech UI" 
+                className="w-full h-full object-cover object-center opacity-40 contrast-125"
+                referrerPolicy="no-referrer"
+               />
+               <div className="absolute inset-0 bg-stone-950/40" />
+               <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-stone-950 to-transparent" />
+             </div>
+
             <div className="relative z-10">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 }}
-                className="flex items-center gap-5 mb-16"
+                className="flex items-center gap-4 mb-8"
               >
-                <div className="w-20 h-20 bg-brand-900 rounded-[28px] flex items-center justify-center shadow-3xl shadow-brand-900/50 rotate-3 border border-white/20">
-                  <Church className="w-10 h-10 text-white" />
+                <div className="w-14 h-14 bg-brand-900 rounded-[20px] flex items-center justify-center shadow-2xl border border-white/20">
+                  <Church className="w-7 h-7 text-white" />
                 </div>
-                <h1 className="text-4xl font-black tracking-widest text-white drop-shadow-xl">ZUCA</h1>
+                <h1 className="text-2xl font-black tracking-widest text-white drop-shadow-lg">ZUCA</h1>
               </motion.div>
 
               <div className="space-y-4">
@@ -274,7 +279,7 @@ export default function App() {
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-7xl md:text-[11rem] font-bold text-white tracking-tighter leading-[0.75] mt-[-0.05em]"
+                  className="text-5xl md:text-[7rem] font-bold text-white tracking-tighter leading-[0.8]"
                 >
                   Seek. <br />
                   Serve. <br />
@@ -283,11 +288,11 @@ export default function App() {
               </div>
             </div>
 
-            <div className="mt-16 flex items-center gap-6">
-               <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                 <div className="flex items-center gap-3">
-                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Official Sanctuary Hub</span>
+            <div className="mt-12 flex items-center gap-4 relative z-10">
+               <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                 <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                   <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">Official Hub</span>
                  </div>
                </div>
             </div>
