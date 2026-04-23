@@ -143,47 +143,47 @@ export default function Chatbot() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="mb-4 w-[calc(100vw-2rem)] md:w-[380px] h-[calc(100vh-10rem)] md:h-[550px] bg-white dark:bg-stone-950 rounded-3xl shadow-2xl border border-stone-200 dark:border-stone-800 overflow-hidden flex flex-col"
+            className="mb-4 w-[calc(100vw-2rem)] md:w-[320px] h-[calc(100vh-12rem)] md:h-[480px] bg-white/90 dark:bg-stone-950/90 backdrop-blur-3xl rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/20 dark:border-white/5 overflow-hidden flex flex-col"
           >
             {/* Header */}
-            <div className="p-5 bg-brand-900 text-white flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center border border-white/30">
-                  <Bot className="w-6 h-6 text-brand-100" />
+            <div className="p-4 bg-brand-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center border border-white/30 backdrop-blur-md">
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm">Spiritual Companion</h3>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-                    <span className="text-[10px] text-brand-300 uppercase tracking-wider font-bold">Online</span>
+                  <h3 className="font-bold text-xs">Spiritual Guide</h3>
+                  <div className="flex items-center gap-1">
+                    <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[8px] text-brand-200 uppercase tracking-tighter font-black">Active Now</span>
                   </div>
                 </div>
               </div>
               <button 
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
               >
-                <Minus className="w-5 h-5" />
+                <Minus className="w-4 h-4" />
               </button>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-[#FBFBFA] dark:bg-stone-950/50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-5 bg-gradient-to-b from-stone-50/50 to-white/50 dark:from-stone-900/20 dark:to-stone-950/20">
               {messages.length === 0 && !isLoading && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-6 grayscale opacity-50">
-                  <Bot className="w-12 h-12 text-stone-400 mb-4" />
-                  <p className="text-stone-500 text-sm italic">"Ask, and it will be given to you; seek, and you will find..."</p>
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-30">
+                  <Bot className="w-8 h-8 mb-3" />
+                  <p className="text-[10px] font-medium italic">"Seek and you shall find..."</p>
                 </div>
               )}
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`p-3.5 rounded-2xl text-sm leading-relaxed ${
+                  <div className={`flex gap-2 max-w-[90%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`p-3 rounded-2xl text-[13px] leading-relaxed shadow-sm ${
                       msg.role === 'user' 
-                        ? 'bg-brand-900 text-white rounded-tr-none' 
-                        : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 shadow-sm border border-stone-100 dark:border-stone-800 rounded-tl-none'
+                        ? 'bg-stone-950 text-white dark:bg-white dark:text-stone-950 rounded-tr-none' 
+                        : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 border border-stone-100 dark:border-stone-800 rounded-tl-none'
                     }`}>
-                      <div className="markdown-body prose prose-sm max-w-none prose-stone dark:prose-invert">
+                      <div className="markdown-body prose prose-xs max-w-none prose-stone dark:prose-invert">
                         <Markdown>{msg.text}</Markdown>
                       </div>
                     </div>
@@ -192,8 +192,12 @@ export default function Chatbot() {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-white dark:bg-stone-900 p-3.5 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800 rounded-tl-none">
-                    <Loader2 className="w-4 h-4 animate-spin text-brand-600" />
+                  <div className="bg-white dark:bg-stone-900 px-3 py-2 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800 rounded-tl-none">
+                    <div className="flex gap-1">
+                       <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce" />
+                       <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                       <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -201,20 +205,20 @@ export default function Chatbot() {
             </div>
 
             {/* Input */}
-            <form onSubmit={handleSend} className="p-4 bg-white dark:bg-stone-950 border-t border-stone-100 dark:border-stone-800 flex gap-2">
+            <form onSubmit={handleSend} className="p-3 bg-white/50 dark:bg-stone-950/50 backdrop-blur-md border-t border-stone-100 dark:border-white/5 flex gap-2">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1 px-4 py-2.5 bg-stone-50 dark:bg-stone-900 border-none rounded-2xl focus:ring-2 focus:ring-brand-500/20 outline-none text-sm"
+                placeholder="Ask your guide..."
+                className="flex-1 px-4 py-2 bg-stone-100/50 dark:bg-white/5 border-none rounded-xl outline-none text-xs placeholder:text-stone-400"
               />
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="bg-brand-900 text-white p-2.5 rounded-2xl hover:bg-brand-800 transition-all active:scale-95"
+                className="bg-brand-900 text-white p-2 rounded-xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4" />
               </button>
             </form>
           </motion.div>

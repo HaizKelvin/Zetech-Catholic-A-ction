@@ -29,6 +29,7 @@ import Gallery from './components/Gallery';
 import TriviaComponent from './components/Trivia';
 import AdminPanel from './components/AdminPanel';
 import ChatPage from './components/ChatPage';
+import ContactUs from './components/ContactUs';
 import NotificationTicker from './components/NotificationTicker';
 
 import { 
@@ -49,7 +50,7 @@ import {
   Sun,
   Moon,
   MessageCircle,
-  Facebook,
+  MessageSquare,
   Twitter,
   Instagram,
   Youtube,
@@ -58,11 +59,12 @@ import {
   Home,
   Hash,
   CreditCard,
-  Trophy
+  Trophy,
+  Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'choir' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery';
+type TabType = 'home' | 'choir' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -70,7 +72,7 @@ function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
       whileHover={{ scale: 1.1, y: -2 }}
       whileTap={{ scale: 0.9 }}
       href={href} 
-      className="p-3 bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/5 rounded-2xl text-stone-400 hover:text-brand-600 hover:bg-brand-50 transition-all shadow-sm"
+      className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-white/40 hover:text-brand-400 hover:bg-white/10 transition-all shadow-sm"
     >
       {icon}
     </motion.a>
@@ -233,131 +235,105 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen relative flex items-center justify-center p-4 md:p-6 overflow-hidden bg-[#0c0a09]">
-        {/* Full screen background with layered overlays */}
+      <div className="min-h-screen relative flex items-center justify-center p-4 md:p-6 overflow-hidden bg-stone-950">
+        {/* Full screen background with Zetech image integrated - ensuring responsive siting */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1515233599467-41e97df40cf6?auto=format&fit=crop&q=80&w=2000" 
-            alt="Sanctuary" 
-            className="w-full h-full object-cover opacity-60"
+            src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
+            alt="Zetech UI" 
+            className="w-full h-full object-cover object-center opacity-60 contrast-125 scale-105"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-stone-950 via-stone-950/80 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-stone-950 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-stone-950/80 via-stone-950/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-[70vh] bg-gradient-to-t from-stone-950 via-stone-950/60 to-transparent" />
         </div>
 
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 max-w-[1100px] w-full grid grid-cols-1 lg:grid-cols-12 glass shadow-2xl rounded-[40px] overflow-hidden border border-white/10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          className="relative z-10 max-w-[1200px] w-full grid grid-cols-1 lg:grid-cols-12 rounded-[48px] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)]"
         >
-          {/* Left Side (7 columns) - Brand & Inspiration */}
-          <div className="lg:col-span-7 p-8 md:p-14 lg:p-20 flex flex-col justify-between relative overflow-hidden bg-stone-900/20">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
-            
+          {/* Brand Motto - Large and Bold over the image */}
+          <div className="lg:col-span-7 p-10 md:p-16 lg:p-28 flex flex-col justify-center relative overflow-hidden">
             <div className="relative z-10">
               <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 }}
-                className="flex items-center gap-4 mb-16"
+                className="flex items-center gap-5 mb-16"
               >
-                <div className="w-14 h-14 bg-brand-900 rounded-2xl flex items-center justify-center shadow-2xl shadow-brand-900/40 rotate-6 border border-white/10">
-                  <Church className="w-7 h-7 text-white" />
+                <div className="w-20 h-20 bg-brand-900 rounded-[28px] flex items-center justify-center shadow-3xl shadow-brand-900/50 rotate-3 border border-white/20">
+                  <Church className="w-10 h-10 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-3xl font-black tracking-tighter text-white">ZUCA</h1>
-                  <p className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-400">Catholic Action Sanctuary</p>
-                </div>
+                <h1 className="text-4xl font-black tracking-widest text-white drop-shadow-xl">ZUCA</h1>
               </motion.div>
 
-              <div className="space-y-8">
+              <div className="space-y-4">
                 <motion.h2 
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-5xl md:text-7xl font-bold text-white tracking-tighter leading-[0.9] lg:max-w-md"
+                  className="text-7xl md:text-[11rem] font-bold text-white tracking-tighter leading-[0.75] mt-[-0.05em]"
                 >
-                  Seek. Serve. <span className="serif-display italic font-light text-brand-500">Sanctify.</span>
+                  Seek. <br />
+                  Serve. <br />
+                  <span className="serif-display italic font-light text-brand-400 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">Sanctify.</span>
                 </motion.h2>
-                
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.7 }}
-                  className="flex items-center gap-4 text-brand-200/60"
-                >
-                  <div className="h-[1px] w-12 bg-current" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">Spiritual Excellence</span>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                  className="p-6 md:p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md max-w-sm"
-                >
-                  <p className="text-lg md:text-xl font-serif italic text-white/90 leading-relaxed mb-4">
-                    "I am the light of the world. Whoever follows me will never walk in darkness, but will have the light of life."
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">John 8:12</span>
-                  </div>
-                </motion.div>
               </div>
             </div>
 
-            <div className="mt-12 flex items-center gap-6 text-white/20">
-               <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                 <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Live Sanctuary</span>
+            <div className="mt-16 flex items-center gap-6">
+               <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                 <div className="flex items-center gap-3">
+                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Official Sanctuary Hub</span>
+                 </div>
                </div>
-               <div className="h-4 w-[1px] bg-white/10" />
-               <span className="text-[10px] font-medium tracking-tight italic">Rooted in Faith, Growing in Action.</span>
             </div>
           </div>
 
-          {/* Right Side (5 columns) - The Gateway */}
-          <div className="lg:col-span-5 bg-white dark:bg-stone-950 p-8 md:p-14 lg:p-20 flex flex-col justify-center relative">
-            <div className="mb-14">
-              <h3 className="text-4xl font-bold text-stone-900 dark:text-stone-100 tracking-tight mb-4 flex items-center gap-3">
-                Welcome <span className="serif-display italic font-medium text-brand-600">Home</span>.
+          {/* Login Side - Simplified Glass */}
+          <div className="lg:col-span-5 bg-white/10 dark:bg-black/20 backdrop-blur-2xl p-10 md:p-16 lg:p-24 flex flex-col justify-center relative border-l border-white/10">
+            <div className="mb-16 space-y-4">
+              <h3 className="text-4xl md:text-5xl font-bold text-white tracking-tighter italic serif-display">
+                Welcome Home.
               </h3>
-              <p className="text-stone-500 text-sm md:text-base leading-relaxed">
-                Connect with the Zetech University Catholic Action community. Access choir resources, community chats, and spiritual guidance.
+              <p className="text-white/60 text-sm md:text-base leading-relaxed max-w-xs font-medium">
+                Connect with the Zetech University Catholic community in a digital space dedicated to faith and growth.
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               <button
                 onClick={handleLogin}
-                className="group relative w-full flex items-center justify-center gap-4 bg-stone-950 text-white dark:bg-white dark:text-stone-950 py-5 rounded-[24px] hover:scale-[1.02] active:scale-[0.98] transition-all font-bold shadow-2xl shadow-black/20"
+                className="group relative w-full flex items-center justify-center gap-4 bg-white text-stone-950 py-4 rounded-[22px] hover:bg-stone-50 hover:scale-[1.02] active:scale-[0.98] transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-black/50 overflow-hidden"
               >
-                <div className="w-8 h-8 bg-white dark:bg-stone-50 rounded-full p-1.5 flex items-center justify-center shadow-inner">
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                <div className="absolute inset-0 bg-brand-500/5 group-hover:bg-transparent transition-colors" />
+                <div className="w-8 h-8 bg-stone-100 rounded-lg p-2 flex items-center justify-center shadow-inner group-hover:rotate-12 transition-transform relative z-10">
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-full h-full" />
                 </div>
-                <span className="text-lg tracking-tight">Login with Google</span>
+                <span className="relative z-10">Enter Sanctuary</span>
               </button>
 
-              <p className="text-center text-[11px] text-stone-400 font-medium">
-                By signing in, you agree to join our community of fellowship.
-              </p>
-            </div>
-
-            <div className="mt-16 pt-10 border-t border-stone-100 dark:border-stone-900">
-              <p className="text-center text-[9px] text-stone-300 dark:text-stone-700 uppercase tracking-[0.6em] font-black mb-8">Sanctuary Fellowship</p>
-              <div className="flex justify-center gap-6">
-                <SocialLink href="#" icon={<Facebook className="w-5 h-5" />} />
-                <SocialLink href="#" icon={<Twitter className="w-5 h-5" />} />
-                <SocialLink href="#" icon={<Instagram className="w-5 h-5" />} />
-                <SocialLink href="#" icon={<Youtube className="w-5 h-5" />} />
+              <div className="flex flex-col items-center gap-6">
+                <div className="flex items-center gap-4 w-full">
+                  <div className="h-[1px] flex-1 bg-white/10" />
+                  <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.5em]">Fellowship</span>
+                  <div className="h-[1px] flex-1 bg-white/10" />
+                </div>
+                
+                <div className="flex justify-center gap-6">
+                  <SocialLink href="#" icon={<MessageSquare className="w-4 h-4" />} /> 
+                  <SocialLink href="#" icon={<Twitter className="w-4 h-4" />} />
+                  <SocialLink href="#" icon={<Instagram className="w-4 h-4" />} />
+                  <SocialLink href="#" icon={<Youtube className="w-4 h-4" />} />
+                </div>
               </div>
             </div>
             
-            <p className="mt-16 text-[9px] text-center text-stone-300 dark:text-stone-800 font-bold uppercase tracking-[0.2em]">
-              © 2026 Zetech University Catholic Action
+            <p className="mt-24 text-[9px] text-center text-white/20 font-black uppercase tracking-[0.5em]">
+              ZUCA • Excellentia Pro Deo • 2026
             </p>
           </div>
         </motion.div>
@@ -399,6 +375,7 @@ export default function App() {
             <NavItem active={activeTab === 'events'} onClick={() => setActiveTab('events')} icon={<Calendar className="w-5 h-5" />} label="Events" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon={<CreditCard className="w-5 h-5" />} label="Payments" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'trivia'} onClick={() => setActiveTab('trivia')} icon={<Trophy className="w-5 h-5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'contact'} onClick={() => setActiveTab('contact')} icon={<Mail className="w-5 h-5" />} label="Contact Us" isOpen={isSidebarOpen} />
             
             {isAdmin && (
               <div className="pt-6 mt-6 border-t border-stone-100 dark:border-stone-800">
@@ -542,6 +519,11 @@ export default function App() {
             {activeTab === 'trivia' && (
               <motion.div key="trivia" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <TriviaComponent isAdmin={isAdmin} />
+              </motion.div>
+            )}
+            {activeTab === 'contact' && (
+              <motion.div key="contact" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <ContactUs />
               </motion.div>
             )}
             {activeTab === 'admin' && isAdmin && (

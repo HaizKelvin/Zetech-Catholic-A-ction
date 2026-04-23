@@ -8,12 +8,13 @@ import {
   serverTimestamp,
   updateDoc,
   doc,
-  where
+  where,
+  deleteDoc
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { Payment, OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
-import { CreditCard, ShieldCheck, Clock, Download, Plus, CheckCircle2, AlertCircle, Loader2, Smartphone, DollarSign, Wallet } from 'lucide-react';
+import { CreditCard, ShieldCheck, Clock, Download, Plus, CheckCircle2, AlertCircle, Loader2, Smartphone, DollarSign, Wallet, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 type PaymentMethod = 'mpesa' | 'paypal' | 'manual';
@@ -138,6 +139,15 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this payment record from your history?')) return;
+    try {
+      await deleteDoc(doc(db, 'payments', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `payments/${id}`);
+    }
+  };
+
   const downloadRecords = () => {
     if (!isAdmin) return;
     const headers = ['Date', 'Name', 'Email', 'Amount', 'Purpose', 'Transaction ID', 'Status'];
@@ -239,17 +249,29 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
                       <span className="text-lg font-bold text-stone-900 dark:text-stone-100">KES {p.amount.toLocaleString()}</span>
                     </td>
                     <td className="px-8 py-6 text-right">
-                       {isAdmin && p.status === 'pending' ? (
-                         <button 
-                          onClick={() => handleVerify(p.id)}
-                          className="bg-brand-900 text-white p-2 rounded-xl hover:bg-brand-800 transition-all"
-                          title="Verify Payment"
-                         >
-                            <ShieldCheck className="w-5 h-5" />
-                         </button>
-                       ) : (
-                         <CheckCircle2 className={`w-5 h-5 ml-auto ${p.status === 'verified' ? 'text-emerald-500' : 'text-stone-100 dark:text-stone-800'}`} />
-                       )}
+                       <div className="flex items-center justify-end gap-3">
+                         {isAdmin && p.status === 'pending' ? (
+                           <button 
+                            onClick={() => handleVerify(p.id)}
+                            className="bg-brand-900 text-white p-2 rounded-xl hover:bg-brand-800 transition-all shadow-sm"
+                            title="Verify Payment"
+                           >
+                              <ShieldCheck className="w-5 h-5" />
+                           </button>
+                         ) : (
+                           <CheckCircle2 className={`w-5 h-5 ${p.status === 'verified' ? 'text-emerald-500' : 'text-stone-200 dark:text-stone-700'}`} />
+                         )}
+                         
+                         {(isAdmin || p.userId === auth.currentUser?.uid) && (
+                           <button 
+                            onClick={() => handleDelete(p.id)}
+                            className="p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                            title="Delete Record"
+                           >
+                              <Trash2 className="w-5 h-5" />
+                           </button>
+                         )}
+                       </div>
                     </td>
                   </tr>
                 ))}

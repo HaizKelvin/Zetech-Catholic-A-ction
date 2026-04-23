@@ -188,26 +188,47 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
                   <video src={selectedItem.url} controls className="w-full h-full" autoPlay />
                 )}
               </div>
-              <div className="w-full md:w-96 bg-white dark:bg-stone-900 p-8 md:p-12 rounded-b-3xl md:rounded-r-3xl md:rounded-bl-none flex flex-col justify-between">
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-3xl font-bold tracking-tight mb-2 text-stone-900 dark:text-stone-100">{selectedItem.title}</h2>
-                    <p className="text-stone-500 text-sm leading-relaxed">{selectedItem.description}</p>
-                  </div>
-                  <div className="flex items-center gap-4 py-6 border-y border-stone-100 dark:border-stone-800">
-                    <div className="w-12 h-12 rounded-2xl bg-brand-900 text-white flex items-center justify-center font-bold text-xl">
-                      {selectedItem.userName[0]}
-                    </div>
-                    <div>
-                      <p className="font-bold text-stone-900 dark:text-stone-100">{selectedItem.userName}</p>
-                      <p className="text-xs text-stone-400 capitalize">{selectedItem.timestamp?.toDate()?.toLocaleDateString()}</p>
-                    </div>
-                  </div>
+              <div className="w-full md:w-96 bg-white dark:bg-stone-900 border-l border-stone-100 dark:border-stone-800 flex flex-col h-full">
+                {/* Header Information */}
+                <div className="p-8 border-b border-stone-100 dark:border-stone-800">
+                   <div className="flex items-center gap-4 mb-4">
+                     <div className="w-12 h-12 rounded-2xl bg-brand-900 text-white flex items-center justify-center font-bold text-xl shadow-lg ring-4 ring-brand-500/10">
+                       {selectedItem.userName[0]}
+                     </div>
+                     <div>
+                       <p className="font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest text-xs">{selectedItem.userName}</p>
+                       <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em]">{selectedItem.timestamp?.toDate()?.toLocaleDateString()}</p>
+                     </div>
+                   </div>
+                   <h2 className="text-3xl font-bold tracking-tighter text-stone-900 dark:text-stone-100 leading-tight">
+                     {selectedItem.title}
+                   </h2>
                 </div>
-                <div className="flex gap-4">
-                  <button className="flex-1 bg-brand-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20">
-                    <Heart className="w-5 h-5" />
-                    Love it
+
+                {/* Description - Scrollable Area */}
+                <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-stone-50/30 dark:bg-black/20">
+                   <div className="space-y-4">
+                     <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-600">Activity Reflection</h4>
+                     <p className="text-stone-600 dark:text-stone-400 text-base leading-relaxed font-medium italic serif-display">
+                       {selectedItem.description || "The community shared this beautiful moment of fellowship and worship."}
+                     </p>
+                   </div>
+                   
+                   <div className="pt-8 border-t border-stone-200/50 dark:border-white/5 space-y-4">
+                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Sanctuary Impact</p>
+                     <div className="flex flex-wrap gap-2">
+                        <span className="px-3 py-1 bg-white dark:bg-stone-800 rounded-full text-[9px] font-black tracking-widest text-stone-500 border border-stone-100 dark:border-stone-700">#COMMUNITY</span>
+                        <span className="px-3 py-1 bg-white dark:bg-stone-800 rounded-full text-[9px] font-black tracking-widest text-stone-500 border border-stone-100 dark:border-stone-700">#WORSHIP</span>
+                        <span className="px-3 py-1 bg-white dark:bg-stone-800 rounded-full text-[9px] font-black tracking-widest text-stone-500 border border-stone-100 dark:border-stone-700">#ZUCA</span>
+                     </div>
+                   </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="p-8 bg-white dark:bg-stone-900 border-t border-stone-100 dark:border-stone-800">
+                  <button className="w-full bg-brand-900 text-white py-5 rounded-[24px] font-bold flex items-center justify-center gap-3 hover:bg-brand-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-brand-900/40 group">
+                    <Heart className="w-6 h-6 group-hover:scale-125 transition-transform" />
+                    <span>Witness Love</span>
                   </button>
                 </div>
               </div>
