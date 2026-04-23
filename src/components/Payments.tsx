@@ -279,6 +279,14 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
                     </td>
                     <td className="px-6 md:px-8 py-4 md:py-6 text-right">
                        <div className="flex items-center justify-end gap-2 md:gap-3">
+                         <button 
+                          onClick={() => setReceipt(p)}
+                          className="p-1.5 md:p-2 text-stone-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-all"
+                          title="View Receipt"
+                         >
+                            <Receipt className="w-4 h-4 md:w-5 md:h-5" />
+                         </button>
+                         
                          {isAdmin && p.status === 'pending' ? (
                            <button 
                             onClick={() => handleVerify(p.id)}
@@ -359,7 +367,13 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
                       <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Purpose</p>
                       <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">{receipt.purpose}</p>
                     </div>
-                    <div className="space-y-1 text-right">
+                    {receipt.phone && (
+                      <div className="space-y-1 text-right">
+                        <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Phone</p>
+                        <p className="text-xs font-bold text-stone-900 dark:text-stone-100">{receipt.phone}</p>
+                      </div>
+                    )}
+                    <div className={`space-y-1 ${receipt.phone ? '' : 'text-right'}`}>
                       <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Status</p>
                       <div className={`text-[10px] font-black inline-flex items-center gap-1.5 px-3 py-1 rounded-full uppercase ${receipt.status === 'verified' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                         {receipt.status}
