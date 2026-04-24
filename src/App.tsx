@@ -22,6 +22,7 @@ import { UserProfile, UserRole, OperationType } from './types';
 import { handleFirestoreError, compressImage } from './utils';
 
 // Components
+import AboutPage from './components/AboutPage';
 import Chatbot from './components/Chatbot';
 import Resources from './components/Resources';
 import Dashboard from './components/Dashboard';
@@ -68,7 +69,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'resources' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact';
+type TabType = 'home' | 'resources' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -87,6 +88,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Initial state from URL if present
     if (typeof window !== 'undefined') {
@@ -96,6 +98,7 @@ export default function App() {
     }
     return 'home';
   });
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -276,6 +279,11 @@ export default function App() {
     
     try {
       if (authMode === 'signup') {
+        if (!acceptedTerms) {
+          setAuthError('You must accept the Terms and Conditions to sign up.');
+          setAuthLoading(false);
+          return;
+        }
         const { user: newUser } = await createUserWithEmailAndPassword(auth, authForm.email, authForm.password);
         await updateProfile(newUser, { displayName: authForm.name });
         // fetchOrCreateProfile will be triggered by onAuthStateChanged
@@ -430,6 +438,21 @@ export default function App() {
                   />
                 </div>
 
+                {authMode === 'signup' && (
+                  <div className="flex items-center gap-3 px-2 py-2">
+                    <input 
+                      type="checkbox" 
+                      id="terms"
+                      checked={acceptedTerms}
+                      onChange={e => setAcceptedTerms(e.target.checked)}
+                      className="w-4 h-4 rounded border-brand-900/50 bg-white/10 text-brand-900 focus:ring-brand-500/20"
+                    />
+                    <label htmlFor="terms" className="text-[10px] text-white/60 font-medium cursor-pointer">
+                      I accept the <button type="button" onClick={() => setShowPolicyModal(true)} className="text-brand-400 hover:underline">Catholic Action Policies</button>
+                    </label>
+                  </div>
+                )}
+
                 {authError && (
                   <p className="text-red-400 text-[10px] font-bold text-center bg-red-400/10 py-2 rounded-xl border border-red-400/20">
                     {authError}
@@ -476,6 +499,14 @@ export default function App() {
                   <SocialLink href="#" icon={<Twitter className="w-4 h-4" />} />
                   <SocialLink href="#" icon={<Instagram className="w-4 h-4" />} />
                   <SocialLink href="#" icon={<Youtube className="w-4 h-4" />} />
+                  <SocialLink 
+                    href="https://wa.me/254705000000" 
+                    icon={
+                      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                      </svg>
+                    } 
+                  />
                 </div>
                 <p className="text-[9px] text-center text-white/10 font-black uppercase tracking-[0.6em]">
                   Excellentia Pro Deo
@@ -515,6 +546,7 @@ export default function App() {
           {/* Menu Items */}
           <nav className="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
             <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-5 h-5" />} label="Overview" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'about'} onClick={() => handleTabChange('about')} icon={<Shield className="w-5 h-5" />} label="About CA" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-5 h-5" />} label="Community Hub" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-5 h-5" />} label="Activities" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-5 h-5" />} label="Divine Library" isOpen={isSidebarOpen} />
@@ -684,6 +716,11 @@ export default function App() {
                 <ContactUs />
               </motion.div>
             )}
+            {activeTab === 'about' && (
+              <motion.div key="about" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <AboutPage />
+              </motion.div>
+            )}
             {activeTab === 'admin' && isAdmin && (
               <motion.div key="admin" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <AdminPanel />
@@ -796,6 +833,30 @@ export default function App() {
       {/* Floating Chat */}
       <Chatbot userName={profile?.displayName?.split(' ')[0]} />
       <NotificationTicker />
+
+      {/* Policy Modal Overlay */}
+      <AnimatePresence>
+        {showPolicyModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10 bg-stone-950/80 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-stone-900 w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-[32px] md:rounded-[48px] relative shadow-2xl custom-scrollbar"
+            >
+              <button 
+                onClick={() => setShowPolicyModal(false)}
+                className="absolute top-6 right-6 md:top-10 md:right-10 z-20 p-3 bg-stone-100 dark:bg-white/5 rounded-full hover:bg-brand-900 hover:text-white transition-all shadow-lg"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="p-0">
+                <AboutPage />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
