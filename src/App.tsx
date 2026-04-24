@@ -14,6 +14,7 @@ import {
   getDoc, 
   setDoc, 
   updateDoc,
+  onSnapshot,
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
@@ -170,32 +171,53 @@ export default function App() {
   }, [darkMode]);
 
   useEffect(() => {
+    let profileUnsubscribe: () => void = () => {};
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        // Check/create initial profile
         await fetchOrCreateProfile(firebaseUser);
+        
+        // Listen for profile changes/deletions
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        profileUnsubscribe = onSnapshot(userDocRef, (snapshot) => {
+          if (!snapshot.exists()) {
+            // Profile was deleted from backend Firestore
+            handleLogout();
+          } else {
+            const data = snapshot.data() as UserProfile;
+            setProfile(data);
+            setEditForm({ 
+              displayName: data.displayName || firebaseUser.displayName || '', 
+              photoURL: data.photoURL || firebaseUser.photoURL || '', 
+              contactNumber: data.contactNumber || '', 
+              bio: data.bio || '' 
+            });
+          }
+        }, (error) => {
+          // If permission denied (maybe user deleted from Firestore but rules block access), log out
+          if (error.code === 'permission-denied') {
+            handleLogout();
+          }
+        });
       } else {
         setProfile(null);
+        profileUnsubscribe();
       }
       setLoading(false);
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      profileUnsubscribe();
+    };
   }, []);
 
   const fetchOrCreateProfile = async (firebaseUser: User) => {
     const userDocRef = doc(db, 'users', firebaseUser.uid);
     try {
       const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        const data = userDoc.data() as UserProfile;
-        setProfile(data);
-        setEditForm({ 
-          displayName: data.displayName || firebaseUser.displayName || '', 
-          photoURL: data.photoURL || firebaseUser.photoURL || '', 
-          contactNumber: data.contactNumber || '', 
-          bio: data.bio || '' 
-        });
-      } else {
+      if (!userDoc.exists()) {
         const newProfile: UserProfile = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
@@ -210,26 +232,9 @@ export default function App() {
           createdAt: serverTimestamp()
         });
         setProfile(newProfile);
-        setEditForm({
-          displayName: newProfile.displayName || '',
-          photoURL: newProfile.photoURL || '',
-          contactNumber: '',
-          bio: ''
-        });
       }
     } catch (error) {
        console.error("Profile fetch error:", error);
-       // Attempt to set a fallback profile to allow entry
-       const fallback: UserProfile = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          displayName: firebaseUser.displayName || 'Faithful Member',
-          photoURL: firebaseUser.photoURL || '',
-          bio: '',
-          role: 'member',
-          createdAt: Timestamp.now()
-       };
-       setProfile(fallback);
     }
   };
 
@@ -318,34 +323,37 @@ export default function App() {
   if (!user) {
     return (
       <div className="min-h-screen relative flex items-center justify-center p-4 md:p-6 overflow-hidden bg-stone-950">
+        <div className="absolute inset-0 z-0 text-white font-serif italic text-3xl opacity-10 flex items-center justify-center p-20 text-center pointer-events-none select-none uppercase tracking-[1em]">
+           Faith • Service • Community • Prayer
+        </div>
         <div className="absolute inset-0 z-0">
           <img 
             src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
             alt="Background" 
-            className="w-full h-full object-cover opacity-20 contrast-125"
+            className="w-full h-full object-cover opacity-25 contrast-125"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-900/10 blur-[150px] rounded-full -mr-96 -mt-96" />
-          <div className="absolute bottom-0 left-0 w-[1000px] h-[1000px] bg-amber-900/5 blur-[120px] rounded-full -ml-48 -mb-48" />
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-900/20 blur-[150px] rounded-full -mr-96 -mt-96" />
+          <div className="absolute bottom-0 left-0 w-[1000px] h-[1000px] bg-amber-900/10 blur-[120px] rounded-full -ml-48 -mb-48" />
         </div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 max-w-[1100px] w-full grid grid-cols-1 lg:grid-cols-12 rounded-[40px] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-stone-900"
+          className="relative z-10 max-w-[1100px] w-full grid grid-cols-1 lg:grid-cols-12 rounded-[40px] overflow-hidden border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.6)] bg-stone-900"
         >
           {/* Brand Side */}
-          <div className="lg:col-span-7 p-8 md:p-14 lg:p-24 flex flex-col justify-center relative overflow-hidden min-h-[300px] lg:min-h-[400px]">
+          <div className="lg:col-span-7 p-8 md:p-14 lg:p-24 flex flex-col justify-center relative overflow-hidden min-h-[400px] lg:min-h-[600px]">
              <div className="absolute inset-0 z-0">
                <img 
                 src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
                 alt="Zetech UI" 
-                className="w-full h-full object-cover object-center opacity-60 contrast-125"
+                className="w-full h-full object-cover object-center opacity-80 contrast-125 scale-105"
                 referrerPolicy="no-referrer"
                />
-               <div className="absolute inset-0 bg-stone-950/40" />
-               <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-stone-950 to-transparent" />
+               <div className="absolute inset-0 bg-stone-950/50" />
+               <div className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-stone-950 via-stone-950/80 to-transparent" />
              </div>
 
             <div className="relative z-10">

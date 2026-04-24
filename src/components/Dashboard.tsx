@@ -70,7 +70,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="text-stone-300 text-lg md:text-2xl font-serif italic max-w-xl leading-relaxed border-l-2 border-brand-900 pl-8 ml-2"
+              className="text-stone-500 dark:text-stone-300 text-lg md:text-2xl font-serif italic max-w-xl leading-relaxed border-l-2 border-brand-900 pl-8 ml-2"
             >
               "In the silence of the heart, God speaks."
             </motion.p>

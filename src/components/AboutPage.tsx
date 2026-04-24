@@ -82,8 +82,8 @@ export default function AboutPage() {
             <div className="w-16 h-16 rounded-3xl bg-stone-100 dark:bg-white/5 text-brand-900 dark:text-brand-400 flex items-center justify-center shadow-inner group-hover:bg-brand-900 group-hover:text-white transition-all duration-500 mb-8">
               {policy.icon}
             </div>
-            <h3 className="text-2xl font-bold mb-4 tracking-tight serif-display">{policy.title}</h3>
-            <p className="text-stone-500 dark:text-stone-400 leading-relaxed italic">
+            <h3 className="text-2xl font-bold mb-4 tracking-tight serif-display text-stone-900 dark:text-white">{policy.title}</h3>
+            <p className="text-stone-600 dark:text-stone-300 leading-relaxed italic">
               {policy.description}
             </p>
           </motion.div>
@@ -110,7 +110,7 @@ export default function AboutPage() {
                   <div className="w-8 h-8 rounded-full bg-brand-900/10 text-brand-900 flex items-center justify-center group-hover:bg-brand-900 group-hover:text-white transition-all">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
-                  <span className="text-sm font-medium text-stone-700 dark:text-stone-300">{std}</span>
+                  <span className="text-sm font-bold text-stone-700 dark:text-stone-200">{std}</span>
                 </div>
               ))}
             </div>

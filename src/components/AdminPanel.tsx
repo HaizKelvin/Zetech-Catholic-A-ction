@@ -134,27 +134,27 @@ export default function AdminPanel() {
             <form onSubmit={updateDaily} className="space-y-10">
               <div className="space-y-6">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-4 block">Scripture Meditation</label>
-                  <textarea required value={dailyForm.verse} onChange={e => setDailyForm({...dailyForm, verse: e.target.value})} className="w-full glass-card bg-stone-50/50 dark:bg-black/20 p-8 md:p-12 min-h-[200px] text-xl md:text-2xl font-serif italic border-none outline-none focus:ring-2 focus:ring-brand-500/20" />
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-500 dark:text-stone-400 mb-4 block">Scripture Meditation</label>
+                  <textarea required value={dailyForm.verse} onChange={e => setDailyForm({...dailyForm, verse: e.target.value})} className="w-full glass-card bg-stone-50/50 dark:bg-black/20 p-8 md:p-12 min-h-[200px] text-xl md:text-2xl font-serif italic border-none outline-none focus:ring-2 focus:ring-brand-500/20 text-stone-900 dark:text-stone-100" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-4 block">Meditation Origin</label>
-                  <input required type="text" value={dailyForm.reference} onChange={e => setDailyForm({...dailyForm, reference: e.target.value})} className="w-full glass-card p-6 md:p-8 font-black uppercase tracking-[0.2em] text-sm" />
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-500 dark:text-stone-400 mb-4 block">Meditation Origin</label>
+                  <input required type="text" value={dailyForm.reference} onChange={e => setDailyForm({...dailyForm, reference: e.target.value})} className="w-full glass-card p-6 md:p-8 font-black uppercase tracking-[0.2em] text-sm text-stone-900 dark:text-stone-100" />
                 </div>
               </div>
 
               <div className="pt-12 border-t border-stone-200 dark:border-white/5 space-y-6">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-8 h-px bg-brand-500" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.6em] text-brand-600 dark:text-brand-400">Saint Manifest</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.6em] text-brand-700 dark:text-brand-400">Saint Manifest</span>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-4 block">Full Title</label>
-                  <input required type="text" value={dailyForm.saintName} onChange={e => setDailyForm({...dailyForm, saintName: e.target.value})} className="w-full glass-card p-6 md:p-8 font-bold text-lg md:text-xl" />
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-500 dark:text-stone-400 mb-4 block">Full Title</label>
+                  <input required type="text" value={dailyForm.saintName} onChange={e => setDailyForm({...dailyForm, saintName: e.target.value})} className="w-full glass-card p-6 md:p-8 font-bold text-lg md:text-xl text-stone-900 dark:text-stone-100" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-4 block">Hagiography excerpt</label>
-                  <textarea required value={dailyForm.saintInfo} onChange={e => setDailyForm({...dailyForm, saintInfo: e.target.value})} className="w-full glass-card bg-stone-50/50 dark:bg-black/20 p-8 md:p-10 min-h-[150px] text-sm md:text-base leading-relaxed" />
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-500 dark:text-stone-400 mb-4 block">Hagiography excerpt</label>
+                  <textarea required value={dailyForm.saintInfo} onChange={e => setDailyForm({...dailyForm, saintInfo: e.target.value})} className="w-full glass-card bg-stone-50/50 dark:bg-black/20 p-8 md:p-10 min-h-[150px] text-sm md:text-base leading-relaxed text-stone-800 dark:text-stone-200" />
                 </div>
               </div>
 

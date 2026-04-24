@@ -332,7 +332,17 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         </div>
 
         {/* Messages Layout */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 custom-scrollbar z-0 flex flex-col bg-stone-50/30 dark:bg-black/10">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 custom-scrollbar z-0 flex flex-col relative">
+          {/* Background Image Layer */}
+          <div className="absolute inset-0 z-[-1] opacity-[0.07] dark:opacity-[0.03] grayscale pointer-events-none">
+            <img 
+              src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2673&auto=format&fit=crop" 
+              alt="" 
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+
           <div className="flex justify-center mb-2 md:mb-4">
             <span className="px-4 py-1.5 rounded-full glass border border-white/10 text-[9px] md:text-[10px] font-black text-stone-400 uppercase tracking-widest shadow-sm">Sanctuary Fellowship</span>
           </div>

@@ -145,7 +145,7 @@ export default function Resources({ role }: ResourcesProps) {
                 className={`flex items-center gap-2.5 px-6 py-4 rounded-[24px] whitespace-nowrap transition-all font-bold text-xs uppercase tracking-widest ${
                   activeCategory === cat.id 
                     ? 'bg-brand-900 text-white shadow-xl shadow-brand-900/20' 
-                    : 'glass text-stone-400 hover:text-stone-900 dark:hover:text-white border-white/10'
+                    : 'glass text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white border-white/10'
                 }`}
               >
                 {cat.icon}
@@ -240,7 +240,7 @@ export default function Resources({ role }: ResourcesProps) {
                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
                            <Book className="w-12 h-12" />
                         </div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-stone-300 mb-3">Faith Snapshot</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-3">Faith Snapshot</p>
                         <p className="text-xs italic font-serif text-stone-600 dark:text-stone-400 line-clamp-3 leading-relaxed">"{resource.content}"</p>
                       </div>
                     )}
