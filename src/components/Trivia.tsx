@@ -99,64 +99,101 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
       {!showResult && currentIndex < questions.length ? (
         <motion.div 
           key={currentIndex}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="glass p-6 md:p-12 rounded-[32px] md:rounded-[40px] shadow-2xl"
+          initial={{ opacity: 0, x: 20, rotateY: -10 }}
+          animate={{ opacity: 1, x: 0, rotateY: 0 }}
+          className="glass-card p-8 md:p-16 shadow-[0_40px_100px_-15px_rgba(0,0,0,0.2)] dark:shadow-[0_40px_100px_-15px_rgba(0,0,0,0.5)] border-white/10"
         >
-          <div className="flex justify-between items-center mb-8">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1 rounded-full">
-              Question {currentIndex + 1} of {questions.length}
-            </span>
+          <div className="flex justify-between items-center mb-12">
+            <div className="px-5 py-2 rounded-full bg-brand-900/5 dark:bg-white/5 border border-brand-500/10 flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400">
+                Faith Tier: {currentIndex + 1} / {questions.length}
+              </span>
+            </div>
              {isAdmin && (
-              <button onClick={() => handleDelete(questions[currentIndex].id)} className="text-stone-300 hover:text-red-500 transition-colors">
+              <button 
+                onClick={() => handleDelete(questions[currentIndex].id)} 
+                className="p-3 bg-stone-50 dark:bg-white/5 text-stone-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-xl"
+              >
                 <Trash2 className="w-5 h-5" />
               </button>
             )}
           </div>
-          <h2 className="text-3xl font-bold text-stone-900 dark:text-stone-100 mb-10 leading-tight">
-            {questions[currentIndex].question}
-          </h2>
-          <div className="grid grid-cols-1 gap-4">
+          
+          <div className="space-y-6 mb-12">
+            <div className="h-px w-16 bg-brand-500/50" />
+            <h2 className="text-3xl md:text-5xl font-bold text-stone-900 dark:text-stone-100 leading-tight tracking-tighter serif-display">
+              {questions[currentIndex].question}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-5">
             {questions[currentIndex].options.map((opt, i) => (
-              <button
+              <motion.button
                 key={i}
+                whileHover={!isAnswered ? { x: 10, scale: 1.02 } : {}}
+                whileTap={!isAnswered ? { scale: 0.98 } : {}}
                 onClick={() => handleAnswer(i)}
-                className={`p-6 rounded-2xl text-left font-medium transition-all flex items-center justify-between group ${
+                className={`p-6 md:p-8 rounded-[28px] text-left font-bold transition-all flex items-center justify-between group overflow-hidden relative ${
                   isAnswered 
-                    ? (i === questions[currentIndex].correctAnswer ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : (selectedOption === i ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-stone-50 dark:bg-stone-900/50 text-stone-400 dark:text-stone-500'))
-                    : 'glass hover:border-brand-500 hover:bg-brand-50/30 dark:hover:bg-brand-900/20'
+                    ? (i === questions[currentIndex].correctAnswer 
+                        ? 'bg-emerald-500 text-white shadow-2xl shadow-emerald-500/30 ring-4 ring-emerald-500/20' 
+                        : (selectedOption === i 
+                            ? 'bg-red-500 text-white shadow-lg' 
+                            : 'bg-stone-50 dark:bg-stone-900/40 text-stone-300 dark:text-stone-700 opacity-60'))
+                    : 'glass border-white/5 hover:border-brand-500/30 hover:bg-stone-100/30 dark:hover:bg-white/5 shadow-sm'
                 }`}
               >
-                {opt}
-                {isAnswered && i === questions[currentIndex].correctAnswer && <CheckCircle className="w-5 h-5" />}
-                {isAnswered && selectedOption === i && i !== questions[currentIndex].correctAnswer && <XCircle className="w-5 h-5" />}
-              </button>
+                <span className="text-sm md:text-lg tracking-tight relative z-10">{opt}</span>
+                <div className="relative z-10">
+                  {isAnswered && i === questions[currentIndex].correctAnswer && <CheckCircle className="w-6 h-6 animate-float" />}
+                  {isAnswered && selectedOption === i && i !== questions[currentIndex].correctAnswer && <XCircle className="w-6 h-6" />}
+                  {!isAnswered && <div className="w-8 h-8 rounded-full border border-stone-100 dark:border-white/5 flex items-center justify-center text-[10px] opacity-20 group-hover:opacity-100 transition-opacity">{String.fromCharCode(65 + i)}</div>}
+                </div>
+              </motion.button>
             ))}
           </div>
-          {isAnswered && (
-            <button 
-              onClick={nextQuestion}
-              className="mt-12 w-full py-5 bg-brand-900 text-white rounded-2xl font-bold hover:bg-brand-800 transition-all shadow-xl active:scale-[0.98]"
-            >
-              {currentIndex === questions.length - 1 ? 'See Results' : 'Next Question'}
-            </button>
-          )}
+
+          <AnimatePresence>
+            {isAnswered && (
+              <motion.button 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={nextQuestion}
+                className="mt-12 w-full py-6 bg-stone-950 text-white dark:bg-white dark:text-stone-950 rounded-[28px] font-black uppercase tracking-[0.3em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-3xl text-xs flex items-center justify-center gap-3"
+              >
+                {currentIndex === questions.length - 1 ? 'Ascend to Results' : 'Next Meditation'}
+                <div className="w-5 h-5 bg-white/10 dark:bg-black/10 rounded-full flex items-center justify-center">→</div>
+              </motion.button>
+            )}
+          </AnimatePresence>
         </motion.div>
       ) : showResult && (
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass p-16 rounded-[48px] shadow-2xl text-center"
+          initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          className="glass-card p-16 md:p-32 shadow-[0_60px_120px_-30px_rgba(0,0,0,0.4)] text-center relative overflow-hidden"
         >
-          <Trophy className="w-20 h-20 text-brand-600 mx-auto mb-8" />
-          <h2 className="text-4xl font-bold text-stone-900 dark:text-stone-100 mb-4 tracking-tight">Well done!</h2>
-          <p className="text-stone-500 dark:text-stone-400 mb-10 text-lg">You scored <span className="text-brand-600 dark:text-brand-400 font-black text-4xl mx-2">{score}</span> out of {questions.length}</p>
-          <button 
-            onClick={() => { setCurrentIndex(0); setScore(0); setShowResult(false); setIsAnswered(false); setSelectedOption(null); }}
-            className="bg-brand-900 text-white px-10 py-5 rounded-2xl font-bold shadow-xl hover:bg-brand-800"
-          >
-            Try Again
-          </button>
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-900/10 via-transparent to-transparent opacity-50" />
+          <div className="relative z-10">
+            <div className="mb-12 relative inline-block">
+              <div className="absolute inset-0 bg-brand-500/20 blur-[60px] rounded-full animate-pulse" />
+              <Trophy className="w-24 h-24 md:w-40 md:h-40 text-brand-500 mx-auto animate-float drop-shadow-[0_0_20px_#de6044]" />
+            </div>
+            <h2 className="text-5xl md:text-8xl font-bold text-stone-950 dark:text-white mb-6 tracking-tighter serif-display italic">Sacred <span className="text-brand-500 not-italic uppercase font-black text-2xl md:text-4xl tracking-[0.2em] block mt-2">Commendation</span></h2>
+            <div className="flex items-end justify-center gap-4 mb-16">
+               <p className="text-stone-400 font-black uppercase tracking-widest text-xs">Divine Score</p>
+               <span className="text-7xl md:text-9xl font-black tracking-tighter text-stone-900 dark:text-white leading-none">{score}</span>
+               <span className="text-3xl md:text-5xl font-serif italic text-stone-300">/ {questions.length}</span>
+            </div>
+            
+            <button 
+              onClick={() => { setCurrentIndex(0); setScore(0); setShowResult(false); setIsAnswered(false); setSelectedOption(null); }}
+              className="bg-brand-900 text-white px-16 py-6 rounded-full font-black uppercase tracking-[0.4em] text-[10px] md:text-xs shadow-2xl hover:bg-brand-800 transition-all hover:-translate-y-2 active:translate-y-0"
+            >
+              Begin New Cycle
+            </button>
+          </div>
         </motion.div>
       )}
 

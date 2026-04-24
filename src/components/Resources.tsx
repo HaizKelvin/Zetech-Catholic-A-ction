@@ -156,43 +156,42 @@ export default function Resources({ role }: ResourcesProps) {
         </div>
 
         {/* Resources Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           <AnimatePresence mode="popLayout">
             {/* Spiritual Guide CTA Card */}
             <motion.div
               layout
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="lg:col-span-1 glass p-10 rounded-[48px] border-2 border-brand-500/20 bg-brand-50/50 dark:bg-brand-900/10 flex flex-col justify-between group relative overflow-hidden"
+              className="lg:col-span-1 glass-card p-10 border-2 border-brand-500/10 bg-gradient-to-br from-brand-50/50 to-transparent dark:from-brand-900/10 dark:to-transparent flex flex-col justify-between group relative h-full"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
               <div className="relative z-10">
-                <div className="w-14 h-14 rounded-2xl bg-brand-900 text-white flex items-center justify-center shadow-lg mb-8 group-hover:scale-110 transition-transform">
-                  <Bot className="w-7 h-7" />
+                <div className="w-16 h-16 rounded-[24px] bg-stone-900 text-white flex items-center justify-center shadow-2xl mb-10 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500">
+                  <Bot className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-4 tracking-tighter leading-tight">
-                  Guided <br />
-                  <span className="serif-display italic text-brand-600">Scholarship</span>.
+                <h3 className="text-3xl font-bold text-stone-900 dark:text-stone-100 mb-6 tracking-tighter leading-tight italic serif-display">
+                  Digital <br />
+                  <span className="text-brand-600 not-italic font-black uppercase tracking-[0.1em] text-sm">Sacred Guide</span>
                 </h3>
-                <p className="text-xs text-stone-500 dark:text-stone-400 font-medium leading-relaxed mb-6">
-                  Need help interpreting a text or finding a specific hymn? Our Spiritual Guide is here to assist your study.
+                <p className="text-sm text-stone-500 dark:text-stone-400 font-medium leading-relaxed mb-8">
+                  Need help interpreting a text or finding a specific hymn? Connect with our spiritual study assistant.
                 </p>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-black/20 border border-brand-200 dark:border-white/5 w-fit">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Guide Online</span>
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white dark:bg-black/40 border border-brand-200 dark:border-white/5 w-fit shadow-inner">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Available</span>
                 </div>
               </div>
-              <p className="mt-8 text-[9px] font-black uppercase tracking-[0.3em] text-brand-600 underline cursor-pointer">Start Consultation →</p>
+              <p className="mt-12 text-[10px] font-black uppercase tracking-[0.4em] text-brand-600 hover:tracking-[0.6em] transition-all cursor-pointer">Initiate Consultation →</p>
             </motion.div>
 
             {filteredResources.length === 0 ? (
                <motion.div 
                  initial={{ opacity: 0 }} 
                  animate={{ opacity: 1 }} 
-                 className="col-span-full py-24 text-center glass rounded-[48px]"
+                 className="col-span-full py-32 text-center glass-card border-dashed border-stone-200 dark:border-stone-800"
                >
-                  <Search className="w-16 h-16 text-stone-100 dark:text-stone-800 mx-auto mb-4" />
-                  <p className="text-stone-400 font-bold tracking-widest uppercase text-xs">No records found for this search</p>
+                  <Search className="w-20 h-20 text-stone-100 dark:text-stone-800 mx-auto mb-6" />
+                  <p className="text-stone-400 font-black tracking-[0.3em] uppercase text-[10px]">No archives matching your search</p>
                </motion.div>
             ) : (
               filteredResources.map((resource) => (
@@ -202,10 +201,10 @@ export default function Resources({ role }: ResourcesProps) {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   key={resource.id} 
-                  className="glass p-10 rounded-[48px] shadow-sm hover:shadow-2xl transition-all duration-700 group relative flex flex-col h-full bg-white/50 dark:bg-stone-900/20 border-white/20"
+                  className="glass-card p-10 group relative flex flex-col h-full bg-white/50 dark:bg-stone-900/10 border-white/5 hover:border-brand-500/20"
                 >
-                  <div className="flex items-start justify-between mb-8">
-                    <div className="w-16 h-16 rounded-[24px] bg-brand-900 text-white flex items-center justify-center shadow-2xl shadow-brand-900/20 group-hover:rotate-6 transition-transform">
+                  <div className="flex items-start justify-between mb-10">
+                    <div className="w-16 h-16 rounded-[24px] bg-stone-100 dark:bg-white/5 text-stone-900 dark:text-white flex items-center justify-center shadow-inner group-hover:bg-brand-900 group-hover:text-white transition-all duration-500 group-hover:rotate-3">
                       {getIcon(resource.category)}
                     </div>
                     {role === 'admin' && (
@@ -218,28 +217,31 @@ export default function Resources({ role }: ResourcesProps) {
                     )}
                   </div>
                   
-                  <div className="flex-1 space-y-4">
-                    <div className="flex items-center gap-2">
-                       <div className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
-                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400">
+                  <div className="flex-1 space-y-6">
+                    <div className="space-y-1">
+                       <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 inline-block">
                          {resource.category}
                        </span>
+                       <div className="h-0.5 w-8 bg-stone-100 dark:bg-white/5 group-hover:w-full group-hover:bg-brand-500/20 transition-all duration-700" />
                     </div>
-                    <h4 className="text-3xl font-bold text-stone-900 dark:text-stone-100 leading-[1.1] tracking-tight decoration-brand-500/0 decoration-4 underline-offset-4 group-hover:decoration-brand-500/20 transition-all">
+                    <h4 className="text-3xl font-bold text-stone-900 dark:text-stone-100 leading-[1.1] tracking-tighter serif-display group-hover:text-brand-900 dark:group-hover:text-brand-400 transition-colors">
                       {resource.title}
                     </h4>
                     {resource.description && (
-                      <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed line-clamp-3 font-medium">
+                      <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed line-clamp-3 font-medium italic">
                         {resource.description}
                       </p>
                     )}
                   </div>
 
-                  <div className="mt-12 space-y-4">
+                  <div className="mt-12 space-y-5">
                     {resource.content && (
-                      <div className="p-6 bg-stone-50/50 dark:bg-black/20 rounded-[32px] border border-stone-100 dark:border-white/5">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-3 block">Quick Excerpt</p>
-                        <p className="text-xs italic font-serif text-stone-600 dark:text-stone-400 line-clamp-3">"{resource.content}"</p>
+                      <div className="p-6 bg-stone-50/50 dark:bg-black/20 rounded-[28px] border border-stone-100 dark:border-white/5 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                           <Book className="w-12 h-12" />
+                        </div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-stone-300 mb-3">Faith Snapshot</p>
+                        <p className="text-xs italic font-serif text-stone-600 dark:text-stone-400 line-clamp-3 leading-relaxed">"{resource.content}"</p>
                       </div>
                     )}
                     
@@ -248,13 +250,14 @@ export default function Resources({ role }: ResourcesProps) {
                         href={resource.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between w-full p-6 bg-brand-900 text-white rounded-[32px] group/link hover:bg-brand-800 transition-all duration-500 shadow-xl shadow-brand-900/10 hover:shadow-brand-900/30"
+                        className="flex items-center justify-between w-full p-6 bg-brand-900 text-white rounded-[28px] group/link hover:shadow-[0_20px_50px_rgba(30,58,138,0.3)] transition-all duration-500 overflow-hidden relative"
                       >
-                        <span className="text-sm font-black uppercase tracking-widest">
-                          Access Portal
+                        <div className="absolute inset-0 bg-brand-800 translate-x-[-100%] group-hover/link:translate-x-0 transition-transform duration-500 ease-out" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] relative z-10">
+                          Access Archival
                         </span>
-                        <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center group-hover/link:rotate-45 transition-transform">
-                          <ExternalLink className="w-4 h-4" />
+                        <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center relative z-10 group-hover/link:rotate-[360deg] transition-transform duration-700">
+                          <ExternalLink className="w-4 h-4 text-white" />
                         </div>
                       </a>
                     )}

@@ -4,10 +4,11 @@ import {
   addDoc, 
   query, 
   orderBy, 
-  limit, 
+  limitToLast, 
   onSnapshot, 
   serverTimestamp,
-  getDocs
+  getDocs,
+  limit
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, DailyControl, OperationType } from '../types';
@@ -79,7 +80,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
     const q = query(
       collection(db, 'community_chat'),
       orderBy('timestamp', 'asc'),
-      limit(100)
+      limitToLast(50)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -361,11 +362,12 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                     </div>
                   </div>
                   
-                  <div className={`max-w-[85%] md:max-w-[70%] group relative px-4 md:px-6 py-3 md:py-4 rounded-[28px] md:rounded-[36px] transition-all ${
+                  <div className={`max-w-[85%] md:max-w-[70%] group relative px-5 md:px-7 py-4 md:py-5 rounded-[32px] md:rounded-[44px] transition-all duration-500 ${
                     isMine 
-                      ? 'bg-brand-900 text-white rounded-br-none shadow-xl shadow-brand-900/10' 
-                      : 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-100 dark:border-stone-700 shadow-sm'
+                      ? 'bg-gradient-to-br from-brand-900 to-brand-800 text-white rounded-br-none shadow-[0_15px_40px_-10px_rgba(30,58,138,0.3)] hover:shadow-[0_20px_50px_-5px_rgba(30,58,138,0.4)]' 
+                      : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-100 dark:border-stone-800 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.05)]'
                   }`}>
+                    <div className="absolute inset-0 faith-bg opacity-[0.03] pointer-events-none" />
                     {(isMine || currentUser?.role === 'admin') && (
                       <button 
                         onClick={() => handleDeleteMessage(msg.id)}

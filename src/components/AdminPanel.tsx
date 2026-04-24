@@ -6,7 +6,9 @@ import {
   getDocs,
   setDoc,
   doc,
-  serverTimestamp
+  serverTimestamp,
+  limit,
+  getCountFromServer
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, DailyControl, OperationType } from '../types';
@@ -16,11 +18,12 @@ import { motion } from 'motion/react';
 
 export default function AdminPanel() {
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [dailyForm, setDailyForm] = useState({ verse: '', reference: '', saintName: '', saintInfo: '' });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'users'));
+    const q = query(collection(db, 'users'), limit(100));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as (UserProfile & { id: string })[]);
     }, (error) => {
@@ -41,6 +44,17 @@ export default function AdminPanel() {
       handleFirestoreError(error, OperationType.GET, 'control/daily_bread');
     });
 
+    const fetchCount = async () => {
+      try {
+        const coll = collection(db, 'users');
+        const snapshot = await getCountFromServer(coll);
+        setTotalCount(snapshot.data().count);
+      } catch (err) {
+        console.error("Count fetch error:", err);
+      }
+    };
+    fetchCount();
+    
     return () => { unsubscribe(); subControl(); };
   }, []);
 
@@ -52,7 +66,6 @@ export default function AdminPanel() {
         ...dailyForm,
         updatedAt: serverTimestamp()
       });
-      // Admin update notification is handled by NotificationTicker listening to 'control' collection
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, 'control/daily_bread');
     } finally {
@@ -83,88 +96,134 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="space-y-12 md:space-y-16 pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-           <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-stone-900 dark:text-stone-100">Admin <span className="serif-display text-brand-600 dark:text-brand-400">Commander</span>.</h1>
-           <p className="text-stone-500 dark:text-stone-400 mt-2 text-sm md:text-base">Manage daily inspiration and community data.</p>
-        </div>
-        <button 
-          onClick={downloadUsers}
-          className="w-full sm:w-auto bg-brand-900 text-white px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-brand-800 shadow-xl shadow-brand-900/20 text-xs md:text-sm"
-        >
-          <Download className="w-4 h-4 md:w-5 md:h-5" />
-          Export Member List
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-        {/* Daily Control Form */}
-        <section className="glass p-8 md:p-12 rounded-[32px] md:rounded-[48px] shadow-xl">
-           <div className="flex items-center gap-3 mb-8 md:mb-10">
-              <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-brand-600" />
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">Daily Inspiration</h2>
+    <div className="space-y-16 md:space-y-24 pb-24">
+      <header className="flex flex-col md:flex-row justify-between items-end gap-8 pb-12 border-b border-stone-200 dark:border-white/5">
+        <div className="space-y-4">
+           <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-brand-900/5 dark:bg-brand-400/5 border border-brand-500/10">
+              <ShieldCheck className="w-4 h-4 text-brand-600" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400">Authority Oversight</span>
            </div>
-           <form onSubmit={updateDaily} className="space-y-6">
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Bible Verse</label>
-                <textarea required value={dailyForm.verse} onChange={e => setDailyForm({...dailyForm, verse: e.target.value})} className="w-full p-4 md:p-6 bg-white/50 dark:bg-stone-900/50 rounded-2xl md:rounded-3xl outline-none resize-none font-serif italic text-base md:text-lg" />
+           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-stone-900 dark:text-stone-100 leading-none">Admin <span className="serif-display text-brand-600 italic font-light lowercase">Commander</span></h1>
+           <p className="text-stone-500 dark:text-stone-400 font-serif italic text-lg max-w-xl">Curate the spiritual resonance and oversee the community matrix.</p>
+        </div>
+        
+        <motion.button 
+          whileHover={{ y: -5 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={downloadUsers}
+          className="w-full md:w-auto bg-stone-950 dark:bg-white text-white dark:text-stone-950 px-10 py-5 rounded-[28px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 shadow-2xl transition-all text-xs"
+        >
+          <Download className="w-5 h-5" />
+          Export Member Matrix
+        </motion.button>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20">
+        {/* Daily Control Form */}
+        <section className="lg:col-span-7 space-y-12">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-[24px] bg-brand-900 flex items-center justify-center shadow-2xl shadow-brand-900/20 text-white">
+                <BookOpen className="w-8 h-8" />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Reference (e.g. John 3:16)</label>
-                <input required type="text" value={dailyForm.reference} onChange={e => setDailyForm({...dailyForm, reference: e.target.value})} className="w-full px-5 py-3 md:px-6 md:py-4 rounded-xl md:rounded-2xl font-bold text-sm md:text-base" />
+                <h2 className="text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">Daily Oracle</h2>
+                <p className="text-stone-400 text-sm font-black uppercase tracking-widest mt-1">Spiritual Provision Control</p>
               </div>
-              <div className="border-t border-stone-50 dark:border-stone-800 pt-8 md:pt-10">
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Saint Name</label>
-                <input required type="text" value={dailyForm.saintName} onChange={e => setDailyForm({...dailyForm, saintName: e.target.value})} className="w-full px-5 py-3 md:px-6 md:py-4 rounded-xl md:rounded-2xl font-bold text-sm md:text-base" />
+            </div>
+            
+            <form onSubmit={updateDaily} className="space-y-10">
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-4 block">Scripture Meditation</label>
+                  <textarea required value={dailyForm.verse} onChange={e => setDailyForm({...dailyForm, verse: e.target.value})} className="w-full glass-card bg-stone-50/50 dark:bg-black/20 p-8 md:p-12 min-h-[200px] text-xl md:text-2xl font-serif italic border-none outline-none focus:ring-2 focus:ring-brand-500/20" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-4 block">Meditation Origin</label>
+                  <input required type="text" value={dailyForm.reference} onChange={e => setDailyForm({...dailyForm, reference: e.target.value})} className="w-full glass-card p-6 md:p-8 font-black uppercase tracking-[0.2em] text-sm" />
+                </div>
               </div>
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Saint Info/Bio</label>
-                <textarea required value={dailyForm.saintInfo} onChange={e => setDailyForm({...dailyForm, saintInfo: e.target.value})} className="w-full p-4 md:p-6 bg-white/50 dark:bg-stone-900/50 rounded-2xl md:rounded-3xl outline-none h-32 resize-none text-sm md:text-base" />
+
+              <div className="pt-12 border-t border-stone-200 dark:border-white/5 space-y-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-8 h-px bg-brand-500" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.6em] text-brand-600 dark:text-brand-400">Saint Manifest</span>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-4 block">Full Title</label>
+                  <input required type="text" value={dailyForm.saintName} onChange={e => setDailyForm({...dailyForm, saintName: e.target.value})} className="w-full glass-card p-6 md:p-8 font-bold text-lg md:text-xl" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-4 block">Hagiography excerpt</label>
+                  <textarea required value={dailyForm.saintInfo} onChange={e => setDailyForm({...dailyForm, saintInfo: e.target.value})} className="w-full glass-card bg-stone-50/50 dark:bg-black/20 p-8 md:p-10 min-h-[150px] text-sm md:text-base leading-relaxed" />
+                </div>
               </div>
+
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full py-4 md:py-5 bg-stone-900 dark:bg-brand-900 text-white rounded-[24px] md:rounded-[32px] font-black uppercase tracking-widest hover:bg-stone-800 transition-all disabled:opacity-50 text-[10px] md:text-xs"
+                className="w-full py-6 bg-brand-900 text-white rounded-[32px] font-black uppercase tracking-[0.4em] hover:bg-brand-800 transition-all disabled:opacity-50 text-xs shadow-3xl flex items-center justify-center gap-4"
               >
-                {loading ? <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin mx-auto" /> : 'Update Dashboard'}
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Calibrate Dashboard <ShieldCheck className="w-5 h-5 opacity-50" /></>}
               </button>
-           </form>
+            </form>
         </section>
 
         {/* Community Overview */}
-        <section className="space-y-8">
-           <div className="bg-brand-900 text-white p-8 md:p-12 rounded-[32px] md:rounded-[48px] shadow-2xl relative overflow-hidden">
-              <Users className="absolute -bottom-8 -right-8 w-32 h-32 md:w-48 md:h-48 opacity-10" />
-              <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-brand-300 mb-2 md:mb-4">Total Membership</p>
-              <h2 className="text-6xl md:text-8xl font-black tracking-tighter">{users.length}</h2>
-              <p className="text-brand-300 mt-4 md:mt-6 font-medium text-sm md:text-base">Registered members in our network.</p>
-           </div>
-           
-           <div className="glass p-6 md:p-8 rounded-[32px] md:rounded-[40px] shadow-sm overflow-hidden">
-              <h3 className="font-bold text-base md:text-lg mb-6 flex items-center gap-2 text-stone-900 dark:text-stone-100">
-                <ShieldCheck className="w-5 h-5 text-brand-600" />
-                Recent Sign-ups
-              </h3>
-              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                {users.slice(0, 8).map((u, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-white/30 dark:bg-stone-950/30 rounded-2xl">
-                    <div className="flex items-center gap-3">
-                       <div className="w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-[10px] font-bold text-brand-900 dark:text-brand-400">
-                          {u.displayName?.charAt(0)}
+        <section className="lg:col-span-5 space-y-12">
+            <div className="glass-card bg-stone-950 text-white p-12 md:p-16 relative overflow-hidden group border-none">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-900/40 to-transparent opacity-30 group-hover:opacity-50 transition-opacity" />
+              <Users className="absolute -bottom-12 -right-12 w-48 h-48 md:w-64 md:h-64 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity" />
+              <div className="relative z-10 space-y-8">
+                <p className="text-[11px] font-black uppercase tracking-[0.6em] text-brand-400 leading-none">Collective Magnitude</p>
+                <div className="space-y-2">
+                  <h2 className="text-8xl md:text-[10rem] font-bold tracking-tighter leading-none">{totalCount || users.length}</h2>
+                  <p className="text-xl md:text-2xl font-serif italic text-stone-400 opacity-80">Synchronized Souls</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="glass-card p-10 md:p-12 border-white/5">
+              <div className="flex justify-between items-center mb-10">
+                <div className="space-y-1">
+                  <h3 className="font-bold text-xl text-stone-900 dark:text-white serif-display">Recent Resonance</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Live Member Feed</p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center">
+                   <div className="w-2 h-2 rounded-full bg-brand-500 animate-ping" />
+                </div>
+              </div>
+              
+              <div className="space-y-5">
+                {users.slice(0, 7).map((u, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    key={i} 
+                    className="flex items-center justify-between p-4 bg-stone-50/50 dark:bg-black/20 rounded-2xl hover:bg-stone-100 dark:hover:bg-black/40 transition-all border border-transparent hover:border-brand-500/10 group"
+                  >
+                    <div className="flex items-center gap-4">
+                       <div className="w-12 h-12 rounded-[18px] bg-gradient-to-br from-brand-400 to-brand-600 p-[1.5px] shadow-lg shadow-brand-500/10">
+                          <div className="w-full h-full rounded-[16.5px] bg-white dark:bg-stone-900 flex items-center justify-center">
+                            <span className="text-xs font-black text-brand-600 dark:text-brand-400">{u.displayName?.charAt(0)}</span>
+                          </div>
                        </div>
                        <div>
-                        <p className="font-bold text-sm text-stone-900 dark:text-stone-100">{u.displayName}</p>
-                        <p className="text-[10px] text-stone-400 dark:text-stone-500 font-bold">{u.email}</p>
+                        <p className="font-bold text-sm text-stone-900 dark:text-stone-100 tracking-tight group-hover:text-brand-600 transition-colors">{u.displayName}</p>
+                        <p className="text-[10px] text-stone-400 font-medium tracking-tight">{u.email}</p>
                       </div>
                     </div>
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] bg-white dark:bg-stone-800 px-2 py-1 rounded-full border border-stone-100 dark:border-stone-800">
-                      {u.role}
-                    </span>
-                  </div>
+                    <div className="px-3 py-1 bg-white dark:bg-stone-800 rounded-lg border border-stone-100 dark:border-white/5 shadow-sm">
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500">{u.role}</span>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
-           </div>
+              
+              <button className="w-full mt-8 py-4 border border-dashed border-stone-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 hover:text-stone-600 hover:bg-stone-50 transition-all">
+                Access Archives →
+              </button>
+            </div>
         </section>
       </div>
     </div>

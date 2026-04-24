@@ -8,7 +8,8 @@ import {
   serverTimestamp,
   deleteDoc,
   doc,
-  Timestamp
+  Timestamp,
+  limit
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { Event, OperationType } from '../types';
@@ -23,7 +24,7 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
   const [form, setForm] = useState({ title: '', date: '', time: '', location: '', description: '' });
 
   useEffect(() => {
-    const q = query(collection(db, 'events'), orderBy('date', 'asc'));
+    const q = query(collection(db, 'events'), orderBy('date', 'asc'), limit(20));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setEvents(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Event[]);
     }, (error) => {

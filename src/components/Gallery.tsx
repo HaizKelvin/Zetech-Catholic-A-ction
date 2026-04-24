@@ -7,7 +7,8 @@ import {
   addDoc, 
   serverTimestamp,
   deleteDoc,
-  doc
+  doc,
+  limit
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { UserProfile } from '../types';
@@ -49,7 +50,7 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
   });
 
   useEffect(() => {
-    const q = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'));
+    const q = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'), limit(24));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as GalleryItem[]);
     }, (error) => {

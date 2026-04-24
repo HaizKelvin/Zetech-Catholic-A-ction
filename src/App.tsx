@@ -311,8 +311,14 @@ export default function App() {
     return (
       <div className="min-h-screen relative flex items-center justify-center p-4 md:p-6 overflow-hidden bg-stone-950">
         <div className="absolute inset-0 z-0">
+          <img 
+            src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
+            alt="Background" 
+            className="w-full h-full object-cover opacity-20 contrast-125"
+            referrerPolicy="no-referrer"
+          />
           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-900/10 blur-[150px] rounded-full -mr-96 -mt-96" />
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-900/5 blur-[120px] rounded-full -ml-48 -mb-48" />
+          <div className="absolute bottom-0 left-0 w-[1000px] h-[1000px] bg-amber-900/5 blur-[120px] rounded-full -ml-48 -mb-48" />
         </div>
 
         <motion.div 
@@ -321,9 +327,8 @@ export default function App() {
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="relative z-10 max-w-[1100px] w-full grid grid-cols-1 lg:grid-cols-12 rounded-[40px] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-stone-900"
         >
-          {/* Brand Side with contained image */}
+          {/* Brand Side */}
           <div className="lg:col-span-7 p-10 md:p-14 lg:p-24 flex flex-col justify-center relative overflow-hidden min-h-[400px]">
-             {/* The image is now contained within this side */}
              <div className="absolute inset-0 z-0">
                <img 
                 src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
@@ -372,10 +377,10 @@ export default function App() {
             </div>
           </div>
 
-          {/* Login Side - Simplified Glass */}
-          <div className="lg:col-span-5 bg-white/10 dark:bg-black/20 backdrop-blur-2xl p-8 md:p-12 lg:p-16 flex flex-col justify-center relative border-l border-white/10 overflow-y-auto">
-            <div className="mb-8 space-y-2">
-              <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tighter italic serif-display">
+          {/* Login Side */}
+          <div className="lg:col-span-5 bg-white/10 dark:bg-black/20 backdrop-blur-3xl p-8 md:p-12 lg:p-16 flex flex-col justify-center relative border-l border-white/10 overflow-y-auto custom-scrollbar">
+            <div className="mb-8 space-y-2 text-left">
+              <h3 className="text-3xl md:text-3xl font-bold text-white tracking-tighter italic serif-display">
                 {authMode === 'login' ? 'Welcome Home.' : 'Join the Sanctuary.'}
               </h3>
               <p className="text-white/60 text-xs md:text-sm leading-relaxed max-w-xs font-medium">
@@ -388,7 +393,7 @@ export default function App() {
             <div className="space-y-6">
               <form onSubmit={handleEmailAuth} className="space-y-4">
                 {authMode === 'signup' && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-4">Full Name</label>
                     <input 
                       required
@@ -401,7 +406,7 @@ export default function App() {
                   </div>
                 )}
                 
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-4">Email Address</label>
                   <input 
                     required
@@ -413,7 +418,7 @@ export default function App() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-4">Password</label>
                   <input 
                     required
@@ -434,7 +439,7 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="w-full bg-brand-900 text-white py-4 rounded-[22px] hover:bg-brand-800 hover:scale-[1.01] active:scale-[0.99] transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2"
+                  className="w-full bg-brand-900 text-white py-4 rounded-[22px] hover:bg-brand-800 hover:-translate-y-0.5 active:translate-y-0 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2"
                 >
                   {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (authMode === 'login' ? 'Enter Sanctuary' : 'Create Account')}
                 </button>
@@ -449,7 +454,7 @@ export default function App() {
               <button
                 onClick={handleLogin}
                 disabled={authLoading}
-                className="group relative w-full flex items-center justify-center gap-4 bg-white text-stone-950 py-4 rounded-[22px] hover:bg-stone-50 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-lg overflow-hidden disabled:opacity-50"
+                className="group relative w-full flex items-center justify-center gap-4 bg-white text-stone-950 py-4 rounded-[22px] hover:bg-stone-50 hover:-translate-y-0.5 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-lg overflow-hidden disabled:opacity-50"
               >
                 <div className="w-6 h-6 bg-stone-100 rounded-lg p-1.5 flex items-center justify-center shadow-inner relative z-10">
                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-full h-full" />
@@ -460,25 +465,23 @@ export default function App() {
               <div className="text-center">
                 <button 
                   onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setAuthError(''); }}
-                  className="text-[10px] font-bold text-white/40 hover:text-brand-400 uppercase tracking-widest transition-colors"
+                  className="text-[10px] font-black text-white/30 hover:text-brand-400 uppercase tracking-[0.2em] transition-colors"
                 >
-                  {authMode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
+                  {authMode === 'login' ? "New Disciple? Join the Fellowship" : "Returning? Enter Sanctuary"}
                 </button>
               </div>
 
               <div className="flex flex-col items-center gap-4 border-t border-white/5 pt-8">
-                <div className="flex justify-center gap-4">
-                  <SocialLink href="#" icon={<MessageSquare className="w-4 h-4" />} /> 
+                <div className="flex justify-center gap-6">
                   <SocialLink href="#" icon={<Twitter className="w-4 h-4" />} />
                   <SocialLink href="#" icon={<Instagram className="w-4 h-4" />} />
                   <SocialLink href="#" icon={<Youtube className="w-4 h-4" />} />
                 </div>
+                <p className="text-[9px] text-center text-white/10 font-black uppercase tracking-[0.6em]">
+                  Excellentia Pro Deo
+                </p>
               </div>
             </div>
-            
-            <p className="mt-12 text-[8px] text-center text-white/20 font-black uppercase tracking-[0.4em]">
-              ZUCA • Excellentia Pro Deo • 2026
-            </p>
           </div>
         </motion.div>
       </div>
@@ -578,7 +581,6 @@ export default function App() {
             >
               <div className="absolute inset-0 bg-gradient-to-b from-stone-950/20 to-transparent dark:from-brand-900/5" />
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-32 bg-brand-400/5 blur-[80px] rounded-full animate-pulse" />
-              <div className="absolute top-2 left-4 w-32 h-1 bg-gradient-to-r from-brand-600/20 to-transparent rounded-full" />
             </motion.div>
             <motion.button 
               initial={{ opacity: 0, scale: 0.8 }}
@@ -798,7 +800,7 @@ export default function App() {
   );
 }
 
-function NavItem({ active, onClick, icon, label, isOpen, admin }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string, isOpen: boolean, admin?: boolean }) {
+const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string, isOpen: boolean, admin?: boolean }) => {
   return (
     <button
       onClick={onClick}
@@ -823,4 +825,4 @@ function NavItem({ active, onClick, icon, label, isOpen, admin }: { active: bool
       )}
     </button>
   );
-}
+});
