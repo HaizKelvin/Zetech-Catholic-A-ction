@@ -25,7 +25,8 @@ import {
   Users as UsersIcon,
   ChevronLeft,
   Trash2,
-  Loader2
+  Loader2,
+  Church
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { deleteDoc, doc } from 'firebase/firestore';
@@ -140,7 +141,6 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         const base64 = await compressImage(file, 800, 800, 0.7);
         await handleSendMessage(undefined, { url: base64, type: 'image' });
       } else if (file.type.startsWith('video/')) {
-        // Video storage usually requires a bucket, but we'll try a small check or just notify
         if (file.size > 1024 * 1024) {
           alert('Video too large. Please share videos smaller than 1MB or use a link.');
           return;
@@ -177,7 +177,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
   );
 
   return (
-    <div className="h-[60vh] md:h-[600px] flex glass rounded-[32px] md:rounded-[48px] overflow-hidden shadow-2xl border border-white/20 relative mx-auto max-w-5xl">
+    <div className="h-[85vh] md:h-[650px] flex glass rounded-[32px] md:rounded-[48px] overflow-hidden shadow-2xl border border-white/20 relative mx-auto max-w-5xl transition-all duration-500">
       {/* Sidebar - Contacts */}
       <div className={`${showMembers ? 'flex translate-x-0' : 'hidden md:flex -translate-x-full md:translate-x-0'} absolute md:relative inset-0 md:inset-auto z-40 w-full md:w-72 border-r border-stone-100 dark:border-stone-800 flex-col bg-white dark:bg-stone-900 md:bg-white/40 md:dark:bg-stone-900/40 backdrop-blur-md transition-transform duration-300`}>
         <div className="p-6 bg-brand-900/5 dark:bg-brand-400/5 flex items-center justify-between">
@@ -248,9 +248,9 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
           <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
             <button 
               onClick={() => setShowMembers(true)}
-              className="md:hidden p-2 -ml-2 text-stone-400 hover:text-brand-600 transition-colors"
+              className="md:hidden p-2.5 -ml-2 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:text-brand-600 rounded-xl transition-all shadow-sm active:scale-95"
             >
-              <UsersIcon className="w-6 h-6" />
+              <UsersIcon className="w-5 h-5" />
             </button>
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-brand-900 flex items-center justify-center shadow-lg shadow-brand-900/20 text-white shrink-0">
               <Church className="w-5 h-5 md:w-6 md:h-6" />
@@ -260,25 +260,27 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
               <p className="text-[9px] md:text-[10px] text-green-500 font-bold uppercase tracking-widest truncate">Live Community</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 md:gap-4 text-stone-400">
+          <div className="flex items-center gap-1 md:gap-4 text-stone-600 dark:text-stone-400">
             <a 
               href="https://meet.google.com/new" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="hidden sm:flex p-2 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 rounded-xl transition-all"
+              className="flex p-2.5 bg-stone-100 dark:bg-stone-800 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 rounded-xl transition-all shadow-sm active:scale-95"
               title="Start Google Meet"
             >
-              <Video className="w-5 h-5" />
+              <Video className="w-4.5 h-4.5 md:w-5 md:h-5" />
             </a>
-            <button className="hidden sm:flex p-2 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 rounded-xl transition-all"><Phone className="w-5 h-5" /></button>
-            <div className="hidden sm:block h-4 w-[1px] bg-stone-200 dark:bg-stone-800" />
+            <button className="flex p-2.5 bg-stone-100 dark:bg-stone-800 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 rounded-xl transition-all shadow-sm active:scale-95">
+              <Phone className="w-4.5 h-4.5 md:w-5 md:h-5" />
+            </button>
+            <div className="hidden sm:block h-6 w-[1px] bg-stone-200 dark:bg-stone-800 mx-1" />
             
             <div className="relative">
               <button 
                 onClick={() => setShowMoreMenu(!showMoreMenu)}
-                className={`p-2 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 rounded-xl transition-all ${showMoreMenu ? 'bg-brand-50 text-brand-600' : ''}`}
+                className={`p-2.5 bg-stone-100 dark:bg-stone-800 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 rounded-xl transition-all shadow-sm active:scale-95 ${showMoreMenu ? 'ring-2 ring-brand-500/20 !bg-brand-50 !text-brand-600' : ''}`}
               >
-                <MoreVertical className="w-5 h-5" />
+                <MoreVertical className="w-4.5 h-4.5 md:w-5 md:h-5" />
               </button>
 
               <AnimatePresence>
@@ -354,24 +356,24 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                         {msg.senderPhoto ? (
                           <img src={msg.senderPhoto} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-stone-50 dark:bg-stone-800 flex items-center justify-center">
-                            <UserIcon className="w-4 h-4 text-stone-300" />
+                          <div className="w-full h-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+                            <UserIcon className="w-4 h-4 text-stone-400 dark:text-stone-500" />
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
                   
-                  <div className={`max-w-[85%] md:max-w-[70%] group relative px-5 md:px-7 py-4 md:py-5 rounded-[32px] md:rounded-[44px] transition-all duration-500 ${
+                  <div className={`max-w-[88%] md:max-w-[75%] group relative px-5 md:px-7 py-4 md:py-6 rounded-[28px] md:rounded-[40px] transition-all duration-500 hover:scale-[1.01] ${
                     isMine 
-                      ? 'bg-gradient-to-br from-brand-900 to-brand-800 text-white rounded-br-none shadow-[0_15px_40px_-10px_rgba(30,58,138,0.3)] hover:shadow-[0_20px_50px_-5px_rgba(30,58,138,0.4)]' 
-                      : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-100 dark:border-stone-800 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.05)]'
+                      ? 'bg-gradient-to-br from-brand-900 via-brand-800 to-brand-900 text-white rounded-br-none shadow-[0_20px_50px_-10px_rgba(30,58,138,0.4)]' 
+                      : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-100 dark:border-stone-800 shadow-[0_10px_40px_-5px_rgba(0,0,0,0.06)]'
                   }`}>
                     <div className="absolute inset-0 faith-bg opacity-[0.03] pointer-events-none" />
                     {(isMine || currentUser?.role === 'admin') && (
                       <button 
                         onClick={() => handleDeleteMessage(msg.id)}
-                        className={`absolute -top-3 ${isMine ? 'right-0' : 'left-0'} p-2 bg-white dark:bg-stone-900 rounded-full shadow-2xl border border-stone-100 dark:border-stone-800 md:opacity-0 group-hover:opacity-100 transition-all z-20 hover:text-red-500 text-stone-400 hover:scale-110 active:scale-95`}
+                        className={`absolute -top-3 ${isMine ? 'right-0' : 'left-0'} p-2.5 bg-white dark:bg-stone-900 rounded-full shadow-xl border border-stone-100 dark:border-stone-800 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all z-20 hover:text-red-500 text-stone-500 dark:text-stone-400 hover:scale-110 active:scale-95`}
                         title="Delete Message"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -424,7 +426,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
               <button 
                 type="button" 
                 onClick={() => setShowStickers(!showStickers)}
-                className={`p-2 md:p-3 hover:text-brand-600 transition-colors ${showStickers ? 'text-brand-600' : 'text-stone-400'}`}
+                className={`p-2.5 md:p-3 bg-stone-100 dark:bg-stone-800 rounded-xl transition-all shadow-sm active:scale-95 ${showStickers ? 'text-brand-600 ring-2 ring-brand-500/20' : 'text-stone-600 dark:text-stone-400'}`}
               >
                 <Smile className="w-5 h-5 md:w-6 md:h-6" />
               </button>
@@ -456,7 +458,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                 type="button" 
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="p-2 md:p-3 text-stone-400 hover:text-brand-600 transition-colors disabled:opacity-50"
+                className="p-2.5 md:p-3 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:text-brand-600 rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50"
               >
                 {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5 md:w-6 md:h-6" />}
               </button>
@@ -495,24 +497,4 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
       </div>
     </div>
   );
-}
-
-function Church({ className }: { className?: string }) {
-   return (
-    <svg 
-      className={className}
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <path d="m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2" />
-      <path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4" />
-      <path d="M18 22V5l-6-3-6 3v17" />
-      <path d="M12 7v5" />
-      <path d="M10 9h4" />
-    </svg>
-   );
 }

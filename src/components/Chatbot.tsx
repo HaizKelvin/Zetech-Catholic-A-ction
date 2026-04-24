@@ -143,47 +143,59 @@ export default function Chatbot({ userName }: { userName?: string }) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="mb-4 w-[calc(100vw-3rem)] md:w-[300px] h-[55vh] md:h-[420px] bg-white/90 dark:bg-stone-950/90 backdrop-blur-3xl rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 dark:border-white/5 overflow-hidden flex flex-col"
+            className="mb-4 w-[calc(100vw-3rem)] md:w-[360px] h-[65vh] md:h-[500px] bg-white dark:bg-stone-950 rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.4)] border border-stone-100 dark:border-white/5 overflow-hidden flex flex-col"
           >
             {/* Header */}
-            <div className="p-4 bg-brand-900 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center border border-white/30 backdrop-blur-md">
-                  <Bot className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xs">Spiritual Guide</h3>
-                  <div className="flex items-center gap-1">
-                    <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[8px] text-brand-200 uppercase tracking-tighter font-black">Active Now</span>
+            <div className="p-5 bg-brand-900 text-white relative overflow-hidden shrink-0">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl -mr-16 -mt-16 rounded-full" />
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-xl shrink-0">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm tracking-tight">Spiritual Guide</h3>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                      <span className="text-[10px] text-brand-200 uppercase tracking-widest font-black">Online</span>
+                    </div>
                   </div>
                 </div>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 hover:bg-white/10 rounded-xl transition-all active:scale-90"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-5 bg-gradient-to-b from-stone-50/50 to-white/50 dark:from-stone-900/20 dark:to-stone-950/20">
+            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 bg-stone-50/30 dark:bg-stone-900/10 custom-scrollbar">
               {messages.length === 0 && !isLoading && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-30">
-                  <Bot className="w-8 h-8 mb-3" />
-                  <p className="text-[10px] font-medium italic">"Seek and you shall find..."</p>
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
+                  <div className="w-16 h-16 rounded-3xl bg-stone-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                    <Bot className="w-8 h-8 text-brand-900 dark:text-brand-400" />
+                  </div>
+                  <p className="text-xs font-serif italic text-stone-500 dark:text-stone-400">"Peace be with you. How can I guide your spirit today?"</p>
                 </div>
               )}
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex gap-2 max-w-[90%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`p-3 rounded-2xl text-[13px] leading-relaxed shadow-sm ${
-                      msg.role === 'user' 
-                        ? 'bg-stone-950 text-white dark:bg-white dark:text-stone-950 rounded-tr-none' 
-                        : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 border border-stone-100 dark:border-stone-800 rounded-tl-none'
+                  <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-1 ${
+                      msg.role === 'user' ? 'bg-stone-200 dark:bg-stone-800' : 'bg-brand-900/10 text-brand-900'
                     }`}>
-                      <div className="markdown-body prose prose-xs max-w-none prose-stone dark:prose-invert">
+                      {msg.role === 'user' ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                    </div>
+                    <div className={`p-4 rounded-[22px] text-sm leading-relaxed shadow-sm ${
+                      msg.role === 'user' 
+                        ? 'bg-stone-900 text-white dark:bg-white dark:text-stone-950 rounded-tr-none' 
+                        : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 border border-stone-100 dark:border-stone-800 rounded-tl-none ring-1 ring-stone-100 dark:ring-white/5'
+                    }`}>
+                      <div className="markdown-body prose prose-sm max-w-none prose-stone dark:prose-invert">
                         <Markdown>{msg.text}</Markdown>
                       </div>
                     </div>
@@ -192,11 +204,11 @@ export default function Chatbot({ userName }: { userName?: string }) {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-white dark:bg-stone-900 px-3 py-2 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800 rounded-tl-none">
-                    <div className="flex gap-1">
-                       <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce" />
-                       <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                       <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <div className="bg-white dark:bg-stone-900 px-4 py-3 rounded-[20px] rounded-tl-none shadow-sm border border-stone-100 dark:border-stone-800">
+                    <div className="flex gap-1.5 items-center">
+                       <div className="w-1.5 h-1.5 bg-brand-500 rounded-full animate-bounce [animation-duration:0.6s]" />
+                       <div className="w-1.5 h-1.5 bg-brand-500 rounded-full animate-bounce [animation-duration:0.6s] [animation-delay:0.1s]" />
+                       <div className="w-1.5 h-1.5 bg-brand-500 rounded-full animate-bounce [animation-duration:0.6s] [animation-delay:0.2s]" />
                     </div>
                   </div>
                 </div>
@@ -205,38 +217,44 @@ export default function Chatbot({ userName }: { userName?: string }) {
             </div>
 
             {/* Input */}
-            <form onSubmit={handleSend} className="p-3 bg-white/50 dark:bg-stone-950/50 backdrop-blur-md border-t border-stone-100 dark:border-white/5 flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask your guide..."
-                className="flex-1 px-4 py-2 bg-stone-100/50 dark:bg-white/5 border-none rounded-xl outline-none text-xs placeholder:text-stone-400"
-              />
-              <button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className="bg-brand-900 text-white p-2 rounded-xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
+            <div className="p-4 bg-white dark:bg-stone-950 border-t border-stone-100 dark:border-white/5 shrink-0">
+              <form onSubmit={handleSend} className="flex gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type a spiritual question..."
+                  className="flex-1 px-5 py-3 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/5 rounded-2xl outline-none text-sm transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  className="bg-brand-900 text-white p-3 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-brand-900/20 flex items-center justify-center shrink-0"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </form>
+              <p className="mt-2 text-[8px] text-center text-stone-400 font-bold uppercase tracking-widest">Powered by Sanctuary Spirit</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05, y: -2 }}
+        whileTap={{ scale: 0.95, y: 0 }}
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-          isOpen ? 'bg-brand-900 rotate-90' : 'bg-brand-700'
+        className={`w-16 h-16 rounded-[24px] flex items-center justify-center shadow-[0_15px_45px_rgba(0,0,0,0.2)] transition-all duration-500 ${
+          isOpen ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-950 rotate-90' : 'bg-brand-900 text-white'
         }`}
       >
         {isOpen ? (
-          <X className="w-6 h-6 text-white" />
+          <X className="w-7 h-7" />
         ) : (
-          <MessageCircle className="w-7 h-7 text-white" />
+          <div className="relative">
+            <MessageCircle className="w-8 h-8" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-brand-900 animate-pulse" />
+          </div>
         )}
       </motion.button>
     </div>

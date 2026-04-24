@@ -336,12 +336,12 @@ export default function App() {
           className="relative z-10 max-w-[1100px] w-full grid grid-cols-1 lg:grid-cols-12 rounded-[40px] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-stone-900"
         >
           {/* Brand Side */}
-          <div className="lg:col-span-7 p-10 md:p-14 lg:p-24 flex flex-col justify-center relative overflow-hidden min-h-[400px]">
+          <div className="lg:col-span-7 p-8 md:p-14 lg:p-24 flex flex-col justify-center relative overflow-hidden min-h-[300px] lg:min-h-[400px]">
              <div className="absolute inset-0 z-0">
                <img 
                 src="https://newspro.co.ke/wp-content/uploads/2024/02/slide1.png" 
                 alt="Zetech UI" 
-                className="w-full h-full object-cover object-center opacity-40 contrast-125"
+                className="w-full h-full object-cover object-center opacity-60 contrast-125"
                 referrerPolicy="no-referrer"
                />
                <div className="absolute inset-0 bg-stone-950/40" />
