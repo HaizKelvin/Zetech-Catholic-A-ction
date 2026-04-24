@@ -240,8 +240,8 @@ export default function Resources({ role }: ResourcesProps) {
                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
                            <Book className="w-12 h-12" />
                         </div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-3">Faith Snapshot</p>
-                        <p className="text-xs italic font-serif text-stone-600 dark:text-stone-400 line-clamp-3 leading-relaxed">"{resource.content}"</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-stone-900 dark:text-stone-300 mb-3">Faith Snapshot</p>
+                        <p className="text-xs italic font-serif text-stone-900 dark:text-stone-100 line-clamp-3 leading-relaxed">"{resource.content}"</p>
                       </div>
                     )}
                     

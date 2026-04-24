@@ -26,7 +26,8 @@ import {
   ChevronLeft,
   Trash2,
   Loader2,
-  Church
+  Church,
+  MessageCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { deleteDoc, doc } from 'firebase/firestore';
@@ -332,9 +333,9 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         </div>
 
         {/* Messages Layout */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 custom-scrollbar z-0 flex flex-col relative">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 custom-scrollbar z-0 flex flex-col relative">
           {/* Background Image Layer */}
-          <div className="absolute inset-0 z-[-1] opacity-[0.07] dark:opacity-[0.03] grayscale pointer-events-none">
+          <div className="absolute inset-0 z-[-1] opacity-[0.05] dark:opacity-[0.02] grayscale pointer-events-none">
             <img 
               src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2673&auto=format&fit=crop" 
               alt="" 
@@ -343,12 +344,30 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
             />
           </div>
 
-          <div className="flex justify-center mb-2 md:mb-4">
-            <span className="px-4 py-1.5 rounded-full glass border border-white/10 text-[9px] md:text-[10px] font-black text-stone-400 uppercase tracking-widest shadow-sm">Sanctuary Fellowship</span>
+          <div className="flex justify-center mb-4">
+            <motion.span 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-6 py-2 rounded-full glass border border-white/20 text-[10px] font-black text-brand-700 dark:text-brand-300 uppercase tracking-[0.4em] shadow-xl backdrop-blur-md"
+            >
+              Sanctuary Fellowship
+            </motion.span>
           </div>
 
           <AnimatePresence initial={false}>
-            {messages.map((msg, i) => {
+            {messages.length === 0 ? (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex-1 flex flex-col items-center justify-center opacity-30 text-stone-500 py-20"
+              >
+                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-stone-300 dark:border-white/10 flex items-center justify-center mb-6">
+                    <MessageCircle className="w-10 h-10" />
+                  </div>
+                  <p className="font-serif italic text-lg text-center px-10">Where two or three gather in my name, there am I with them...</p>
+              </motion.div>
+            ) : (
+              messages.map((msg, i) => {
               const isMine = msg.senderId === currentUser?.uid;
 
               return (
@@ -358,11 +377,11 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   className={`flex items-end gap-3 md:gap-4 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}
                 >
-                  <div className={`w-9 h-9 md:w-10 md:h-10 shrink-0 transform transition-transform group-hover:scale-110`}>
-                    <div className={`w-full h-full rounded-[14px] md:rounded-[18px] p-[2px] transition-all bg-gradient-to-br ${
-                      isMine ? 'from-brand-400 to-brand-600 shadow-lg shadow-brand-500/20' : 'from-stone-200 to-stone-300 dark:from-stone-700 dark:to-stone-600 shadow-md'
+                  <div className={`w-9 h-9 md:w-11 md:h-11 shrink-0 transform transition-transform group-hover:scale-110`}>
+                    <div className={`w-full h-full rounded-full p-[2px] transition-all bg-gradient-to-br ${
+                      isMine ? 'from-brand-300 to-brand-500 shadow-lg shadow-brand-500/20' : 'from-stone-200 to-stone-400 dark:from-stone-700 dark:to-stone-600 shadow-md'
                     }`}>
-                      <div className="w-full h-full rounded-[12px] md:rounded-[16px] overflow-hidden bg-white dark:bg-stone-900 border border-white/50 dark:border-stone-800">
+                      <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-stone-900 border border-white/50 dark:border-stone-800">
                         {msg.senderPhoto ? (
                           <img src={msg.senderPhoto} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -374,10 +393,10 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                     </div>
                   </div>
                   
-                  <div className={`max-w-[88%] md:max-w-[75%] group relative px-5 md:px-7 py-4 md:py-6 rounded-[28px] md:rounded-[40px] transition-all duration-500 hover:scale-[1.01] ${
+                  <div className={`max-w-[85%] md:max-w-[70%] group relative px-6 md:px-8 py-5 md:py-6 rounded-[24px] md:rounded-[32px] transition-all duration-500 hover:scale-[1.01] ${
                     isMine 
-                      ? 'bg-gradient-to-br from-brand-900 via-brand-800 to-brand-900 text-white rounded-br-none shadow-[0_20px_50px_-10px_rgba(30,58,138,0.4)]' 
-                      : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-100 dark:border-stone-800 shadow-[0_10px_40px_-5px_rgba(0,0,0,0.06)]'
+                      ? 'bg-gradient-to-br from-brand-900 via-brand-800 to-brand-900 text-white rounded-br-none shadow-[0_20px_60px_-15px_rgba(222,96,68,0.4)]' 
+                      : 'bg-white/95 dark:bg-stone-900/95 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-100 dark:border-stone-800 shadow-[0_10px_40px_-5px_rgba(0,0,0,0.06)]'
                   }`}>
                     <div className="absolute inset-0 faith-bg opacity-[0.03] pointer-events-none" />
                     {(isMine || currentUser?.role === 'admin') && (
@@ -424,19 +443,19 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                   </div>
                 </motion.div>
               );
-            })}
+            }) ) }
           </AnimatePresence>
           <div ref={messagesEndRef} />
         </div>
 
         {/* Message Input */}
-        <div className="p-4 md:p-6 bg-white/60 dark:bg-stone-900/60 backdrop-blur-md z-10 border-t border-stone-100 dark:border-stone-800">
-          <form onSubmit={handleSendMessage} className="flex items-center gap-2 md:gap-4 max-w-4xl mx-auto">
+        <div className="p-4 md:p-8 bg-white/70 dark:bg-stone-950/70 backdrop-blur-2xl z-10 border-t border-stone-100 dark:border-white/5 relative">
+          <form onSubmit={handleSendMessage} className="flex items-center gap-2 md:gap-5 max-w-5xl mx-auto">
             <div className="flex items-center gap-1 relative">
               <button 
                 type="button" 
                 onClick={() => setShowStickers(!showStickers)}
-                className={`p-2.5 md:p-3 bg-stone-100 dark:bg-stone-800 rounded-xl transition-all shadow-sm active:scale-95 ${showStickers ? 'text-brand-600 ring-2 ring-brand-500/20' : 'text-stone-600 dark:text-stone-400'}`}
+                className={`p-3 md:p-4 bg-stone-100 dark:bg-stone-800 rounded-full transition-all shadow-sm active:scale-95 ${showStickers ? 'text-brand-600 ring-4 ring-brand-500/10' : 'text-stone-600 dark:text-stone-400'}`}
               >
                 <Smile className="w-5 h-5 md:w-6 md:h-6" />
               </button>

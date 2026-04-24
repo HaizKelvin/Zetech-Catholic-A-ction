@@ -70,7 +70,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="text-stone-500 dark:text-stone-300 text-lg md:text-2xl font-serif italic max-w-xl leading-relaxed border-l-2 border-brand-900 pl-8 ml-2"
+              className="text-white md:text-stone-100 dark:text-stone-100 text-lg md:text-3xl font-serif italic max-w-xl leading-relaxed border-l-4 border-brand-500 pl-8 ml-2 drop-shadow-lg"
             >
               "In the silence of the heart, God speaks."
             </motion.p>
@@ -117,12 +117,12 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
             <div className="py-20 flex justify-center"><Loader2 className="w-12 h-12 animate-spin text-brand-600" /></div>
           ) : daily ? (
             <div className="space-y-10 md:space-y-16 relative z-10">
-              <p className="text-3xl md:text-6xl font-serif italic text-stone-900 dark:text-white leading-[1.1] tracking-tight">
+              <p className="text-3xl md:text-7xl font-serif italic font-bold text-stone-950 dark:text-white leading-[1] tracking-tight drop-shadow-md">
                 "{daily.verse}"
               </p>
               <div className="flex items-center gap-6">
-                <div className="h-[2px] w-16 bg-brand-500" />
-                <p className="text-xs md:text-sm font-black uppercase tracking-[0.5em] text-stone-900 dark:text-stone-300">
+                <div className="h-[4px] w-20 bg-brand-600 shadow-[0_0_15px_#de6044]" />
+                <p className="text-sm md:text-lg font-black uppercase tracking-[0.6em] text-stone-950 dark:text-brand-400">
                   {daily.reference}
                 </p>
               </div>

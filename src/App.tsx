@@ -648,13 +648,13 @@ export default function App() {
                whileHover={{ scale: 1.05 }}
                whileTap={{ scale: 0.95 }}
                onClick={() => setIsProfileModalOpen(true)}
-               className="flex items-center gap-2.5 glass p-1 rounded-xl shadow-lg border border-white/10 group transition-all"
+               className="flex items-center gap-2.5 glass p-1 rounded-full shadow-xl border border-white/20 group transition-all"
              >
-               <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg overflow-hidden bg-brand-50 flex items-center justify-center border-2 border-white shadow-sm">
+               <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden bg-brand-50 flex items-center justify-center border-2 border-white shadow-md">
                  {profile?.photoURL ? (
                    <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
                  ) : (
-                   <UserIcon className="w-3 h-3 md:w-4 md:text-brand-300" />
+                   <UserIcon className="w-4 h-4 md:w-5 text-brand-300" />
                  )}
                </div>
                <div className="text-left hidden sm:block pr-3">

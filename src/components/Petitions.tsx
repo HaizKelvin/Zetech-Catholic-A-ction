@@ -143,8 +143,8 @@ export default function Petitions() {
                       <Heart className="w-6 h-6 text-brand-900 group-hover:text-white" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-stone-900 dark:text-stone-100 italic serif-display text-lg">{p.isPublic ? p.userName : 'Private Soul'}</h4>
-                      <p className="text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] mt-1">
+                      <h4 className="font-bold text-stone-900 dark:text-white italic serif-display text-lg">{p.isPublic ? p.userName : 'Private Soul'}</h4>
+                      <p className="text-[9px] text-stone-600 dark:text-stone-400 font-black uppercase tracking-[0.2em] mt-1">
                         Moment of Grace: {p.timestamp?.toDate().toLocaleDateString()}
                       </p>
                     </div>
@@ -160,7 +160,7 @@ export default function Petitions() {
                 </div>
                 <div className="relative">
                   <div className="absolute -left-6 top-0 bottom-0 w-px bg-brand-500/20" />
-                  <p className="text-stone-600 dark:text-stone-300 text-lg md:text-xl leading-relaxed font-serif italic">
+                  <p className="text-stone-900 dark:text-stone-100 text-lg md:text-xl leading-relaxed font-serif italic">
                     "{p.text}"
                   </p>
                 </div>
