@@ -8,19 +8,21 @@ import {
   doc,
   serverTimestamp,
   limit,
-  getCountFromServer
+  getCountFromServer,
+  deleteDoc
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { UserProfile, DailyControl, OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function AdminPanel() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [dailyForm, setDailyForm] = useState({ verse: '', reference: '', saintName: '', saintInfo: '' });
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'users'), limit(100));
@@ -71,6 +73,24 @@ export default function AdminPanel() {
       handleFirestoreError(error, OperationType.UPDATE, 'control/daily_bread');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveUser = async (uid: string) => {
+    if (uid === auth.currentUser?.uid) {
+      alert("You cannot resonance-purge your own authority access.");
+      return;
+    }
+    if (!window.confirm('Are you sure you want to purge this user from the community matrix? This action is irreversible.')) return;
+    
+    setDeletingId(uid);
+    const path = `users/${uid}`;
+    try {
+      await deleteDoc(doc(db, 'users', uid));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -190,39 +210,59 @@ export default function AdminPanel() {
                   <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Live Member Feed</p>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center">
-                   <div className="w-2 h-2 rounded-full bg-brand-500 animate-ping" />
+                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                 </div>
               </div>
               
               <div className="space-y-5">
-                {users.slice(0, 7).map((u, i) => (
-                  <motion.div 
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    key={i} 
-                    className="flex items-center justify-between p-4 bg-stone-50/50 dark:bg-black/20 rounded-2xl hover:bg-stone-100 dark:hover:bg-black/40 transition-all border border-transparent hover:border-brand-500/10 group"
-                  >
-                    <div className="flex items-center gap-4">
-                       <div className="w-12 h-12 rounded-[18px] bg-gradient-to-br from-brand-400 to-brand-600 p-[1.5px] shadow-lg shadow-brand-500/10">
-                          <div className="w-full h-full rounded-[16.5px] bg-white dark:bg-stone-900 flex items-center justify-center">
-                            <span className="text-xs font-black text-brand-600 dark:text-brand-400">{u.displayName?.charAt(0)}</span>
-                          </div>
-                       </div>
-                       <div>
-                        <p className="font-bold text-sm text-stone-900 dark:text-stone-100 tracking-tight group-hover:text-brand-600 transition-colors">{u.displayName}</p>
-                        <p className="text-[10px] text-stone-400 font-medium tracking-tight">{u.email}</p>
+                <AnimatePresence>
+                  {users.slice(0, 10).map((u, i) => (
+                    <motion.div 
+                      key={u.uid || i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="flex items-center justify-between p-4 bg-stone-50/50 dark:bg-black/20 rounded-2xl hover:bg-stone-100 dark:hover:bg-black/40 transition-all border border-transparent hover:border-brand-500/10 group overflow-hidden"
+                    >
+                      <div className="flex items-center gap-4 flex-1">
+                         <div className="relative">
+                           <div className="w-12 h-12 rounded-[18px] bg-gradient-to-br from-brand-400 to-brand-600 p-[1.5px] shadow-lg shadow-brand-500/10">
+                              <div className="w-full h-full rounded-[16.5px] bg-white dark:bg-stone-900 flex items-center justify-center">
+                                <span className="text-xs font-black text-brand-600 dark:text-brand-400">{u.displayName?.charAt(0)}</span>
+                              </div>
+                           </div>
+                           {/* Presence status: Red if exists (active), otherwise hide */}
+                           {u.online && (
+                             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white dark:bg-stone-950 flex items-center justify-center shadow-lg">
+                               <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                             </div>
+                           )}
+                         </div>
+                         <div className="overflow-hidden">
+                          <p className="font-bold text-sm text-stone-900 dark:text-stone-100 tracking-tight group-hover:text-brand-600 transition-colors truncate">{u.displayName || 'Anonymous Candidate'}</p>
+                          <p className="text-[10px] text-stone-400 font-medium tracking-tight truncate">{u.email}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="px-3 py-1 bg-white dark:bg-stone-800 rounded-lg border border-stone-100 dark:border-white/5 shadow-sm">
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500">{u.role}</span>
-                    </div>
-                  </motion.div>
-                ))}
+                      
+                      <div className="flex items-center gap-3">
+                        <div className="px-3 py-1 bg-white dark:bg-stone-800 rounded-lg border border-stone-100 dark:border-white/5 shadow-sm">
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500">{u.role}</span>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveUser(u.uid)}
+                          disabled={deletingId === u.uid}
+                          className="p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        >
+                          {deletingId === u.uid ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
               
               <button className="w-full mt-8 py-4 border border-dashed border-stone-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 hover:text-stone-600 hover:bg-stone-50 transition-all">
-                Access Archives →
+                Access Full Member Registry →
               </button>
             </div>
         </section>

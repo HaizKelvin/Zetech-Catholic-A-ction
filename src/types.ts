@@ -11,6 +11,8 @@ export interface UserProfile {
   bio?: string;
   role: UserRole;
   createdAt: Timestamp;
+  online?: boolean;
+  lastSeen?: Timestamp;
 }
 
 export interface Resource {

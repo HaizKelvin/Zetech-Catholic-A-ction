@@ -18,12 +18,22 @@ import Markdown from 'react-markdown';
 import { Send, Bot, User, Loader2, MessageCircle, X, Minus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-export default function Chatbot({ userName }: { userName?: string }) {
+export default function Chatbot({ userName, aiContext, onClearContext }: { userName?: string, aiContext?: string | null, onClearContext?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Handle external AI Context from Divine Library
+  useEffect(() => {
+    if (aiContext && isOpen) {
+      setInput(aiContext);
+      if (onClearContext) onClearContext();
+    } else if (aiContext && !isOpen) {
+      setIsOpen(true);
+    }
+  }, [aiContext, isOpen]);
 
   // Message expiration cleanup (10 minutes)
   useEffect(() => {

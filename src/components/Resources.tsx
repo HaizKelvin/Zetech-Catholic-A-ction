@@ -12,11 +12,12 @@ import {
 import { db, auth } from '../firebase';
 import { Resource, OperationType, UserRole } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Music, FileText, Play, Plus, Trash2, ExternalLink, Search, X, Book, Heart, ScrollText, Bot } from 'lucide-react';
+import { Music, FileText, Play, Plus, Trash2, ExternalLink, Search, X, Book, Heart, ScrollText, Bot, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ResourcesProps {
   role: UserRole;
+  onStudy: (title: string, content: string) => void;
 }
 
 const CATEGORIES = [
@@ -29,7 +30,7 @@ const CATEGORIES = [
   { id: 'Audio', label: 'Audio', icon: <Play className="w-4 h-4" /> },
 ];
 
-export default function Resources({ role }: ResourcesProps) {
+export default function Resources({ role, onStudy }: ResourcesProps) {
   const [resources, setResources] = useState<Resource[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -105,31 +106,34 @@ export default function Resources({ role }: ResourcesProps) {
   };
 
   return (
-    <div className="space-y-16 lg:space-y-24">
+    <div className="max-w-7xl mx-auto space-y-16 lg:space-y-32 pb-32">
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-end justify-between gap-10 px-4"
+        className="relative py-16 md:py-32 px-8 md:px-24 rounded-[48px] md:rounded-[80px] overflow-hidden bg-stone-950 text-white shadow-3xl shadow-brand-900/10 group mb-12"
       >
-        <div className="space-y-3">
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter serif-display italic leading-none">Divine <span className="text-brand-600 dark:text-brand-500 not-italic">Library</span>.</h1>
-          <div className="flex items-center gap-4">
-            <div className="h-[2px] w-12 bg-brand-500" />
-            <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-stone-400">Chronicles of Faith</p>
-          </div>
-        </div>
+        <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-80 h-80 bg-brand-500/10 blur-[100px] rounded-full" />
         
-        {role === 'admin' && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowAddModal(true)}
-            className="w-full sm:w-auto flex items-center justify-center gap-4 bg-brand-900 text-white px-10 py-5 rounded-[32px] hover:bg-brand-800 transition-all font-black uppercase tracking-[0.2em] shadow-3xl shadow-brand-900/40 text-[10px]"
-          >
-            <Plus className="w-4 h-4" />
-            Archive New Revelation
-          </motion.button>
-        )}
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
+          <div className="space-y-6">
+            <h1 className="text-5xl md:text-[8rem] font-black tracking-tighter italic serif-display leading-[0.8]">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic uppercase font-black text-2xl md:text-3xl tracking-[0.3em] block mt-4">Archives</span></h1>
+            <div className="flex items-center gap-6">
+              <p className="text-stone-400 font-serif italic text-lg md:text-2xl opacity-80 pl-10 border-l-2 border-brand-500/30">Hymnals, guides, and divine manuscripts.</p>
+            </div>
+          </div>
+          {role === 'admin' && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowAddModal(true)}
+              className="w-full md:w-auto flex items-center justify-center gap-4 bg-brand-900 text-white px-8 py-5 rounded-[28px] hover:bg-brand-800 transition-all font-black uppercase tracking-[0.2em] shadow-3xl shadow-brand-900/40 text-[10px]"
+            >
+              <Plus className="w-4 h-4" />
+              Deposit New Revelation
+            </motion.button>
+          )}
+        </div>
       </motion.header>
 
       <div className="flex flex-col gap-12 lg:gap-20">
@@ -182,25 +186,26 @@ export default function Resources({ role }: ResourcesProps) {
                   <Bot className="w-10 h-10" />
                 </div>
                 <h3 className="text-4xl lg:text-5xl font-bold mb-8 tracking-tighter leading-[1.1] italic serif-display">
-                  Ecclesiastical <br />
-                  <span className="text-brand-300 not-italic font-black uppercase tracking-[0.2em] text-xs">Knowledge Assistant</span>
+                  Divine Study <br />
+                  <span className="text-brand-300 not-italic font-black uppercase tracking-[0.2em] text-xs">AI Assistant</span>
                 </h3>
                 <p className="text-sm lg:text-base text-stone-200/80 font-medium leading-relaxed mb-10">
-                  Perplexed by a sacred text? Our spiritual guide is programmed with thousands of years of divine wisdom to assist your study.
+                  Perplexed by a sacred text? Our spiritual assistant can analyze any archive for your edification.
                 </p>
                 <div className="flex items-center gap-4 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/10 w-fit shadow-2xl">
                   <div className="relative">
                     <div className="w-3 h-3 rounded-full bg-emerald-400 animate-ping absolute" />
                     <div className="w-3 h-3 rounded-full bg-emerald-400 relative" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-100">Live Guidance Available</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-100">AI Analysis Active</span>
                 </div>
               </div>
               <motion.button 
                 whileHover={{ x: 10 }}
+                onClick={() => onStudy("General Assistance", "I need help understanding these archives.")}
                 className="mt-16 text-[11px] font-black uppercase tracking-[0.5em] text-white flex items-center gap-4 group/btn"
               >
-                Initiate Consultation 
+                Summon Assistant 
                 <span className="group-hover/btn:translate-x-2 transition-transform">→</span>
               </motion.button>
             </motion.div>
@@ -261,27 +266,37 @@ export default function Resources({ role }: ResourcesProps) {
                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
                            <Book className="w-12 h-12" />
                         </div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-stone-900 dark:text-stone-300 mb-3">Faith Snapshot</p>
-                        <p className="text-xs italic font-serif text-stone-900 dark:text-stone-100 line-clamp-3 leading-relaxed">"{resource.content}"</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-stone-900 dark:text-stone-300 mb-3">Manifest Summary</p>
+                        <p className="text-xs italic font-serif text-stone-900 dark:text-stone-100 line-clamp-4 leading-relaxed whitespace-pre-wrap">"{resource.content}"</p>
                       </div>
                     )}
                     
-                    {resource.fileUrl && (
-                      <a
-                        href={resource.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between w-full p-6 bg-brand-900 text-white rounded-[28px] group/link hover:shadow-[0_20px_50px_rgba(30,58,138,0.3)] transition-all duration-500 overflow-hidden relative"
-                      >
-                        <div className="absolute inset-0 bg-brand-800 translate-x-[-100%] group-hover/link:translate-x-0 transition-transform duration-500 ease-out" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] relative z-10">
-                          Access Archival
-                        </span>
-                        <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center relative z-10 group-hover/link:rotate-[360deg] transition-transform duration-700">
-                          <ExternalLink className="w-4 h-4 text-white" />
+                    <div className="grid grid-cols-2 gap-4">
+                      {resource.fileUrl ? (
+                        <a
+                          href={resource.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-3 py-5 bg-brand-900 text-white rounded-[24px] group/link hover:shadow-xl transition-all duration-500 text-[10px] font-black uppercase tracking-widest"
+                        >
+                          <Download className="w-4 h-4" />
+                          Document
+                        </a>
+                      ) : (
+                        <div className="flex items-center justify-center gap-3 py-5 bg-stone-200 dark:bg-stone-800 text-stone-400 rounded-[24px] text-[10px] font-black uppercase tracking-widest">
+                          <FileText className="w-4 h-4" />
+                          Archive
                         </div>
-                      </a>
-                    )}
+                      )}
+                      
+                      <button
+                        onClick={() => onStudy(resource.title, resource.content || resource.description || "")}
+                        className="flex items-center justify-center gap-3 py-5 bg-white dark:bg-white/5 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-white/10 rounded-[24px] hover:bg-stone-50 dark:hover:bg-white/10 transition-all font-black uppercase tracking-widest text-[10px]"
+                      >
+                        <Bot className="w-4 h-4 text-brand-600" />
+                        Study AI
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               ))
@@ -300,7 +315,7 @@ export default function Resources({ role }: ResourcesProps) {
               className="glass rounded-[48px] p-12 w-full max-w-2xl shadow-2xl relative z-10 text-stone-900 dark:text-stone-100"
             >
               <div className="flex items-center justify-between mb-10">
-                <h3 className="text-4xl font-bold tracking-tighter italic serif-display">Spiritual <span className="text-brand-600">Provision</span></h3>
+                <h3 className="text-4xl font-bold tracking-tighter italic serif-display">Sacred <span className="text-brand-600">Provision</span></h3>
                 <button 
                   onClick={() => setShowAddModal(false)}
                   className="p-3 bg-stone-50 dark:bg-white/5 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
@@ -323,7 +338,7 @@ export default function Resources({ role }: ResourcesProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 ml-4">Library Section</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 ml-4">Archive Section</label>
                     <select
                       value={newResource.category}
                       onChange={(e) => setNewResource({...newResource, category: e.target.value as Resource['category']})}
@@ -363,7 +378,7 @@ export default function Resources({ role }: ResourcesProps) {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 ml-4">Document Link (PDF/Drive URL)</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 ml-4">Archive Document Location (Drive/Cloud Storage)</label>
                   <input
                     type="url"
                     value={newResource.fileUrl}
@@ -377,7 +392,7 @@ export default function Resources({ role }: ResourcesProps) {
                   type="submit"
                   className="w-full py-6 bg-brand-900 text-white rounded-[32px] font-black uppercase tracking-[0.2em] hover:bg-brand-800 transition-all shadow-3xl shadow-brand-900/30 active:scale-[0.98]"
                 >
-                  Deposit to Library
+                  Deposit to Sanctuary Archives
                 </button>
               </form>
             </motion.div>

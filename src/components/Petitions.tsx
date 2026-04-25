@@ -65,20 +65,19 @@ export default function Petitions() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-24 pb-32">
+    <div className="max-w-7xl mx-auto space-y-24 pb-32">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         whileInView={{ opacity: 1, scale: 1 }}
-        className="glass rounded-[56px] p-12 md:p-24 relative group overflow-hidden border border-brand-500/20 shadow-3xl shadow-brand-900/10"
+        className="glass rounded-[64px] md:rounded-[80px] p-12 md:p-32 relative group overflow-hidden border border-brand-500/20 shadow-3xl shadow-brand-900/10"
       >
         <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="relative z-10 space-y-16">
-          <div className="text-center md:text-left space-y-6">
-            <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none italic serif-display">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic uppercase font-black text-2xl md:text-3xl tracking-[0.3em] block mt-4">Altar</span></h2>
-            <div className="flex items-center gap-4 justify-center md:justify-start">
-              <div className="h-[2px] w-12 bg-brand-500/40" />
-              <p className="text-stone-600 dark:text-stone-400 font-serif italic text-xl opacity-80">"The prayer of the humble pierces the clouds."</p>
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full animate-pulse" />
+        <div className="relative z-10 space-y-20">
+          <div className="text-center md:text-left space-y-10">
+            <h2 className="text-6xl md:text-[8rem] font-black tracking-tighter leading-[0.8] italic serif-display">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic uppercase font-black text-2xl md:text-4xl tracking-[0.4em] block mt-4">Altar</span></h2>
+            <div className="flex items-center justify-center md:justify-start gap-8">
+              <p className="text-stone-600 dark:text-stone-400 font-serif italic text-xl md:text-3xl opacity-80 border-l-2 border-brand-500/30 pl-10">"The prayer of the humble pierces the clouds."</p>
             </div>
           </div>
           

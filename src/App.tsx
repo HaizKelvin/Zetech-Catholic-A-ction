@@ -144,6 +144,16 @@ export default function App() {
   const [editForm, setEditForm] = useState({ displayName: '', photoURL: '', contactNumber: '', bio: '' });
   const [isMenuVisible, setIsMenuVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [aiContext, setAiContext] = useState<string | null>(null);
+
+  const handleStudyResource = (title: string, content: string) => {
+    setAiContext(`I am studying the resource titled "${title}". 
+
+Summary Content: 
+${content}
+
+Can you provide more insight, theological context, or a related meditation for this?`);
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -184,6 +194,12 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        // Update presence
+        const presenceDocRef = doc(db, 'users', firebaseUser.uid);
+        updateDoc(presenceDocRef, { online: true, lastSeen: serverTimestamp() }).catch(() => {
+           // If direct update fails (e.g. first time), fetchOrCreate will handle it
+        });
+
         // Check/create initial profile
         await fetchOrCreateProfile(firebaseUser);
         
@@ -552,7 +568,7 @@ export default function App() {
     <div className={`min-h-screen transition-colors duration-700 flex relative ${darkMode ? 'dark text-stone-100' : 'text-stone-900'}`}>
       {/* Magnificent Background Layers */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 divnine-pattern opacity-[0.03] dark:opacity-[0.02]" />
+        <div className="absolute inset-0 divine-pattern opacity-[0.03] dark:opacity-[0.02]" />
         <div className="absolute inset-0 sacred-grid opacity-[0.02] dark:opacity-[0.01]" />
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-500/5 blur-[120px] rounded-full -mr-96 -mt-96 animate-float" />
         <div className="absolute bottom-0 left-0 w-[1000px] h-[1000px] bg-brand-900/5 blur-[150px] rounded-full -ml-40 -mb-40" />
@@ -570,8 +586,8 @@ export default function App() {
             </div>
             {isSidebarOpen && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="whitespace-nowrap">
-                <h1 className="text-xl font-black tracking-tighter text-brand-900 dark:text-brand-400">ZUCA</h1>
-                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Catholic Action Hub</p>
+                <h1 className="text-2xl font-black tracking-tighter text-brand-900 dark:text-brand-400">ZUCA</h1>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-500">Catholic Action Hub</p>
               </motion.div>
             )}
           </div>
@@ -736,7 +752,7 @@ export default function App() {
             )}
             {activeTab === 'resources' && (
               <motion.div key="resources" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <Resources role={profile?.role || 'member'} />
+                <Resources role={profile?.role || 'member'} onStudy={handleStudyResource} />
               </motion.div>
             )}
              {activeTab === 'petitions' && (
@@ -884,7 +900,11 @@ export default function App() {
       </AnimatePresence>
 
       {/* Floating Chat */}
-      <Chatbot userName={profile?.displayName?.split(' ')[0]} />
+      <Chatbot 
+        userName={profile?.displayName?.split(' ')[0]} 
+        aiContext={aiContext} 
+        onClearContext={() => setAiContext(null)} 
+      />
       <NotificationTicker />
 
       {/* Policy Modal Overlay */}
@@ -918,23 +938,28 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 relative group font-bold text-sm ${
+      className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 relative group font-semibold text-sm ${
         active 
           ? 'bg-brand-900 text-white shadow-xl shadow-brand-900/20 translate-x-1' 
-          : 'text-stone-400 hover:bg-stone-50 hover:text-stone-900'
+          : 'text-stone-500 hover:bg-stone-50 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-white'
       }`}
     >
       <div className={`w-6 h-6 shrink-0 flex items-center justify-center transition-transform ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
-        {icon}
+        {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-5 h-5' })}
       </div>
       {isOpen && (
-        <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+        <motion.span 
+          initial={{ opacity: 0, x: -10 }} 
+          animate={{ opacity: 1, x: 0 }}
+          className="whitespace-nowrap"
+        >
           {label}
         </motion.span>
       )}
+
       {active && isOpen && (
-        <motion.div layoutId="active-indicator" className="absolute right-4">
-          <ChevronRight className="w-4 h-4 text-white/50" />
+        <motion.div layoutId="active-indicator" className="absolute right-4 text-white/40">
+          <ChevronRight className="w-4 h-4" />
         </motion.div>
       )}
     </button>

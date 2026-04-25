@@ -85,33 +85,44 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
   };
 
   return (
-    <div className="space-y-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-stone-900 dark:text-stone-100">Upcoming <span className="serif-display text-brand-600 dark:text-brand-400">Events</span>.</h1>
-          <p className="text-stone-500 dark:text-stone-400 mt-2 text-sm md:text-base">Join us in our journey of faith and fellowship.</p>
-        </div>
-        {isAdmin && (
-          <div className="flex flex-wrap gap-4 w-full sm:w-auto">
-            <button 
-              onClick={handleDeleteExpired}
-              className="flex-1 sm:flex-none justify-center bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-4 py-2.5 md:px-6 md:py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-stone-200 transition-all active:scale-95 text-xs md:text-sm"
-            >
-              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
-              Clean Up
-            </button>
-            <button 
-              onClick={() => setShowAdd(true)}
-              className="flex-1 sm:flex-none justify-center bg-brand-900 text-white px-4 py-2.5 md:px-6 md:py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 active:scale-95 text-xs md:text-sm"
-            >
-              <Plus className="w-4 h-4 md:w-5 md:h-5" />
-              Post Event
-            </button>
+    <div className="max-w-7xl mx-auto space-y-16 lg:space-y-32 pb-32">
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative py-16 md:py-32 px-8 md:px-24 rounded-[48px] md:rounded-[80px] overflow-hidden bg-stone-950 text-white shadow-3xl shadow-brand-900/10 group mb-12"
+      >
+        <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-80 h-80 bg-brand-500/10 blur-[100px] rounded-full" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
+          <div className="space-y-6">
+            <h1 className="text-5xl md:text-[8rem] font-black tracking-tighter italic serif-display leading-[0.8]">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic uppercase font-black text-2xl md:text-3xl tracking-[0.3em] block mt-4">Gatherings</span></h1>
+            <div className="flex items-center gap-6">
+              <p className="text-stone-400 font-serif italic text-lg md:text-2xl opacity-80 pl-10 border-l-2 border-brand-500/30">Liturgy, fellowship, and divine movement.</p>
+            </div>
           </div>
-        )}
-      </div>
+          {isAdmin && (
+            <div className="flex flex-wrap gap-6 w-full md:w-auto">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                onClick={handleDeleteExpired}
+                className="flex-1 md:flex-none justify-center bg-white/5 border border-white/10 text-stone-300 px-8 py-5 rounded-[28px] font-black uppercase tracking-[0.3em] text-[10px] backdrop-blur-xl hover:bg-white/10 transition-all"
+              >
+                Clear Past
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                onClick={() => setShowAdd(true)}
+                className="flex-1 md:flex-none justify-center bg-brand-900 text-white px-8 py-5 rounded-[28px] font-black uppercase tracking-[0.3em] text-[10px] shadow-3xl shadow-brand-900/40 hover:bg-brand-800 transition-all"
+              >
+                Post Event
+              </motion.button>
+            </div>
+          )}
+        </div>
+      </motion.header>
 
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-12 lg:gap-20">
         <AnimatePresence>
           {events.length === 0 ? (
             <div className="text-center py-24 glass rounded-[40px]">
