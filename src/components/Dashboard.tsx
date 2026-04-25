@@ -52,7 +52,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-stone-400 text-sm md:text-lg font-black uppercase tracking-[0.3em]"
+                className="text-stone-500 dark:text-stone-400 text-sm md:text-lg font-black uppercase tracking-[0.3em]"
               >
                 Welcome back
               </motion.p>
@@ -104,12 +104,12 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
           <Quote className="absolute -top-8 -right-8 w-40 h-40 md:w-64 md:h-64 text-brand-900/[0.03] group-hover:scale-110 group-hover:rotate-6 transition-all duration-1000" />
           
           <div className="flex items-center gap-5 mb-12 md:mb-20 relative z-10">
-            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-stone-900 flex items-center justify-center shadow-2xl text-white">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-stone-950 flex items-center justify-center shadow-2xl text-white">
               <BookOpen className="w-6 h-6 md:w-8 md:h-8" />
             </div>
             <div>
               <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-500">Divine Wisdom</span>
-              <p className="text-[10px] md:text-xs font-bold text-stone-400 tracking-tight uppercase tracking-[0.1em]">Sacred Scripture Meditation</p>
+              <p className="text-[10px] md:text-xs font-bold text-stone-500 dark:text-stone-400 tracking-tight uppercase tracking-[0.1em]">Sacred Scripture Meditation</p>
             </div>
           </div>
 
@@ -139,10 +139,10 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
           className="lg:col-span-4 glass-card p-10 md:p-12 relative overflow-hidden flex flex-col group"
         >
           <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-white/5 text-stone-950 dark:text-white flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-stone-200/50 dark:bg-white/5 text-stone-950 dark:text-white flex items-center justify-center border border-stone-300/30 dark:border-transparent">
               <UserIcon className="w-6 h-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Saint Companion</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-600 dark:text-stone-400">Saint Companion</span>
           </div>
 
           <div className="flex-1 space-y-6">
@@ -152,7 +152,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
               <>
                 <h3 className="text-3xl md:text-4xl font-bold tracking-tighter leading-none">{daily.saintName}</h3>
                 <div className="h-px w-16 bg-brand-500/30" />
-                <p className="text-stone-500 dark:text-stone-400 text-sm md:text-base leading-relaxed font-serif italic line-clamp-[8]">
+                <p className="text-stone-600 dark:text-stone-400 text-sm md:text-base leading-relaxed font-serif italic line-clamp-[8]">
                   {daily.saintInfo}
                 </p>
               </>
@@ -195,10 +195,10 @@ function QuickAction({ title, icon, color, onClick }: { title: string, icon: Rea
       onClick={onClick}
       className="glass-card p-10 md:p-14 flex flex-col items-center justify-center gap-6 border border-white/5 group"
     >
-      <div className={`w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white dark:bg-white/5 rounded-3xl shadow-2xl transition-all duration-500 group-hover:rotate-6 ${color}`}>
+      <div className={`w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-stone-100 dark:bg-white/5 rounded-3xl shadow-xl transition-all duration-500 group-hover:rotate-6 border border-stone-200/50 dark:border-transparent ${color}`}>
         {icon}
       </div>
-      <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-stone-500 dark:text-stone-400 text-center leading-tight">
+      <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-stone-600 dark:text-stone-400 text-center leading-tight">
         {title}
       </span>
     </motion.button>

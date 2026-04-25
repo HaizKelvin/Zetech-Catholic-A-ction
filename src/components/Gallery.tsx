@@ -94,7 +94,7 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 px-4">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">Activity <span className="serif-display text-brand-600 dark:text-brand-400">Gallery</span>.</h1>
-          <p className="text-stone-500 dark:text-stone-400 mt-2 text-sm md:text-base">Relive our moments of worship and fellowship.</p>
+          <p className="text-stone-700 dark:text-stone-400 mt-2 text-sm md:text-base">Relive our moments of worship and fellowship.</p>
         </div>
         <button 
           onClick={() => setShowAdd(true)}
@@ -150,7 +150,7 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
                 <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center border border-stone-100 dark:border-stone-800">
                   <span className="text-[10px] font-black">{item.userName[0]}</span>
                 </div>
-                <span className="text-xs font-bold text-stone-500 uppercase tracking-widest">{item.userName}</span>
+                <span className="text-xs font-bold text-stone-700 dark:text-stone-400 uppercase tracking-widest">{item.userName}</span>
               </div>
               <div className="flex items-center gap-4 text-stone-400">
                 <button className="flex items-center gap-1 hover:text-brand-600 transition-colors">

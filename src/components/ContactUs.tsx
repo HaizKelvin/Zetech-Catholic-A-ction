@@ -46,7 +46,7 @@ export default function ContactUs() {
           <CheckCircle2 className="w-10 h-10 text-emerald-600" />
         </motion.div>
         <h2 className="text-3xl font-bold">Message Received</h2>
-        <p className="text-stone-500 max-w-sm">
+        <p className="text-stone-700 dark:text-stone-300 max-w-sm">
           Thank you for reaching out. Our sanctuary administrators will review your message soon.
         </p>
         <button 
@@ -76,7 +76,7 @@ export default function ContactUs() {
             </div>
             <div>
               <h3 className="font-bold">Email Us</h3>
-              <p className="text-xs text-stone-500">zuca@zetech.ac.ke</p>
+              <p className="text-xs text-stone-700 dark:text-stone-400">zuca@zetech.ac.ke</p>
             </div>
           </div>
 
@@ -86,7 +86,7 @@ export default function ContactUs() {
             </div>
             <div>
               <h3 className="font-bold">Call Us</h3>
-              <p className="text-xs text-stone-500">+254 700 000 000</p>
+              <p className="text-xs text-stone-700 dark:text-stone-400">+254 700 000 000</p>
             </div>
           </div>
 
@@ -104,22 +104,22 @@ export default function ContactUs() {
           <form onSubmit={handleSubmit} className="glass p-8 md:p-12 rounded-[40px] border border-white/10 shadow-xl space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Subject</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400">Subject</label>
                 <input 
                   required
                   type="text" 
                   value={form.subject}
                   onChange={e => setForm({...form, subject: e.target.value})}
-                  className="w-full px-5 py-4 rounded-2xl bg-stone-50/50 dark:bg-white/5 border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
+                  className="w-full px-5 py-4 rounded-2xl bg-stone-50/50 dark:bg-white/5 border border-stone-200/50 dark:border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all font-medium"
                   placeholder="What is this regarding?"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Type</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400">Type</label>
                 <select 
                   value={form.type}
                   onChange={e => setForm({...form, type: e.target.value as any})}
-                  className="w-full px-5 py-4 rounded-2xl bg-stone-50/50 dark:bg-white/5 border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all font-bold"
+                  className="w-full px-5 py-4 rounded-2xl bg-stone-50/50 dark:bg-white/5 border border-stone-200/50 dark:border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all font-bold"
                 >
                   <option value="feedback">Feedback</option>
                   <option value="complaint">Complaint</option>
@@ -129,12 +129,12 @@ export default function ContactUs() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Message</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400">Message</label>
               <textarea 
                 required
                 value={form.message}
                 onChange={e => setForm({...form, message: e.target.value})}
-                className="w-full px-5 py-4 rounded-3xl bg-stone-50/50 dark:bg-white/5 border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all h-40 resize-none"
+                className="w-full px-5 py-4 rounded-3xl bg-stone-50/50 dark:bg-white/5 border border-stone-200/50 dark:border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all h-40 resize-none font-medium"
                 placeholder="Share your thoughts with the sanctuary..."
               />
             </div>

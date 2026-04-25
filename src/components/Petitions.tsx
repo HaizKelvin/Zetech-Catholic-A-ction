@@ -71,7 +71,7 @@ export default function Petitions() {
         <div className="relative z-10 space-y-12">
           <div className="text-center md:text-left space-y-4">
             <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-none italic serif-display">Prayer <span className="text-brand-900 dark:text-brand-400 not-italic uppercase font-black text-xl md:text-2xl tracking-[0.2em] block mt-2">Altar</span></h2>
-            <p className="text-stone-500 dark:text-stone-400 font-serif italic text-lg opacity-80">"For where two or three are gathered in my name, there am I among them."</p>
+            <p className="text-stone-600 dark:text-stone-400 font-serif italic text-lg opacity-80">"For where two or three are gathered in my name, there am I among them."</p>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -80,18 +80,18 @@ export default function Petitions() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Entrust your petition to the community..."
-                className="w-full glass-card bg-stone-50/50 dark:bg-black/20 p-10 md:p-14 min-h-[250px] text-xl md:text-2xl font-serif italic resize-none border-none outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="w-full glass-card bg-white dark:bg-black/20 p-10 md:p-14 min-h-[250px] text-xl md:text-2xl font-serif italic resize-none border border-stone-200/50 dark:border-none outline-none focus:ring-2 focus:ring-brand-500/20"
                 required
               />
               <Heart className="absolute bottom-8 right-8 w-16 h-16 text-brand-900/5 group-focus-within:text-brand-500/10 transition-colors" />
             </div>
 
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="flex items-center gap-2 p-2 bg-stone-100 dark:bg-white/5 rounded-[22px] shadow-inner">
+              <div className="flex items-center gap-2 p-2 bg-stone-200/30 dark:bg-white/5 rounded-[22px] shadow-inner">
                 <button
                   type="button"
                   onClick={() => setIsPublic(true)}
-                  className={`flex items-center gap-3 px-6 py-3 rounded-2xl transition-all font-bold text-[10px] uppercase tracking-widest ${isPublic ? 'bg-white dark:bg-stone-800 shadow-md text-brand-900' : 'text-stone-400'}`}
+                  className={`flex items-center gap-3 px-6 py-3 rounded-2xl transition-all font-bold text-[10px] uppercase tracking-widest ${isPublic ? 'bg-stone-50 dark:bg-stone-800 shadow-md text-brand-900' : 'text-stone-500 dark:text-stone-400'}`}
                 >
                   <Globe className="w-4 h-4" />
                   Eternal Sanctuary
@@ -99,7 +99,7 @@ export default function Petitions() {
                 <button
                   type="button"
                   onClick={() => setIsPublic(false)}
-                  className={`flex items-center gap-3 px-6 py-3 rounded-2xl transition-all font-bold text-[10px] uppercase tracking-widest ${!isPublic ? 'bg-white dark:bg-stone-800 shadow-md text-brand-900' : 'text-stone-400'}`}
+                  className={`flex items-center gap-3 px-6 py-3 rounded-2xl transition-all font-bold text-[10px] uppercase tracking-widest ${!isPublic ? 'bg-stone-50 dark:bg-stone-800 shadow-md text-brand-900' : 'text-stone-500 dark:text-stone-400'}`}
                 >
                   <Lock className="w-4 h-4" />
                   Private Communion
@@ -121,7 +121,7 @@ export default function Petitions() {
 
       <div className="space-y-12">
         <div className="flex items-center gap-8">
-           <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-stone-400 shrink-0">The Infinite Litany</h3>
+           <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-stone-600 dark:text-stone-400 shrink-0">The Infinite Litany</h3>
            <div className="h-px flex-1 bg-stone-200 dark:bg-white/5" />
         </div>
 
@@ -144,7 +144,7 @@ export default function Petitions() {
                     </div>
                     <div>
                       <h4 className="font-bold text-stone-900 dark:text-white italic serif-display text-lg">{p.isPublic ? p.userName : 'Private Soul'}</h4>
-                      <p className="text-[9px] text-stone-600 dark:text-stone-400 font-black uppercase tracking-[0.2em] mt-1">
+                      <p className="text-[9px] text-stone-700 dark:text-stone-400 font-black uppercase tracking-[0.2em] mt-1">
                         Moment of Grace: {p.timestamp?.toDate().toLocaleDateString()}
                       </p>
                     </div>

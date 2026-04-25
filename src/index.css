@@ -20,10 +20,11 @@
 
 @layer base {
   :root {
-    --app-bg: #FBFBFA;
-    --card-bg: rgba(255, 255, 255, 0.95);
-    --text-primary: #1c1917;
-    --text-secondary: #44403c;
+    --app-bg: #E3E5E8;
+    --card-bg: rgba(250, 251, 253, 0.98);
+    --text-primary: #0c0a09;
+    --text-secondary: #292524;
+    --border-subtle: rgba(0, 0, 0, 0.15);
   }
 
   .dark {
@@ -31,6 +32,7 @@
     --card-bg: rgba(28, 25, 23, 0.95);
     --text-primary: #fafaf9;
     --text-secondary: #d6d3d1;
+    --border-subtle: rgba(255, 255, 255, 0.1);
   }
 
   body {
@@ -44,7 +46,7 @@
   }
 
   input, textarea, select {
-    @apply bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm border border-stone-100 dark:border-stone-800 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all;
+    @apply bg-white/70 dark:bg-stone-900/50 backdrop-blur-sm border border-stone-200 dark:border-stone-800 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all shadow-sm;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -78,8 +80,12 @@
     background-attachment: fixed;
   }
 
+  .border-subtle {
+    border-color: var(--border-subtle);
+  }
+
   .glass {
-    @apply backdrop-blur-xl border border-white/20 dark:border-white/10 transition-all duration-300;
+    @apply backdrop-blur-xl border border-stone-200/50 dark:border-white/10 transition-all duration-300 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)];
     background-color: var(--card-bg);
   }
 
@@ -101,7 +107,7 @@
   }
 
   .nav-item-inactive {
-    @apply text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100;
+    @apply text-stone-600 dark:text-stone-500 hover:bg-stone-200/50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100;
   }
 
   .markdown-body {
@@ -113,7 +119,7 @@
   }
 
   .glass-card {
-    @apply backdrop-blur-2xl border border-white/40 dark:border-white/10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_40px_80px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_40px_80px_rgb(0,0,0,0.6)] hover:-translate-y-2 duration-700 rounded-[32px] md:rounded-[48px] overflow-hidden;
+    @apply backdrop-blur-2xl border border-stone-200/60 dark:border-white/10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_20px_60px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_40px_80px_rgb(0,0,0,0.6)] hover:-translate-y-2 duration-700 rounded-[32px] md:rounded-[48px] overflow-hidden;
     background-color: var(--card-bg);
   }
 }

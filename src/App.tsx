@@ -36,6 +36,7 @@ import AdminPanel from './components/AdminPanel';
 import ChatPage from './components/ChatPage';
 import ContactUs from './components/ContactUs';
 import NotificationTicker from './components/NotificationTicker';
+import UserGuide from './components/UserGuide';
 
 import { 
   LogIn, 
@@ -70,7 +71,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'resources' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about';
+type TabType = 'home' | 'resources' | 'petitions' | 'events' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -378,7 +379,7 @@ export default function App() {
                 >
                   Seek. <br />
                   Serve. <br />
-                  <span className="serif-display italic font-light text-brand-400 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">Sanctify.</span>
+                  <span className="serif-display italic font-light text-brand-400 drop-shadow-[0_10px_30px_rgba(222,96,68,0.6)]">Sanctify.</span>
                 </motion.h2>
               </div>
             </div>
@@ -417,7 +418,7 @@ export default function App() {
                       placeholder="e.g. John Doe"
                       value={authForm.name}
                       onChange={e => setAuthForm({...authForm, name: e.target.value})}
-                      className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-white/20"
+                      className="w-full px-6 py-4 bg-stone-100/50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-sm"
                     />
                   </div>
                 )}
@@ -430,7 +431,7 @@ export default function App() {
                     placeholder="name@university.com"
                     value={authForm.email}
                     onChange={e => setAuthForm({...authForm, email: e.target.value})}
-                    className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-white/20"
+                    className="w-full px-6 py-4 bg-stone-100/50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-sm"
                   />
                 </div>
 
@@ -442,7 +443,7 @@ export default function App() {
                     placeholder="••••••••"
                     value={authForm.password}
                     onChange={e => setAuthForm({...authForm, password: e.target.value})}
-                    className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-white/20"
+                    className="w-full px-6 py-4 bg-stone-100/50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-sm"
                   />
                 </div>
 
@@ -462,9 +463,20 @@ export default function App() {
                 )}
 
                 {authError && (
-                  <p className="text-red-400 text-[10px] font-bold text-center bg-red-400/10 py-2 rounded-xl border border-red-400/20">
-                    {authError}
-                  </p>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-red-600 border border-red-700 p-5 rounded-[24px] shadow-2xl relative overflow-hidden my-4"
+                  >
+                    <div className="absolute inset-0 bg-white/5 backdrop-blur-sm pointer-events-none" />
+                    <p className="relative z-10 text-[10px] text-white font-black text-center leading-relaxed uppercase tracking-wider">
+                      {authError.includes('auth/network-request-failed') 
+                        ? "Authentication Service Unavailable. Check your internet connection or use Google Login." 
+                        : authError.includes('auth/operation-not-allowed')
+                        ? "Email sign-in is restricted. Please use the Google Login option below."
+                        : authError}
+                    </p>
+                  </motion.div>
                 )}
 
                 <button
@@ -485,7 +497,7 @@ export default function App() {
               <button
                 onClick={handleLogin}
                 disabled={authLoading}
-                className="group relative w-full flex items-center justify-center gap-4 bg-white text-stone-950 py-4 rounded-[22px] hover:bg-stone-50 hover:-translate-y-0.5 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-lg overflow-hidden disabled:opacity-50"
+                className="group relative w-full flex items-center justify-center gap-4 bg-stone-100 hover:bg-stone-200 text-stone-950 py-4 rounded-[22px] hover:-translate-y-0.5 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-lg overflow-hidden disabled:opacity-50"
               >
                 <div className="w-6 h-6 bg-stone-100 rounded-lg p-1.5 flex items-center justify-center shadow-inner relative z-10">
                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-full h-full" />
@@ -562,6 +574,7 @@ export default function App() {
             <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-5 h-5" />} label="Events" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} icon={<CreditCard className="w-5 h-5" />} label="Payments" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-5 h-5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'guide'} onClick={() => handleTabChange('guide')} icon={<HelpCircle className="w-5 h-5" />} label="User Guide" isOpen={isSidebarOpen} />
             <NavItem active={activeTab === 'contact'} onClick={() => handleTabChange('contact')} icon={<Mail className="w-5 h-5" />} label="Contact Us" isOpen={isSidebarOpen} />
             
             {isAdmin && (
@@ -584,9 +597,9 @@ export default function App() {
               {isSidebarOpen && <span className="text-sm font-bold">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>}
             </button>
 
-            <div className={`flex items-center gap-4 px-2 py-3 ${isSidebarOpen ? 'bg-stone-50 dark:bg-white/5 rounded-2xl' : ''}`}>
+            <div className={`flex items-center gap-4 px-2 py-3 ${isSidebarOpen ? 'bg-stone-100/50 dark:bg-white/5 rounded-2xl border border-stone-200/50 dark:border-white/5' : ''}`}>
               <div 
-                className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center shrink-0 cursor-pointer overflow-hidden"
+                className="w-10 h-10 bg-brand-50 dark:bg-brand-900/20 rounded-full flex items-center justify-center shrink-0 cursor-pointer overflow-hidden border border-stone-200 dark:border-white/10"
                 onClick={() => setIsProfileModalOpen(true)}
               >
                 {profile?.photoURL ? (
@@ -627,7 +640,7 @@ export default function App() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               onClick={() => setIsSidebarOpen(true)}
-              className="fixed top-3 left-3 md:top-4 md:left-4 z-40 p-2.5 glass rounded-xl shadow-lg border border-white/10 group hover:bg-brand-900 transition-colors"
+              className="fixed top-3 left-3 md:top-4 md:left-4 z-40 p-2.5 glass rounded-xl shadow-lg border border-subtle group hover:bg-brand-900 transition-colors"
             >
               <Menu className="w-4 h-4 md:w-5 md:h-5 text-brand-900 dark:text-brand-400 group-hover:text-white" />
             </motion.button>
@@ -635,35 +648,49 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Profile Widget - Fixed Top Right */}
+      {/* Top Header Widgets - Fixed Top Right */}
       <AnimatePresence>
         {isMenuVisible && user && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-3 right-3 md:top-4 md:right-4 z-40"
-          >
-             <motion.button 
+          <div className="fixed top-3 right-3 md:top-4 md:right-4 z-40 flex items-center gap-3">
+             {/* Dark Mode Toggle Component */}
+             <motion.button
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
                whileHover={{ scale: 1.05 }}
                whileTap={{ scale: 0.95 }}
-               onClick={() => setIsProfileModalOpen(true)}
-               className="flex items-center gap-2.5 glass p-1 rounded-full shadow-xl border border-white/20 group transition-all"
+               onClick={() => setDarkMode(!darkMode)}
+               className="p-1.5 glass rounded-full shadow-xl border border-subtle text-stone-600 dark:text-amber-400 group transition-all"
+               title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
              >
-               <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden bg-brand-50 flex items-center justify-center border-2 border-white shadow-md">
-                 {profile?.photoURL ? (
-                   <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                 ) : (
-                   <UserIcon className="w-4 h-4 md:w-5 text-brand-300" />
-                 )}
-               </div>
-               <div className="text-left hidden sm:block pr-3">
-                  <p className="text-[9px] font-bold text-stone-900 dark:text-stone-100 truncate max-w-[60px] md:max-w-[80px]">
-                    {profile?.displayName?.split(' ')[0] || 'Member'}
-                  </p>
-               </div>
+               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
              </motion.button>
-          </motion.div>
+
+             <motion.div 
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+             >
+               <motion.button 
+                 whileHover={{ scale: 1.05 }}
+                 whileTap={{ scale: 0.95 }}
+                 onClick={() => setIsProfileModalOpen(true)}
+                 className="flex items-center gap-2.5 glass p-1 rounded-full shadow-xl border border-subtle group transition-all"
+               >
+                 <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden bg-brand-50 flex items-center justify-center border-2 border-stone-100 dark:border-stone-800 shadow-md">
+                   {profile?.photoURL ? (
+                     <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                   ) : (
+                     <UserIcon className="w-4 h-4 md:w-5 text-brand-300" />
+                   )}
+                 </div>
+                 <div className="text-left hidden sm:block pr-3">
+                    <p className="text-[9px] font-bold text-stone-900 dark:text-stone-100 truncate max-w-[60px] md:max-w-[80px]">
+                      {profile?.displayName?.split(' ')[0] || 'Member'}
+                    </p>
+                 </div>
+               </motion.button>
+             </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -729,6 +756,11 @@ export default function App() {
                 <AboutPage />
               </motion.div>
             )}
+            {activeTab === 'guide' && (
+              <motion.div key="guide" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <UserGuide />
+              </motion.div>
+            )}
             {activeTab === 'admin' && isAdmin && (
               <motion.div key="admin" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <AdminPanel />
@@ -759,16 +791,16 @@ export default function App() {
               <form onSubmit={handleUpdateProfile} className="space-y-6">
                 <div className="flex flex-col items-center gap-6 mb-10">
                    <div className="relative">
-                      <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-stone-800 shadow-2xl relative">
+                      <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-stone-100 dark:border-stone-800 shadow-2xl relative">
                         {editForm.photoURL ? (
                           <img src={editForm.photoURL} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
-                            <UserIcon className="w-12 h-12 text-stone-300" />
+                          <div className="w-full h-full bg-stone-50 dark:bg-stone-800 flex items-center justify-center">
+                            <UserIcon className="w-12 h-12 text-stone-200" />
                           </div>
                         )}
                       </div>
-                      <label className="absolute -bottom-2 left-1/2 -translate-x-1/2 cursor-pointer bg-brand-900 text-white p-2.5 rounded-full shadow-xl hover:bg-brand-800 transition-all border-4 border-white dark:border-stone-900 z-10 scale-110 active:scale-95">
+                      <label className="absolute -bottom-2 left-1/2 -translate-x-1/2 cursor-pointer bg-brand-900 text-white p-2.5 rounded-full shadow-xl hover:bg-brand-800 transition-all border-4 border-stone-100 dark:border-stone-900 z-10 scale-110 active:scale-95">
                         <ImageIcon className="w-4 h-4" />
                         <input 
                           type="file" 

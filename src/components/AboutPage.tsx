@@ -100,7 +100,7 @@ export default function AboutPage() {
             <div className="space-y-6 max-w-xl">
               <span className="text-[10px] font-black uppercase tracking-[0.5em] text-brand-500">Legal & Conduct</span>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tighter serif-display">Standards of the <br /> <span className="not-italic text-stone-900 dark:text-white">Sanctuary</span></h2>
-              <p className="text-stone-500 dark:text-stone-400 leading-relaxed italic">
+              <p className="text-stone-700 dark:text-stone-400 leading-relaxed italic">
                 By joining our community, members commit to a standard of behavior that honors God and respects our neighbors. These policies ensure a safe, contemplative, and productive space for all.
               </p>
             </div>
@@ -125,7 +125,7 @@ export default function AboutPage() {
           <p className="text-3xl md:text-5xl font-serif italic text-stone-900 dark:text-white leading-[1.2]">
             "To restore all things in Christ."
           </p>
-          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-stone-400">Instaurare Omnia in Christo — Moto of St. Pius X</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-stone-600 dark:text-stone-400">Instaurare Omnia in Christo — Moto of St. Pius X</p>
         </div>
       </section>
     </div>

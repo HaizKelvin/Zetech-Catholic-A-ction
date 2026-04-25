@@ -143,7 +143,7 @@ export default function Chatbot({ userName }: { userName?: string }) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="mb-4 w-[calc(100vw-3rem)] md:w-[360px] h-[65vh] md:h-[500px] bg-white dark:bg-stone-950 rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.4)] border border-stone-100 dark:border-white/5 overflow-hidden flex flex-col"
+            className="mb-4 w-[calc(100vw-3rem)] md:w-[360px] h-[65vh] md:h-[500px] bg-[#F4F5F7] dark:bg-stone-950 rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.4)] border border-stone-200 dark:border-white/5 overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="p-5 bg-brand-900 text-white relative overflow-hidden shrink-0">
@@ -179,7 +179,7 @@ export default function Chatbot({ userName }: { userName?: string }) {
                   <div className="w-16 h-16 rounded-3xl bg-stone-100 dark:bg-white/5 flex items-center justify-center mb-4">
                     <Bot className="w-8 h-8 text-brand-900 dark:text-brand-400" />
                   </div>
-                  <p className="text-xs font-serif italic text-stone-500 dark:text-stone-400">"Peace be with you. How can I guide your spirit today?"</p>
+                  <p className="text-xs font-serif italic text-stone-700 dark:text-stone-400">"Peace be with you. How can I guide your spirit today?"</p>
                 </div>
               )}
               {messages.map((msg) => (
@@ -193,7 +193,7 @@ export default function Chatbot({ userName }: { userName?: string }) {
                     <div className={`p-4 rounded-[22px] text-sm leading-relaxed shadow-sm ${
                       msg.role === 'user' 
                         ? 'bg-stone-900 text-white dark:bg-white dark:text-stone-950 rounded-tr-none' 
-                        : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 border border-stone-100 dark:border-stone-800 rounded-tl-none ring-1 ring-stone-100 dark:ring-white/5'
+                        : 'bg-[#FCFDFF] dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-800 rounded-tl-none ring-1 ring-stone-100 dark:ring-white/5'
                     }`}>
                       <div className="markdown-body prose prose-sm max-w-none prose-stone dark:prose-invert">
                         <Markdown>{msg.text}</Markdown>
@@ -217,7 +217,7 @@ export default function Chatbot({ userName }: { userName?: string }) {
             </div>
 
             {/* Input */}
-            <div className="p-4 bg-white dark:bg-stone-950 border-t border-stone-100 dark:border-white/5 shrink-0">
+            <div className="p-4 bg-[#F4F5F7] dark:bg-stone-950 border-t border-stone-200 dark:border-white/5 shrink-0">
               <form onSubmit={handleSend} className="flex gap-2">
                 <input
                   type="text"
@@ -234,7 +234,7 @@ export default function Chatbot({ userName }: { userName?: string }) {
                   <Send className="w-5 h-5" />
                 </button>
               </form>
-              <p className="mt-2 text-[8px] text-center text-stone-400 font-bold uppercase tracking-widest">Powered by Sanctuary Spirit</p>
+              <p className="mt-2 text-[8px] text-center text-stone-600 dark:text-stone-400 font-bold uppercase tracking-widest">Powered by Sanctuary Spirit</p>
             </div>
           </motion.div>
         )}

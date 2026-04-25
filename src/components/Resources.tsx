@@ -133,7 +133,7 @@ export default function Resources({ role }: ResourcesProps) {
               placeholder="Search documents, guides, or hymns..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-16 pr-8 py-5 rounded-[32px] glass focus:ring-4 ring-brand-500/10 border-white/20 transition-all font-medium"
+              className="w-full pl-16 pr-8 py-5 rounded-[32px] glass focus:ring-4 ring-brand-500/10 border-stone-200 dark:border-white/20 transition-all font-medium"
             />
           </div>
           
@@ -145,7 +145,7 @@ export default function Resources({ role }: ResourcesProps) {
                 className={`flex items-center gap-2.5 px-6 py-4 rounded-[24px] whitespace-nowrap transition-all font-bold text-xs uppercase tracking-widest ${
                   activeCategory === cat.id 
                     ? 'bg-brand-900 text-white shadow-xl shadow-brand-900/20' 
-                    : 'glass text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white border-white/10'
+                    : 'glass text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white border-subtle'
                 }`}
               >
                 {cat.icon}
@@ -176,7 +176,7 @@ export default function Resources({ role }: ResourcesProps) {
                 <p className="text-sm text-stone-500 dark:text-stone-400 font-medium leading-relaxed mb-8">
                   Need help interpreting a text or finding a specific hymn? Connect with our spiritual study assistant.
                 </p>
-                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white dark:bg-black/40 border border-brand-200 dark:border-white/5 w-fit shadow-inner">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-stone-100 dark:bg-black/40 border border-stone-200/50 dark:border-white/5 w-fit shadow-inner">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
                   <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Available</span>
                 </div>
@@ -201,7 +201,7 @@ export default function Resources({ role }: ResourcesProps) {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   key={resource.id} 
-                  className="glass-card p-10 group relative flex flex-col h-full bg-white/50 dark:bg-stone-900/10 border-white/5 hover:border-brand-500/20"
+                  className="glass-card p-10 group relative flex flex-col h-full bg-stone-100/30 dark:bg-stone-900/10 border-subtle hover:border-brand-500/20 shadow-xl"
                 >
                   <div className="flex items-start justify-between mb-10">
                     <div className="w-16 h-16 rounded-[24px] bg-stone-100 dark:bg-white/5 text-stone-900 dark:text-white flex items-center justify-center shadow-inner group-hover:bg-brand-900 group-hover:text-white transition-all duration-500 group-hover:rotate-3">
