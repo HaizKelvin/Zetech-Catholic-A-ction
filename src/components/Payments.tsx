@@ -58,6 +58,7 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
     
     // Simulating STK Push
     setTimeout(async () => {
+      const path = 'payments';
       try {
         const transId = 'MP' + Math.random().toString(36).substring(2, 10).toUpperCase();
         const paymentData = {
@@ -73,7 +74,7 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
           timestamp: new Date() // Temporary for receipt
         };
 
-        const docRef = await addDoc(collection(db, 'payments'), {
+        const docRef = await addDoc(collection(db, path), {
           ...paymentData,
           timestamp: serverTimestamp()
         });
@@ -89,6 +90,7 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
       } catch (error) {
         setStkStatus('failed');
         setLoading(false);
+        handleFirestoreError(error, OperationType.CREATE, path);
       }
     }, 4000); // Simulate waiting for PIN
   };
@@ -101,28 +103,34 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
     setLoading(true);
     // Simulate PayPal Redirect/Flow
     setTimeout(async () => {
-      const transId = 'PAYPAL-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-      const paymentData = {
-        userId: auth.currentUser?.uid,
-        userName: auth.currentUser?.displayName || 'User',
-        userEmail: auth.currentUser?.email || '',
-        amount: Number(form.amount),
-        purpose: form.purpose,
-        transactionId: transId,
-        method: 'paypal' as const,
-        status: 'verified' as const,
-        timestamp: new Date()
-      };
+      const path = 'payments';
+      try {
+        const transId = 'PAYPAL-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        const paymentData = {
+          userId: auth.currentUser?.uid,
+          userName: auth.currentUser?.displayName || 'User',
+          userEmail: auth.currentUser?.email || '',
+          amount: Number(form.amount),
+          purpose: form.purpose,
+          transactionId: transId,
+          method: 'paypal' as const,
+          status: 'verified' as const,
+          timestamp: new Date()
+        };
 
-      const docRef = await addDoc(collection(db, 'payments'), {
-        ...paymentData,
-        timestamp: serverTimestamp()
-      });
+        const docRef = await addDoc(collection(db, path), {
+          ...paymentData,
+          timestamp: serverTimestamp()
+        });
 
-      setLoading(false);
-      setShowAdd(false);
-      setReceipt({ id: docRef.id, ...paymentData } as any);
-      setForm({ amount: '', purpose: '', transactionId: '', phone: '' });
+        setLoading(false);
+        setShowAdd(false);
+        setReceipt({ id: docRef.id, ...paymentData } as any);
+        setForm({ amount: '', purpose: '', transactionId: '', phone: '' });
+      } catch (error) {
+        setLoading(false);
+        handleFirestoreError(error, OperationType.CREATE, path);
+      }
     }, 2000);
   };
 

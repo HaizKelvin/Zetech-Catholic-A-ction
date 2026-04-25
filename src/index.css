@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
@@ -36,21 +36,24 @@
   }
 
   body {
-    @apply transition-colors duration-500 min-h-screen relative overflow-x-hidden;
+    @apply font-sans antialiased text-[var(--text-primary)] transition-colors duration-700 min-h-screen relative overflow-x-hidden;
     background-color: var(--app-bg);
-    color: var(--text-primary);
   }
 
   #root {
     @apply min-h-screen relative z-10;
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tighter;
+  }
+
   input, textarea, select {
-    @apply bg-white/70 dark:bg-stone-900/50 backdrop-blur-sm border border-stone-200 dark:border-stone-800 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all shadow-sm;
+    @apply bg-stone-100/50 dark:bg-stone-900/50 backdrop-blur-md border border-stone-200/50 dark:border-stone-800 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all shadow-sm rounded-2xl;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -58,68 +61,64 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-stone-200/50 dark:bg-stone-800/50 rounded-full;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-stone-300 dark:bg-stone-700;
+    @apply bg-stone-300 dark:bg-stone-800 rounded-full hover:bg-stone-400 dark:hover:bg-stone-700 transition-colors;
   }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.02); }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
 }
 
 @layer utilities {
-  .faith-bg {
-    @apply fixed inset-0 z-0 pointer-events-none opacity-40 mix-blend-overlay dark:opacity-20 transition-opacity duration-500;
-    background-image: url('https://images.unsplash.com/photo-1519491050282-ce00c729c8bf?q=80&w=2000&auto=format&fit=crop');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+  .divine-pattern {
+    background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0);
+    background-size: 64px 64px;
   }
 
-  .border-subtle {
-    border-color: var(--border-subtle);
+  .sacred-grid {
+    background-image: 
+      linear-gradient(currentColor 0.5px, transparent 0.5px),
+      linear-gradient(90deg, currentColor 0.5px, transparent 0.5px);
+    background-size: 120px 120px;
+    background-position: center center;
   }
 
   .glass {
-    @apply backdrop-blur-xl border border-stone-200/50 dark:border-white/10 transition-all duration-300 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)];
+    @apply backdrop-blur-3xl border border-stone-200/50 dark:border-white/5 transition-all duration-500 shadow-[0_12px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_24px_64px_rgba(0,0,0,0.3)];
     background-color: var(--card-bg);
-  }
-
-  .glass-dark {
-    @apply backdrop-blur-2xl border border-white/10 shadow-2xl;
-    background-color: rgba(28, 25, 23, 0.85);
-  }
-
-  .serif-display {
-    @apply font-serif italic tracking-tight;
-  }
-
-  .nav-item-vertical {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-medium text-sm;
-  }
-
-  .nav-item-active {
-    @apply bg-brand-600 text-white shadow-lg shadow-brand-600/20 translate-x-1;
-  }
-
-  .nav-item-inactive {
-    @apply text-stone-600 dark:text-stone-500 hover:bg-stone-200/50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100;
-  }
-
-  .markdown-body {
-    @apply text-inherit;
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
   }
 
   .glass-card {
-    @apply backdrop-blur-2xl border border-stone-200/60 dark:border-white/10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_20px_60px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_40px_80px_rgb(0,0,0,0.6)] hover:-translate-y-2 duration-700 rounded-[32px] md:rounded-[48px] overflow-hidden;
+    @apply backdrop-blur-[40px] border border-stone-200/60 dark:border-white/5 transition-all duration-700 
+           shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.5)]
+           hover:shadow-[0_60px_120px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_80px_160px_rgba(0,0,0,0.8)]
+           hover:-translate-y-3 rounded-[48px] md:rounded-[64px] overflow-hidden;
     background-color: var(--card-bg);
+  }
+
+  .serif-display {
+    @apply font-serif italic tracking-tight font-light;
+  }
+
+  .nav-item-active {
+    @apply bg-brand-900 text-white shadow-2xl shadow-brand-900/40 scale-105;
+  }
+
+  .nav-item-inactive {
+    @apply text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-white transition-all duration-500;
+  }
+
+  .animate-float {
+    animation: float 12s ease-in-out infinite;
+  }
+
+  .animate-pulse-gentle {
+    animation: pulse-gentle 8s ease-in-out infinite;
   }
 }

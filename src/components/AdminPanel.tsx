@@ -45,12 +45,13 @@ export default function AdminPanel() {
     });
 
     const fetchCount = async () => {
+      const path = 'users';
       try {
-        const coll = collection(db, 'users');
+        const coll = collection(db, path);
         const snapshot = await getCountFromServer(coll);
         setTotalCount(snapshot.data().count);
       } catch (err) {
-        console.error("Count fetch error:", err);
+        handleFirestoreError(err, OperationType.GET, path);
       }
     };
     fetchCount();

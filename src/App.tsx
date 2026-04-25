@@ -145,6 +145,13 @@ export default function App() {
   const [isMenuVisible, setIsMenuVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "¿Matins? Peace be with you this morning.";
+    if (hour < 18) return "¿Angelus? Wishing you a blessed afternoon.";
+    return "¿Vespers? Peace be with you this evening.";
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -235,7 +242,7 @@ export default function App() {
         setProfile(newProfile);
       }
     } catch (error) {
-       console.error("Profile fetch error:", error);
+       handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);
     }
   };
 
@@ -379,7 +386,7 @@ export default function App() {
                 >
                   Seek. <br />
                   Serve. <br />
-                  <span className="serif-display italic font-light text-brand-400 drop-shadow-[0_10px_30px_rgba(222,96,68,0.6)]">Sanctify.</span>
+                  <span className="serif-display italic font-light text-brand-600 drop-shadow-[0_10px_30px_rgba(59,130,246,0.5)]">Sanctify.</span>
                 </motion.h2>
               </div>
             </div>
@@ -542,12 +549,18 @@ export default function App() {
   const isAdmin = profile?.role === 'admin';
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 flex ${darkMode ? 'dark text-stone-100' : 'text-stone-900'}`}>
-      <div className="faith-bg" />
-      
+    <div className={`min-h-screen transition-colors duration-700 flex relative ${darkMode ? 'dark text-stone-100' : 'text-stone-900'}`}>
+      {/* Magnificent Background Layers */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 divnine-pattern opacity-[0.03] dark:opacity-[0.02]" />
+        <div className="absolute inset-0 sacred-grid opacity-[0.02] dark:opacity-[0.01]" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-500/5 blur-[120px] rounded-full -mr-96 -mt-96 animate-float" />
+        <div className="absolute bottom-0 left-0 w-[1000px] h-[1000px] bg-brand-900/5 blur-[150px] rounded-full -ml-40 -mb-40" />
+      </div>
+
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 glass border-r transition-all duration-700 ease-in-out overflow-hidden shadow-2xl ${
-        isSidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full w-72'
+      <aside className={`fixed inset-y-0 left-0 z-50 glass border-r border-stone-200/50 dark:border-white/5 transition-all duration-700 ease-in-out overflow-hidden shadow-2xl ${
+        isSidebarOpen ? 'translate-x-0 w-72 md:w-80' : '-translate-x-full w-72 md:w-80'
       }`}>
         <div className="h-full flex flex-col p-4">
           {/* Logo */}

@@ -129,7 +129,7 @@ export default function Chatbot({ userName }: { userName?: string }) {
       });
 
     } catch (error) {
-      console.error('Chat error:', error);
+      handleFirestoreError(error, OperationType.WRITE, path);
     } finally {
       setIsLoading(false);
     }

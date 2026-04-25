@@ -86,69 +86,92 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-stone-900 dark:text-stone-100">Religious <span className="serif-display text-brand-600 dark:text-brand-400">Trivia</span>.</h1>
+    <div className="max-w-4xl mx-auto space-y-20">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-10"
+      >
+        <div className="space-y-2">
+          <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-stone-900 dark:text-stone-100 italic serif-display">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic">Trivia</span>.</h1>
+          <p className="text-[10px] md:text-sm font-bold text-stone-400 uppercase tracking-[0.5em]">Liturgy of Knowledge</p>
+        </div>
         {isAdmin && (
-           <button onClick={() => setShowAdd(true)} className="w-full sm:w-auto bg-brand-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 text-sm">
-             <Plus className="w-4 h-4 md:w-5 md:h-5" /> Add Question
-           </button>
+           <motion.button 
+             whileHover={{ scale: 1.05 }}
+             whileTap={{ scale: 0.95 }}
+             onClick={() => setShowAdd(true)} 
+             className="w-full sm:w-auto bg-brand-900 text-white px-10 py-5 rounded-[28px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-brand-800 transition-all shadow-3xl shadow-brand-900/40 text-[10px]"
+           >
+             <Plus className="w-4 h-4" /> Add Revelation
+           </motion.button>
         )}
-      </div>
+      </motion.div>
 
       {!showResult && currentIndex < questions.length ? (
         <motion.div 
           key={currentIndex}
-          initial={{ opacity: 0, x: 20, rotateY: -10 }}
-          animate={{ opacity: 1, x: 0, rotateY: 0 }}
-          className="glass-card p-8 md:p-16 shadow-[0_40px_100px_-15px_rgba(0,0,0,0.2)] dark:shadow-[0_40px_100px_-15px_rgba(0,0,0,0.5)] border-white/10"
+          initial={{ opacity: 0, scale: 0.9, rotateY: -15 }}
+          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="glass-card p-12 md:p-24 shadow-[0_60px_120px_-20px_rgba(0,0,0,0.3)] dark:shadow-[0_80px_160px_-20px_rgba(0,0,0,0.6)] border-white/10 group bg-white/40 dark:bg-black/20"
         >
-          <div className="flex justify-between items-center mb-12">
-            <div className="px-5 py-2 rounded-full bg-brand-900/5 dark:bg-white/5 border border-brand-500/10 flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400">
-                Faith Tier: {currentIndex + 1} / {questions.length}
+          <div className="absolute inset-0 sacred-grid opacity-[0.03] pointer-events-none" />
+          
+          <div className="flex justify-between items-center mb-16 md:mb-24">
+            <div className="px-8 py-3 rounded-full bg-brand-900/5 dark:bg-white/5 border border-brand-500/20 flex items-center gap-4 backdrop-blur-3xl">
+              <div className="relative">
+                <div className="w-3 h-3 rounded-full bg-brand-500 animate-ping opacity-40 absolute" />
+                <div className="w-3 h-3 rounded-full bg-brand-500 animate-pulse relative" />
+              </div>
+              <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400">
+                Faith Journey: {currentIndex + 1} of {questions.length}
               </span>
             </div>
              {isAdmin && (
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.1, rotate: 12 }}
                 onClick={() => handleDelete(questions[currentIndex].id)} 
-                className="p-3 bg-stone-50 dark:bg-white/5 text-stone-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-xl"
+                className="p-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-[20px] backdrop-blur-xl border border-red-500/20"
               >
                 <Trash2 className="w-5 h-5" />
-              </button>
+              </motion.button>
             )}
           </div>
           
-          <div className="space-y-6 mb-12">
-            <div className="h-px w-16 bg-brand-500/50" />
-            <h2 className="text-3xl md:text-5xl font-bold text-stone-900 dark:text-stone-100 leading-tight tracking-tighter serif-display">
+          <div className="space-y-8 mb-20 md:mb-32">
+            <div className="h-[2px] w-32 bg-gradient-to-r from-brand-600 to-transparent" />
+            <h2 className="text-4xl md:text-8xl font-bold text-stone-900 dark:text-white leading-[0.95] tracking-tighter serif-display">
               {questions[currentIndex].question}
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-6 md:gap-8">
             {questions[currentIndex].options.map((opt, i) => (
               <motion.button
                 key={i}
-                whileHover={!isAnswered ? { x: 10, scale: 1.02 } : {}}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 * i + 0.5 }}
+                whileHover={!isAnswered ? { x: 16, scale: 1.02 } : {}}
                 whileTap={!isAnswered ? { scale: 0.98 } : {}}
                 onClick={() => handleAnswer(i)}
-                className={`p-6 md:p-8 rounded-[28px] text-left font-bold transition-all flex items-center justify-between group overflow-hidden relative ${
+                className={`p-8 md:p-12 rounded-[40px] md:rounded-[56px] text-left font-black transition-all duration-700 flex items-center justify-between group overflow-hidden relative border-2 ${
                   isAnswered 
                     ? (i === questions[currentIndex].correctAnswer 
-                        ? 'bg-emerald-500 text-white shadow-2xl shadow-emerald-500/30 ring-4 ring-emerald-500/20' 
+                        ? 'bg-emerald-500 border-emerald-400 text-white shadow-[0_30px_60px_-10px_rgba(16,185,129,0.4)] ring-8 ring-emerald-500/10' 
                         : (selectedOption === i 
-                            ? 'bg-red-500 text-white shadow-lg' 
-                            : 'bg-stone-50 dark:bg-stone-900/40 text-stone-300 dark:text-stone-700 opacity-60'))
-                    : 'glass border-white/5 hover:border-brand-500/30 hover:bg-stone-100/30 dark:hover:bg-white/5 shadow-sm'
+                            ? 'bg-red-500 border-red-400 text-white shadow-xl translate-x-2' 
+                            : 'bg-stone-50/50 dark:bg-stone-900/30 border-transparent text-stone-300 dark:text-stone-700 opacity-40 filter blur-[1px]'))
+                    : 'bg-white/60 dark:bg-white/5 border-stone-200/50 dark:border-white/5 hover:border-brand-500/40 hover:bg-white dark:hover:bg-white/10 shadow-sm'
                 }`}
               >
-                <span className="text-sm md:text-lg tracking-tight relative z-10">{opt}</span>
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-brand-500/0 group-hover:bg-brand-500/40 transition-all duration-700" />
+                <span className="text-sm md:text-2xl tracking-tighter relative z-10 leading-snug max-w-[85%]">{opt}</span>
                 <div className="relative z-10">
-                  {isAnswered && i === questions[currentIndex].correctAnswer && <CheckCircle className="w-6 h-6 animate-float" />}
-                  {isAnswered && selectedOption === i && i !== questions[currentIndex].correctAnswer && <XCircle className="w-6 h-6" />}
-                  {!isAnswered && <div className="w-8 h-8 rounded-full border border-stone-100 dark:border-white/5 flex items-center justify-center text-[10px] opacity-20 group-hover:opacity-100 transition-opacity">{String.fromCharCode(65 + i)}</div>}
+                  {isAnswered && i === questions[currentIndex].correctAnswer && <CheckCircle className="w-8 h-8 animate-float text-white" />}
+                  {isAnswered && selectedOption === i && i !== questions[currentIndex].correctAnswer && <XCircle className="w-8 h-8 text-white" />}
+                  {!isAnswered && <div className="w-12 h-12 rounded-full border border-stone-200 dark:border-white/10 flex items-center justify-center text-[11px] font-black opacity-20 group-hover:opacity-100 group-hover:border-brand-500 group-hover:text-brand-500 transition-all duration-500 uppercase tracking-widest">{String.fromCharCode(65 + i)}</div>}
                 </div>
               </motion.button>
             ))}
@@ -178,7 +201,7 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
           <div className="relative z-10">
             <div className="mb-12 relative inline-block">
               <div className="absolute inset-0 bg-brand-500/20 blur-[60px] rounded-full animate-pulse" />
-              <Trophy className="w-24 h-24 md:w-40 md:h-40 text-brand-500 mx-auto animate-float drop-shadow-[0_0_20px_#de6044]" />
+              <Trophy className="w-24 h-24 md:w-40 md:h-40 text-brand-500 mx-auto animate-float drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
             </div>
             <h2 className="text-5xl md:text-8xl font-bold text-stone-950 dark:text-white mb-6 tracking-tighter serif-display italic">Sacred <span className="text-brand-500 not-italic uppercase font-black text-2xl md:text-4xl tracking-[0.2em] block mt-2">Commendation</span></h2>
             <div className="flex items-end justify-center gap-4 mb-16">

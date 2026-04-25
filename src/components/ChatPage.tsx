@@ -70,7 +70,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
       await Promise.all(deletePromises);
       setShowMoreMenu(false);
     } catch (error) {
-      console.error("Error clearing history:", error);
+      handleFirestoreError(error, OperationType.DELETE, 'community_chat');
     }
   };
 
@@ -101,11 +101,16 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const q = query(collection(db, 'users'), limit(50));
-      const snapshot = await getDocs(q);
-      const u: UserProfile[] = [];
-      snapshot.forEach(doc => u.push(doc.data() as UserProfile));
-      setUsers(u);
+      const path = 'users';
+      try {
+        const q = query(collection(db, path), limit(50));
+        const snapshot = await getDocs(q);
+        const u: UserProfile[] = [];
+        snapshot.forEach(doc => u.push(doc.data() as UserProfile));
+        setUsers(u);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.LIST, path);
+      }
     };
     fetchUsers();
   }, []);
@@ -115,8 +120,9 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
     if (!newMessage.trim() && !media && !currentUser) return;
     if (!currentUser) return;
 
+    const path = 'community_chat';
     try {
-      await addDoc(collection(db, 'community_chat'), {
+      await addDoc(collection(db, path), {
         text: newMessage,
         mediaUrl: media?.url || null,
         mediaType: media?.type || null,
@@ -128,7 +134,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
       setNewMessage('');
       setShowStickers(false);
     } catch (error) {
-      console.error("Error sending message:", error);
+      handleFirestoreError(error, OperationType.CREATE, path);
     }
   };
 
@@ -153,7 +159,8 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         };
       }
     } catch (error) {
-      console.error("Upload error:", error);
+      // Error handling is inside handleSendMessage but for other issues:
+      console.error("Upload preparation error:", error);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -166,10 +173,11 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
 
   const handleDeleteMessage = async (messageId: string) => {
     if (!window.confirm('Delete this message?')) return;
+    const path = `community_chat/${messageId}`;
     try {
       await deleteDoc(doc(db, 'community_chat', messageId));
     } catch (error) {
-      console.error("Error deleting message:", error);
+      handleFirestoreError(error, OperationType.DELETE, path);
     }
   };
 
@@ -204,37 +212,47 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="p-2 space-y-1">
+          <div className="p-4 space-y-3">
             <button 
               onClick={() => setShowMembers(false)}
-              className="w-full flex items-center gap-3 p-3 rounded-2xl bg-brand-900 text-white shadow-lg shadow-brand-900/20 text-left transition-all"
+              className="w-full flex items-center gap-4 p-4 rounded-[24px] bg-brand-900 text-white shadow-2xl shadow-brand-900/40 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0 border border-white/20">
-                <Church className="w-6 h-6" />
+              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 border border-white/20">
+                <Church className="w-7 h-7" />
               </div>
               <div className="overflow-hidden">
-                <div className="font-bold truncate">CA Community Hub</div>
-                <div className="text-[10px] opacity-80 truncate">You: Share your thoughts here...</div>
+                <div className="font-bold tracking-tight text-base truncate">Community Hub</div>
+                <div className="text-[10px] opacity-70 font-black uppercase tracking-widest truncate">Live Now</div>
               </div>
             </button>
 
-            {filteredUsers.map((u) => (
-              <button key={u.uid} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-stone-100 dark:hover:bg-stone-800 transition-all text-left">
-                <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-stone-100 dark:border-stone-800 shadow-sm relative">
+            <div className="pt-4 px-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Divine Members</span>
+            </div>
+
+            {filteredUsers.map((u, idx) => (
+              <motion.button 
+                key={u.uid} 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="w-full flex items-center gap-4 p-3 rounded-[24px] hover:bg-white dark:hover:bg-white/5 hover:shadow-xl hover:shadow-black/5 transition-all text-left group"
+              >
+                <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0 border border-stone-100 dark:border-stone-800 shadow-sm relative group-hover:scale-110 transition-transform">
                   {u.photoURL ? (
                     <img src={u.photoURL} alt={u.displayName} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
-                      <UserIcon className="w-5 h-5 text-stone-300" />
+                      <UserIcon className="w-6 h-6 text-stone-300" />
                     </div>
                   )}
-                  <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-green-500 border-2 border-stone-100 dark:border-stone-900 rounded-full" />
+                  <div className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-stone-900 rounded-full shadow-lg" />
                 </div>
                 <div className="overflow-hidden">
-                  <div className="font-bold text-sm truncate">{u.displayName}</div>
-                  <div className="text-[10px] text-stone-600 dark:text-stone-400 truncate tracking-tight">{u.bio || 'Faithful Soul'}</div>
+                  <div className="font-bold text-sm truncate text-stone-900 dark:text-stone-100">{u.displayName}</div>
+                  <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate tracking-tight italic font-serif opacity-80">{u.bio || 'Faithful Soul'}</div>
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>

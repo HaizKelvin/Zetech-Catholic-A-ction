@@ -11,7 +11,8 @@ import {
   limit
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { UserProfile } from '../types';
+import { UserProfile, OperationType } from '../types';
+import { handleFirestoreError } from '../utils';
 import { 
   Image as ImageIcon, 
   Video as VideoIcon, 
@@ -54,7 +55,7 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as GalleryItem[]);
     }, (error) => {
-      console.error("Gallery snapshot error:", error);
+      handleFirestoreError(error, OperationType.LIST, 'gallery');
     });
     return () => unsubscribe();
   }, []);
@@ -63,8 +64,9 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
     e.preventDefault();
     if (!profile || !form.url) return;
     setLoading(true);
+    const path = 'gallery';
     try {
-      await addDoc(collection(db, 'gallery'), {
+      await addDoc(collection(db, path), {
         ...form,
         userId: profile.uid,
         userName: profile.displayName,
@@ -74,7 +76,7 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
       setShowAdd(false);
       setForm({ url: '', title: '', description: '', type: 'image' });
     } catch (error) {
-      console.error("Error posting to gallery:", error);
+      handleFirestoreError(error, OperationType.CREATE, path);
     } finally {
       setLoading(false);
     }
@@ -82,10 +84,11 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this post?')) return;
+    const path = `gallery/${id}`;
     try {
       await deleteDoc(doc(db, 'gallery', id));
     } catch (error) {
-      console.error("Error deleting post:", error);
+      handleFirestoreError(error, OperationType.DELETE, path);
     }
   };
 
