@@ -156,56 +156,52 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
             className="mb-4 w-[calc(100vw-3rem)] md:w-[360px] h-[65vh] md:h-[500px] bg-[#F4F5F7] dark:bg-stone-950 rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.4)] border border-stone-200 dark:border-white/5 overflow-hidden flex flex-col"
           >
             {/* Header */}
-            <div className="p-5 bg-brand-900 text-white relative overflow-hidden shrink-0">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl -mr-16 -mt-16 rounded-full" />
+            <div className="p-6 bg-stone-900 dark:bg-stone-800 text-white relative overflow-hidden shrink-0 border-b border-white/5">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 blur-3xl -mr-16 -mt-16 rounded-full" />
               <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-xl shrink-0">
-                    <Bot className="w-5 h-5 text-white" />
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-[18px] bg-white/5 flex items-center justify-center border border-white/10 backdrop-blur-3xl shrink-0 shadow-inner group transition-all">
+                    <Bot className="w-6 h-6 text-brand-400 group-hover:scale-110 transition-transform" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm tracking-tight">Spiritual Guide</h3>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
-                      <span className="text-[10px] text-brand-200 uppercase tracking-widest font-black">Online</span>
+                    <h3 className="font-bold text-base tracking-tight italic serif-display">Spiritual Guide</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                      <span className="text-[9px] text-stone-400 uppercase tracking-[0.2em] font-black">Divine Intelligence</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <button 
                     onClick={() => setIsOpen(false)}
-                    className="p-2 hover:bg-white/10 rounded-xl transition-all active:scale-90"
+                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all active:scale-90 border border-white/5"
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-4 h-4 text-stone-400" />
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 bg-stone-50/30 dark:bg-stone-900/10 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8 bg-[#F8FAFC] dark:bg-stone-950 custom-scrollbar relative">
+              <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
               {messages.length === 0 && !isLoading && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
-                  <div className="w-16 h-16 rounded-3xl bg-stone-100 dark:bg-white/5 flex items-center justify-center mb-4">
-                    <Bot className="w-8 h-8 text-brand-900 dark:text-brand-400" />
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40 relative z-10">
+                  <div className="w-20 h-20 rounded-[28px] bg-white dark:bg-white/5 flex items-center justify-center mb-8 shadow-sm border border-stone-100 dark:border-white/5">
+                    <Bot className="w-10 h-10 text-brand-600 dark:text-brand-400" />
                   </div>
-                  <p className="text-xs font-serif italic text-stone-700 dark:text-stone-400">"Peace be with you. How can I guide your spirit today?"</p>
+                  <p className="text-base font-serif italic text-stone-700 dark:text-stone-300 leading-[1.6]">"Peace be with you. <br /> How can I guide your spirit today?"</p>
                 </div>
               )}
               {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-1 ${
-                      msg.role === 'user' ? 'bg-stone-200 dark:bg-stone-800' : 'bg-brand-900/10 text-brand-900'
-                    }`}>
-                      {msg.role === 'user' ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
-                    </div>
-                    <div className={`p-4 rounded-[22px] text-sm leading-relaxed shadow-sm ${
+                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10`}>
+                  <div className={`flex gap-3 max-w-[92%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`p-5 rounded-[22px] md:rounded-[28px] text-[13px] leading-relaxed shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] ${
                       msg.role === 'user' 
-                        ? 'bg-stone-900 text-white dark:bg-white dark:text-stone-950 rounded-tr-none' 
-                        : 'bg-[#FCFDFF] dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-800 rounded-tl-none ring-1 ring-stone-100 dark:ring-white/5'
+                        ? 'bg-stone-900 text-white dark:bg-brand-600 rounded-tr-none' 
+                        : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-100 dark:border-white/5 rounded-tl-none font-serif italic'
                     }`}>
-                      <div className="markdown-body prose prose-sm max-w-none prose-stone dark:prose-invert">
+                      <div className="markdown-body prose prose-stone dark:prose-invert max-w-none">
                         <Markdown>{msg.text}</Markdown>
                       </div>
                     </div>

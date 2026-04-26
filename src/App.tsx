@@ -21,6 +21,7 @@ import {
 import { auth, db } from './firebase';
 import { UserProfile, UserRole, OperationType } from './types';
 import { handleFirestoreError, compressImage } from './utils';
+import { NotificationManager } from './lib/notifications';
 
 // Components
 import AboutPage from './components/AboutPage';
@@ -59,15 +60,21 @@ import {
   MessageSquare,
   Twitter,
   Instagram,
-  Youtube,
+  Facebook,
+  Mail,
+  Phone,
+  Settings,
   User as UserIcon,
+  Bell,
+  BellOff,
+  Youtube,
   Image as ImageIcon,
   Library,
   Home,
   Hash,
   CreditCard,
   Trophy,
-  Mail
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -101,6 +108,19 @@ export default function App() {
     return 'home';
   });
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    'Notification' in window ? Notification.permission : 'denied'
+  );
+
+  const requestNotif = async () => {
+    const granted = await NotificationManager.requestPermission();
+    setNotifPermission(granted ? 'granted' : 'denied');
+    if (granted) {
+      NotificationManager.sendNotification('Divine Notifications Enabled', {
+        body: 'You will now receive spiritual updates and community news.'
+      });
+    }
+  };
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -199,6 +219,22 @@ Can you provide more insight, theological context, or a related meditation for t
         updateDoc(presenceDocRef, { online: true, lastSeen: serverTimestamp() }).catch(() => {
            // If direct update fails (e.g. first time), fetchOrCreate will handle it
         });
+
+        // Set offline on disconnect/visibility change
+        const setOffline = () => {
+          updateDoc(presenceDocRef, { online: false, lastSeen: serverTimestamp() });
+        };
+        
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === 'hidden') {
+            setOffline();
+          } else {
+            updateDoc(presenceDocRef, { online: true, lastSeen: serverTimestamp() });
+          }
+        };
+
+        window.addEventListener('beforeunload', setOffline);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         // Check/create initial profile
         await fetchOrCreateProfile(firebaseUser);
@@ -421,12 +457,12 @@ Can you provide more insight, theological context, or a related meditation for t
           <div className="lg:col-span-5 bg-white/10 dark:bg-black/20 backdrop-blur-3xl p-8 md:p-12 lg:p-16 flex flex-col justify-center relative border-l border-white/10 overflow-y-auto custom-scrollbar">
             <div className="mb-8 space-y-2 text-left">
               <h3 className="text-3xl md:text-3xl font-bold text-white tracking-tighter italic serif-display">
-                {authMode === 'login' ? 'Welcome Home.' : 'Join the Sanctuary.'}
+                {authMode === 'login' ? 'Sign In' : 'Create Account'}
               </h3>
               <p className="text-white/60 text-xs md:text-sm leading-relaxed max-w-xs font-medium">
                 {authMode === 'login' 
-                  ? 'Connect with the Zetech University Catholic community in a digital space dedicated to faith.'
-                  : 'Be part of our vibrant CA spiritual ecosystem and grow in faith with fellow students.'}
+                  ? 'Sign in to access the Zetech University Catholic community.'
+                  : 'Join our vibrant CA fellowship and grow in faith with fellow students.'}
               </p>
             </div>
 
@@ -438,7 +474,7 @@ Can you provide more insight, theological context, or a related meditation for t
                     <input 
                       required
                       type="text"
-                      placeholder="e.g. John Doe"
+                      placeholder="Enter your full name"
                       value={authForm.name}
                       onChange={e => setAuthForm({...authForm, name: e.target.value})}
                       className="w-full px-6 py-4 bg-stone-100/50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-sm"
@@ -463,7 +499,7 @@ Can you provide more insight, theological context, or a related meditation for t
                   <input 
                     required
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="Create a password"
                     value={authForm.password}
                     onChange={e => setAuthForm({...authForm, password: e.target.value})}
                     className="w-full px-6 py-4 bg-stone-100/50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-sm"
@@ -480,7 +516,7 @@ Can you provide more insight, theological context, or a related meditation for t
                       className="w-4 h-4 rounded border-brand-900/50 bg-white/10 text-brand-900 focus:ring-brand-500/20"
                     />
                     <label htmlFor="terms" className="text-[10px] text-white/60 font-medium cursor-pointer">
-                      I accept the <button type="button" onClick={() => setShowPolicyModal(true)} className="text-brand-400 hover:underline">Catholic Action Policies</button>
+                      I accept the <button type="button" onClick={() => setShowPolicyModal(true)} className="text-brand-400 hover:underline">Community Policies</button>
                     </label>
                   </div>
                 )}
@@ -494,9 +530,9 @@ Can you provide more insight, theological context, or a related meditation for t
                     <div className="absolute inset-0 bg-white/5 backdrop-blur-sm pointer-events-none" />
                     <p className="relative z-10 text-[10px] text-white font-black text-center leading-relaxed uppercase tracking-wider">
                       {authError.includes('auth/network-request-failed') 
-                        ? "Authentication Service Unavailable. Check your internet connection or use Google Login." 
+                        ? "Network error. Please check your connection." 
                         : authError.includes('auth/operation-not-allowed')
-                        ? "Email sign-in is restricted. Please use the Google Login option below."
+                        ? "Email login is disabled. Please use Google Login."
                         : authError}
                     </p>
                   </motion.div>
@@ -507,7 +543,7 @@ Can you provide more insight, theological context, or a related meditation for t
                   disabled={authLoading}
                   className="w-full bg-brand-900 text-white py-4 rounded-[22px] hover:bg-brand-800 hover:-translate-y-0.5 active:translate-y-0 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2"
                 >
-                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (authMode === 'login' ? 'Enter Sanctuary' : 'Create Account')}
+                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (authMode === 'login' ? 'Login' : 'Sign Up')}
                 </button>
               </form>
 
@@ -520,12 +556,12 @@ Can you provide more insight, theological context, or a related meditation for t
               <button
                 onClick={handleLogin}
                 disabled={authLoading}
-                className="group relative w-full flex items-center justify-center gap-4 bg-stone-100 hover:bg-stone-200 text-stone-950 py-4 rounded-[22px] hover:-translate-y-0.5 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-lg overflow-hidden disabled:opacity-50"
+                className="group relative w-full flex items-center justify-center gap-4 bg-white hover:bg-stone-100 text-stone-950 py-4 rounded-[22px] hover:-translate-y-0.5 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-lg overflow-hidden disabled:opacity-50"
               >
-                <div className="w-6 h-6 bg-stone-100 rounded-lg p-1.5 flex items-center justify-center shadow-inner relative z-10">
+                <div className="w-6 h-6 bg-white rounded-lg p-1.5 flex items-center justify-center shadow-inner relative z-10">
                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-full h-full" />
                 </div>
-                <span className="relative z-10">Continue with Google</span>
+                <span className="relative z-10">Sign in with Google</span>
               </button>
 
               <div className="text-center">
@@ -533,7 +569,7 @@ Can you provide more insight, theological context, or a related meditation for t
                   onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setAuthError(''); }}
                   className="text-[10px] font-black text-white/30 hover:text-brand-400 uppercase tracking-[0.2em] transition-colors"
                 >
-                  {authMode === 'login' ? "New Disciple? Join the Fellowship" : "Returning? Enter Sanctuary"}
+                  {authMode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Login"}
                 </button>
               </div>
 
@@ -886,10 +922,26 @@ Can you provide more insight, theological context, or a related meditation for t
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 pt-4">
-                  <button type="submit" className="w-full py-4 bg-brand-900 text-white rounded-2xl font-bold shadow-xl">Save Profile</button>
-                  <div className="flex gap-3">
-                    <button type="button" onClick={() => setIsProfileModalOpen(false)} className="flex-1 py-4 border border-stone-100 dark:border-stone-800 rounded-2xl font-bold text-stone-400">Cancel</button>
+                <div className="flex flex-col gap-4 pt-6 border-t border-stone-100 dark:border-white/5">
+                  {'Notification' in window && (
+                    <button 
+                      type="button" 
+                      onClick={requestNotif}
+                      className={`w-full py-4 flex items-center justify-center gap-3 rounded-[22px] font-black uppercase tracking-[0.1em] text-[10px] transition-all duration-300 ${
+                        notifPermission === 'granted' 
+                          ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-500/5 dark:text-brand-400 border border-brand-500/20' 
+                          : 'bg-stone-100 dark:bg-white/5 text-stone-500 dark:text-stone-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 border border-transparent'
+                      }`}
+                    >
+                      {notifPermission === 'granted' ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+                      {notifPermission === 'granted' ? 'Divine Alerts Active' : 'Enable Mobile Notifications'}
+                    </button>
+                  )}
+                  <button type="submit" className="w-full py-4 bg-brand-900 text-white rounded-[22px] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-brand-900/20 hover:bg-brand-800 transition-all">
+                    Save Sanctified Profile
+                  </button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button type="button" onClick={() => setIsProfileModalOpen(false)} className="py-4 border border-stone-100 dark:border-stone-800 rounded-[22px] font-black uppercase tracking-[0.2em] text-[9px] text-stone-400 hover:bg-stone-50 dark:hover:bg-white/5 transition-all">Cancel</button>
                     <button type="button" onClick={() => { handleLogout(); setIsProfileModalOpen(false); }} className="flex-1 py-4 bg-red-50 text-red-500 rounded-2xl font-bold hover:bg-red-100 transition-all">Logout</button>
                   </div>
                 </div>

@@ -27,7 +27,9 @@ import {
   Trash2,
   Loader2,
   Church,
-  MessageCircle
+  MessageCircle,
+  CornerUpLeft,
+  X as CloseIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { deleteDoc, doc } from 'firebase/firestore';
@@ -41,6 +43,11 @@ interface Message {
   senderName: string;
   senderPhoto?: string;
   timestamp: any;
+  replyTo?: {
+    id: string;
+    text: string;
+    senderName: string;
+  };
 }
 
 const STICKERS = [
@@ -50,6 +57,7 @@ const STICKERS = [
 export default function ChatPage({ currentUser }: { currentUser: UserProfile | null }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [replyMessage, setReplyMessage] = useState<Message | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMembers, setShowMembers] = useState(false);
@@ -122,7 +130,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
 
     const path = 'community_chat';
     try {
-      await addDoc(collection(db, path), {
+      const messageData: any = {
         text: newMessage,
         mediaUrl: media?.url || null,
         mediaType: media?.type || null,
@@ -130,8 +138,19 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         senderName: currentUser.displayName,
         senderPhoto: currentUser.photoURL || '',
         timestamp: serverTimestamp()
-      });
+      };
+
+      if (replyMessage) {
+        messageData.replyTo = {
+          id: replyMessage.id,
+          text: replyMessage.text || (replyMessage.mediaType ? `[${replyMessage.mediaType}]` : 'Shared Media'),
+          senderName: replyMessage.senderName
+        };
+      }
+
+      await addDoc(collection(db, path), messageData);
       setNewMessage('');
+      setReplyMessage(null);
       setShowStickers(false);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, path);
@@ -243,10 +262,10 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                     <img src={u.photoURL} alt={u.displayName} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
-                      <UserIcon className="w-6 h-6 text-stone-300" />
+                      <UserIcon className="w-6 h-6 text-stone-300 dark:text-stone-600" />
                     </div>
                   )}
-                  <div className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-stone-900 rounded-full shadow-lg" />
+                  <div className="absolute bottom-1 right-1 w-3 h-3 bg-red-500 border-2 border-white dark:border-stone-900 rounded-full shadow-lg" />
                 </div>
                 <div className="overflow-hidden">
                   <div className="font-bold text-sm truncate text-stone-900 dark:text-stone-100">{u.displayName}</div>
@@ -391,6 +410,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
               return (
                 <motion.div 
                   key={msg.id}
+                  id={`msg-${msg.id}`}
                   initial={{ opacity: 0, scale: 0.95, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   className={`flex items-end gap-3 md:gap-4 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}
@@ -417,15 +437,41 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                       : 'bg-stone-100 dark:bg-stone-900/95 text-stone-900 dark:text-stone-100 rounded-bl-none border border-stone-200 dark:border-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)]'
                   }`}>
                     <div className="absolute inset-0 faith-bg opacity-[0.03] pointer-events-none" />
-                    {(isMine || currentUser?.role === 'admin') && (
+                    
+                    <div className={`absolute -top-3 ${isMine ? 'right-0 flex-row-reverse' : 'left-0'} flex items-center gap-1 z-20`}>
+                      {(isMine || currentUser?.role === 'admin') && (
+                        <button 
+                          onClick={() => handleDeleteMessage(msg.id)}
+                          className="p-2.5 bg-stone-50 dark:bg-stone-900 rounded-full shadow-xl border border-stone-100 dark:border-stone-800 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:text-red-500 text-stone-500 dark:text-stone-400 hover:scale-110 active:scale-95"
+                          title="Delete Message"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <button 
-                        onClick={() => handleDeleteMessage(msg.id)}
-                        className={`absolute -top-3 ${isMine ? 'right-0' : 'left-0'} p-2.5 bg-stone-50 dark:bg-stone-900 rounded-full shadow-xl border border-stone-100 dark:border-stone-800 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all z-20 hover:text-red-500 text-stone-500 dark:text-stone-400 hover:scale-110 active:scale-95`}
-                        title="Delete Message"
+                        onClick={() => setReplyMessage(msg)}
+                        className="p-2.5 bg-stone-50 dark:bg-stone-900 rounded-full shadow-xl border border-stone-100 dark:border-stone-800 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:text-brand-600 text-stone-500 dark:text-stone-400 hover:scale-110 active:scale-95"
+                        title="Reply"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <CornerUpLeft className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {msg.replyTo && (
+                      <button 
+                        onClick={() => {
+                          const el = document.getElementById(`msg-${msg.replyTo?.id}`);
+                          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          el?.classList.add('ring-4', 'ring-brand-500/50', 'transition-all', 'duration-1000');
+                          setTimeout(() => el?.classList.remove('ring-4', 'ring-brand-500/50'), 2000);
+                        }}
+                        className="w-full mb-3 p-3 rounded-2xl bg-black/10 dark:bg-white/10 border-l-4 border-brand-500 text-left hover:bg-black/15 dark:hover:bg-white/15 transition-all"
+                      >
+                        <p className="text-[9px] font-black uppercase tracking-widest text-brand-500 mb-1">{msg.replyTo.senderName}</p>
+                        <p className="text-[11px] opacity-70 truncate italic">{msg.replyTo.text}</p>
                       </button>
                     )}
+
                     {!isMine && (
                       <span className="block text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1.5">
                         {msg.senderName}
@@ -468,6 +514,27 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
 
         {/* Message Input */}
         <div className="p-4 md:p-8 bg-stone-50/70 dark:bg-stone-950/70 backdrop-blur-2xl z-10 border-t border-stone-100 dark:border-white/5 relative">
+          <AnimatePresence>
+            {replyMessage && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="mx-auto max-w-5xl mb-3 p-4 bg-brand-900/10 dark:bg-brand-400/10 border-l-4 border-brand-500 rounded-2xl flex items-center justify-between group"
+              >
+                <div className="overflow-hidden">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 dark:text-brand-400 mb-1">Replying to {replyMessage.senderName}</p>
+                  <p className="text-xs text-stone-600 dark:text-stone-300 truncate italic">{replyMessage.text || "[Media Archive]"}</p>
+                </div>
+                <button 
+                  onClick={() => setReplyMessage(null)}
+                  className="p-2 hover:bg-white dark:hover:bg-white/5 rounded-full transition-all"
+                >
+                  <CloseIcon className="w-4 h-4 text-stone-500" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <form onSubmit={handleSendMessage} className="flex items-center gap-2 md:gap-5 max-w-5xl mx-auto">
             <div className="flex items-center gap-1 relative">
               <button 

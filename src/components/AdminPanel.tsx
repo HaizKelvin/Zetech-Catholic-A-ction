@@ -218,35 +218,35 @@ export default function AdminPanel() {
                 <AnimatePresence>
                   {users.slice(0, 10).map((u, i) => (
                     <motion.div 
-                      key={u.uid || i}
+                      key={u.uid || `user-${i}`}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className="flex items-center justify-between p-4 bg-stone-50/50 dark:bg-black/20 rounded-2xl hover:bg-stone-100 dark:hover:bg-black/40 transition-all border border-transparent hover:border-brand-500/10 group overflow-hidden"
+                      className="flex items-center justify-between p-4 bg-stone-50/50 dark:bg-white/5 rounded-2xl hover:bg-stone-100 dark:hover:bg-white/10 transition-all border border-transparent hover:border-brand-500/10 group overflow-hidden shadow-sm"
                     >
-                      <div className="flex items-center gap-4 flex-1">
-                         <div className="relative">
-                           <div className="w-12 h-12 rounded-[18px] bg-gradient-to-br from-brand-400 to-brand-600 p-[1.5px] shadow-lg shadow-brand-500/10">
-                              <div className="w-full h-full rounded-[16.5px] bg-white dark:bg-stone-900 flex items-center justify-center">
-                                <span className="text-xs font-black text-brand-600 dark:text-brand-400">{u.displayName?.charAt(0)}</span>
+                      <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                         <div className="relative shrink-0">
+                           <div className="w-10 h-10 md:w-12 md:h-12 rounded-[14px] md:rounded-[18px] bg-gradient-to-br from-brand-400 to-brand-600 p-[1.5px] shadow-lg shadow-brand-500/10">
+                              <div className="w-full h-full rounded-[12.5px] md:rounded-[16.5px] bg-white dark:bg-stone-800 flex items-center justify-center">
+                                 <span className="text-[10px] md:text-xs font-black text-brand-600 dark:text-brand-300">{u.displayName?.charAt(0)}</span>
                               </div>
                            </div>
                            {/* Presence status: Red if exists (active), otherwise hide */}
                            {u.online && (
-                             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white dark:bg-stone-950 flex items-center justify-center shadow-lg">
-                               <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                             <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-white dark:bg-stone-900 flex items-center justify-center shadow-lg">
+                               <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                              </div>
                            )}
                          </div>
-                         <div className="overflow-hidden">
-                          <p className="font-bold text-sm text-stone-900 dark:text-stone-100 tracking-tight group-hover:text-brand-600 transition-colors truncate">{u.displayName || 'Anonymous Candidate'}</p>
-                          <p className="text-[10px] text-stone-400 font-medium tracking-tight truncate">{u.email}</p>
+                         <div className="overflow-hidden min-w-0">
+                          <p className="font-bold text-xs md:text-sm text-stone-900 dark:text-stone-100 tracking-tight group-hover:text-brand-600 transition-colors truncate">{u.displayName || 'Anonymous Candidate'}</p>
+                          <p className="text-[9px] md:text-[10px] text-stone-400 dark:text-stone-500 font-medium tracking-tight truncate">{u.email}</p>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-3">
-                        <div className="px-3 py-1 bg-white dark:bg-stone-800 rounded-lg border border-stone-100 dark:border-white/5 shadow-sm">
-                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500">{u.role}</span>
+                        <div className="px-3 py-1 bg-white dark:bg-white/5 rounded-lg border border-stone-100 dark:border-white/5 shadow-sm">
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">{u.role}</span>
                         </div>
                         <button
                           onClick={() => handleRemoveUser(u.uid)}
