@@ -14,7 +14,7 @@ import {
 import { db, auth } from '../firebase';
 import { UserProfile, DailyControl, OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX } from 'lucide-react';
+import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function AdminPanel() {
@@ -23,6 +23,9 @@ export default function AdminPanel() {
   const [dailyForm, setDailyForm] = useState({ verse: '', reference: '', saintName: '', saintInfo: '' });
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showAllUsers, setShowAllUsers] = useState(false);
+
+  const displayedUsers = showAllUsers ? users : users.slice(0, 3);
 
   useEffect(() => {
     const q = query(collection(db, 'users'), limit(100));
@@ -214,14 +217,15 @@ export default function AdminPanel() {
                 </div>
               </div>
               
-              <div className="space-y-5">
-                <AnimatePresence>
-                  {users.slice(0, 10).map((u, i) => (
+              <div className="space-y-4">
+                <AnimatePresence mode="popLayout">
+                  {displayedUsers.map((u, i) => (
                     <motion.div 
                       key={u.uid || `user-${i}`}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
                       className="flex items-center justify-between p-4 bg-stone-50/50 dark:bg-white/5 rounded-2xl hover:bg-stone-100 dark:hover:bg-white/10 transition-all border border-transparent hover:border-brand-500/10 group overflow-hidden shadow-sm"
                     >
                       <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
@@ -231,10 +235,10 @@ export default function AdminPanel() {
                                  <span className="text-[10px] md:text-xs font-black text-brand-600 dark:text-brand-300">{u.displayName?.charAt(0)}</span>
                               </div>
                            </div>
-                           {/* Presence status: Red if exists (active), otherwise hide */}
+                           {/* Presence status: Active if online */}
                            {u.online && (
-                             <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-white dark:bg-stone-900 flex items-center justify-center shadow-lg">
-                               <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                             <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-white dark:bg-stone-900 flex items-center justify-center shadow-lg border border-stone-50 dark:border-stone-800">
+                               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                              </div>
                            )}
                          </div>
@@ -261,9 +265,18 @@ export default function AdminPanel() {
                 </AnimatePresence>
               </div>
               
-              <button className="w-full mt-8 py-4 border border-dashed border-stone-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 hover:text-stone-600 hover:bg-stone-50 transition-all">
-                Access Full Member Registry →
-              </button>
+              {users.length > 3 && (
+                <button 
+                  onClick={() => setShowAllUsers(!showAllUsers)}
+                  className="w-full mt-6 py-4 border border-dashed border-stone-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 hover:text-brand-600 hover:border-brand-500/30 hover:bg-brand-50/50 transition-all flex items-center justify-center gap-2"
+                >
+                  {showAllUsers ? (
+                    <>Hide Hidden Members <ChevronUp className="w-4 h-4" /></>
+                  ) : (
+                    <>Show All {users.length} Members <ChevronDown className="w-4 h-4" /></>
+                  )}
+                </button>
+              )}
             </div>
         </section>
       </div>

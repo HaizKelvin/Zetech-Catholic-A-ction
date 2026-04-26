@@ -29,7 +29,8 @@ import {
   Church,
   MessageCircle,
   CornerUpLeft,
-  X as CloseIcon
+  X as CloseIcon,
+  MoreHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { deleteDoc, doc } from 'firebase/firestore';
@@ -62,6 +63,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
   const [searchQuery, setSearchQuery] = useState('');
   const [showMembers, setShowMembers] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [showStickers, setShowStickers] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -438,23 +440,58 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                   }`}>
                     <div className="absolute inset-0 faith-bg opacity-[0.03] pointer-events-none" />
                     
-                    <div className={`absolute -top-3 ${isMine ? 'right-0 flex-row-reverse' : 'left-0'} flex items-center gap-1 z-20`}>
-                      {(isMine || currentUser?.role === 'admin') && (
+                    <div className={`absolute -top-3 ${isMine ? 'right-0' : 'left-0'} flex items-center gap-1 z-20`}>
+                      <div className="relative">
                         <button 
-                          onClick={() => handleDeleteMessage(msg.id)}
-                          className="p-2.5 bg-stone-50 dark:bg-stone-900 rounded-full shadow-xl border border-stone-100 dark:border-stone-800 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:text-red-500 text-stone-500 dark:text-stone-400 hover:scale-110 active:scale-95"
-                          title="Delete Message"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId(activeMenuId === msg.id ? null : msg.id);
+                          }}
+                          className={`p-2 bg-stone-50 dark:bg-stone-900 rounded-full shadow-xl border border-stone-100 dark:border-stone-800 transition-all text-stone-500 dark:text-stone-400 hover:scale-110 active:scale-95 ${activeMenuId === msg.id ? 'ring-2 ring-brand-500/20 text-brand-600' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <MoreHorizontal className="w-3.5 h-3.5" />
                         </button>
-                      )}
-                      <button 
-                        onClick={() => setReplyMessage(msg)}
-                        className="p-2.5 bg-stone-50 dark:bg-stone-900 rounded-full shadow-xl border border-stone-100 dark:border-stone-800 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:text-brand-600 text-stone-500 dark:text-stone-400 hover:scale-110 active:scale-95"
-                        title="Reply"
-                      >
-                        <CornerUpLeft className="w-3.5 h-3.5" />
-                      </button>
+
+                        <AnimatePresence>
+                          {activeMenuId === msg.id && (
+                            <>
+                              <div 
+                                className="fixed inset-0 z-10" 
+                                onClick={() => setActiveMenuId(null)} 
+                              />
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                className={`absolute bottom-full mb-2 ${isMine ? 'right-0' : 'left-0'} w-32 bg-stone-50 dark:bg-stone-900 rounded-2xl shadow-2xl border border-stone-100 dark:border-stone-800 p-1.5 z-20 flex flex-col gap-1`}
+                              >
+                                <button 
+                                  onClick={() => {
+                                    setReplyMessage(msg);
+                                    setActiveMenuId(null);
+                                  }}
+                                  className="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 text-left text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-300 transition-all"
+                                >
+                                  <CornerUpLeft className="w-3 h-3" />
+                                  Reply
+                                </button>
+                                {(isMine || currentUser?.role === 'admin') && (
+                                  <button 
+                                    onClick={() => {
+                                      handleDeleteMessage(msg.id);
+                                      setActiveMenuId(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-[10px] font-black uppercase tracking-widest text-red-500 transition-all"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Delete
+                                  </button>
+                                )}
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
 
                     {msg.replyTo && (
