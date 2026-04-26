@@ -113,12 +113,25 @@ export default function App() {
   );
 
   const requestNotif = async () => {
-    const granted = await NotificationManager.requestPermission();
-    setNotifPermission(granted ? 'granted' : 'denied');
-    if (granted) {
-      NotificationManager.sendNotification('Divine Notifications Enabled', {
-        body: 'You will now receive spiritual updates and community news.'
-      });
+    try {
+      if (!('Notification' in window)) {
+        alert("Mobile notifications are not supported by this browser.");
+        return;
+      }
+      
+      const granted = await NotificationManager.requestPermission();
+      setNotifPermission(granted ? 'granted' : 'denied');
+      
+      if (granted) {
+        NotificationManager.sendNotification('Divine Notifications Enabled', {
+          body: 'You will now receive spiritual updates and community news.'
+        });
+      } else {
+        alert("Notifications were blocked. Please enable them in your browser settings (try opening the site in a new tab if you are in preview).");
+      }
+    } catch (error) {
+      console.error("Notification error:", error);
+      alert("Could not enable notifications. Please try opening the app in a new browser tab.");
     }
   };
 
@@ -843,7 +856,7 @@ Can you provide more insight, theological context, or a related meditation for t
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="glass p-10 rounded-[48px] w-full max-w-lg shadow-2xl relative"
+              className="glass p-8 md:p-10 rounded-[32px] md:rounded-[48px] w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               <button 
                 onClick={() => setIsProfileModalOpen(false)}
@@ -941,8 +954,8 @@ Can you provide more insight, theological context, or a related meditation for t
                     Save Sanctified Profile
                   </button>
                   <div className="grid grid-cols-2 gap-4">
-                    <button type="button" onClick={() => setIsProfileModalOpen(false)} className="py-4 border border-stone-100 dark:border-stone-800 rounded-[22px] font-black uppercase tracking-[0.2em] text-[9px] text-stone-400 hover:bg-stone-50 dark:hover:bg-white/5 transition-all">Cancel</button>
-                    <button type="button" onClick={() => { handleLogout(); setIsProfileModalOpen(false); }} className="flex-1 py-4 bg-red-50 text-red-500 rounded-2xl font-bold hover:bg-red-100 transition-all">Logout</button>
+                    <button type="button" onClick={() => setIsProfileModalOpen(false)} className="py-4 border border-stone-100 dark:border-stone-800 rounded-[22px] font-black uppercase tracking-[0.2em] text-[10px] text-stone-400 hover:bg-stone-50 dark:hover:bg-white/5 transition-all">Cancel</button>
+                    <button type="button" onClick={() => { handleLogout(); setIsProfileModalOpen(false); }} className="py-4 bg-red-500/10 text-red-600 rounded-[22px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-red-500/20 transition-all">Logout</button>
                   </div>
                 </div>
               </form>
