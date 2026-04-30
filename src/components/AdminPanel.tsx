@@ -12,9 +12,9 @@ import {
   deleteDoc
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { UserProfile, DailyControl, OperationType } from '../types';
+import { UserProfile, DailyControl, OperationType, MembershipRegistration } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX, UserPlus, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function AdminPanel() {
@@ -119,6 +119,41 @@ export default function AdminPanel() {
     document.body.removeChild(link);
   };
 
+  const downloadRegistrations = async () => {
+    try {
+      const q = query(collection(db, 'registrations'));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => doc.data() as MembershipRegistration);
+      
+      if (data.length === 0) {
+        alert("No resonance found in the Join Us registry yet.");
+        return;
+      }
+
+      const headers = ['Name', 'Admission No', 'Phone', 'Email', 'Applied At'];
+      const rows = data.map(r => [
+        r.fullName.replace(/,/g, ' '),
+        r.admissionNumber.replace(/,/g, ' '),
+        r.phoneNumber.replace(/,/g, ' '),
+        r.schoolEmail.replace(/,/g, ' '),
+        r.createdAt?.toDate().toLocaleString().replace(/,/g, ' ')
+      ]);
+
+      const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `CA_Applicants_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, 'registrations');
+    }
+  };
+
   return (
     <div className="space-y-16 md:space-y-24 pb-24">
       <header className="flex flex-col md:flex-row justify-between items-end gap-8 pb-12 border-b border-stone-200 dark:border-white/5">
@@ -131,15 +166,27 @@ export default function AdminPanel() {
            <p className="text-stone-500 dark:text-stone-400 font-serif italic text-lg max-w-xl">Curate the spiritual resonance and oversee the community matrix.</p>
         </div>
         
-        <motion.button 
-          whileHover={{ y: -5 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={downloadUsers}
-          className="w-full md:w-auto bg-stone-950 dark:bg-white text-white dark:text-stone-950 px-10 py-5 rounded-[28px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 shadow-2xl transition-all text-xs"
-        >
-          <Download className="w-5 h-5" />
-          Export Member Matrix
-        </motion.button>
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <motion.button 
+            whileHover={{ y: -5 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={downloadUsers}
+            className="flex-1 bg-stone-900 dark:bg-stone-800 text-white px-8 py-5 rounded-[28px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl transition-all text-[10px]"
+          >
+            <Download className="w-4 h-4 opacity-50" />
+            Members CSV
+          </motion.button>
+          
+          <motion.button 
+            whileHover={{ y: -5 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={downloadRegistrations}
+            className="flex-1 bg-brand-600 text-white px-8 py-5 rounded-[28px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl hover:shadow-brand-500/20 transition-all text-[10px]"
+          >
+            <UserPlus className="w-4 h-4" />
+            Applicants CSV
+          </motion.button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20">

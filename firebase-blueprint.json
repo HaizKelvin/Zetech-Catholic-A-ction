@@ -120,6 +120,33 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["text", "senderId", "timestamp"]
+    },
+    "MembershipRegistration": {
+      "title": "Membership Registration",
+      "description": "Records for individuals who want to join Catholic Action.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string" },
+        "admissionNumber": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "schoolEmail": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "admissionNumber", "phoneNumber", "schoolEmail", "createdAt"]
+    },
+    "AppNotification": {
+      "title": "Notification",
+      "description": "Real-time notifications for users.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The user this notification is for (or 'all' for global)." },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["event", "message", "announcement"] },
+        "isRead": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "type", "isRead", "timestamp"]
     }
   },
   "firestore": {
@@ -131,6 +158,8 @@
     "/payments/{id}": { "schema": "Payment", "description": "Payments." },
     "/trivia/{id}": { "schema": "Trivia", "description": "Trivia Questions." },
     "/control/daily_bread": { "schema": "DailyControl", "description": "Daily content." },
-    "/community_chat/{id}": { "schema": "CommunityMessage", "description": "Main community messages." }
+    "/community_chat/{id}": { "schema": "CommunityMessage", "description": "Main community messages." },
+    "/registrations/{id}": { "schema": "MembershipRegistration", "description": "Registration entries for new members." },
+    "/notifications/{id}": { "schema": "AppNotification", "description": "Real-time alerts and notices." }
   }
 }

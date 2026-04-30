@@ -101,9 +101,9 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
         </div>
         <button 
           onClick={() => setShowAdd(true)}
-          className="w-full sm:w-auto bg-brand-900 text-white px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 text-sm"
+          className="w-full sm:w-auto btn-adorable px-8 md:px-10 py-4 shadow-2xl"
         >
-          <Plus className="w-4 h-4 md:w-5 md:h-5" />
+          <Plus className="w-5 h-5" />
           Share Moment
         </button>
       </div>
@@ -249,46 +249,47 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="glass p-10 w-full max-w-xl shadow-2xl rounded-[40px] text-stone-900 dark:text-stone-100"
+              className="glass-card p-10 w-full max-w-xl shadow-3xl text-stone-900 dark:text-stone-100 relative overflow-hidden"
             >
-              <h3 className="text-3xl font-bold mb-8 tracking-tight">Share Experience</h3>
-              <form onSubmit={handlePost} className="space-y-6">
+              <div className="absolute inset-0 sparkle-bg opacity-10 pointer-events-none" />
+              <h3 className="text-4xl font-black mb-10 tracking-tight text-center">Share Experience</h3>
+              <form onSubmit={handlePost} className="space-y-8 relative z-10">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Content Type</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 mb-3 block">Content Type</label>
                   <div className="grid grid-cols-2 gap-4">
                     <button 
                       type="button" 
                       onClick={() => setForm({...form, type: 'image'})}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-bold border transition-all ${form.type === 'image' ? 'bg-brand-900 text-white border-brand-900' : 'bg-transparent border-stone-200 dark:border-stone-800'}`}
+                      className={`flex items-center justify-center gap-3 py-4 rounded-[22px] font-bold border transition-all duration-500 shadow-sm ${form.type === 'image' ? 'bg-brand-600 text-white border-brand-600 shadow-brand-500/20' : 'bg-transparent border-stone-200 dark:border-stone-800'}`}
                     >
-                      <ImageIcon className="w-4 h-4" />
+                      <ImageIcon className="w-5 h-5" />
                       Image
                     </button>
                     <button 
                       type="button" 
                       onClick={() => setForm({...form, type: 'video'})}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-bold border transition-all ${form.type === 'video' ? 'bg-brand-900 text-white border-brand-900' : 'bg-transparent border-stone-200 dark:border-stone-800'}`}
+                      className={`flex items-center justify-center gap-3 py-4 rounded-[22px] font-bold border transition-all duration-500 shadow-sm ${form.type === 'video' ? 'bg-brand-600 text-white border-brand-600 shadow-brand-500/20' : 'bg-transparent border-stone-200 dark:border-stone-800'}`}
                     >
-                      <VideoIcon className="w-4 h-4" />
+                      <VideoIcon className="w-5 h-5" />
                       Video
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Title</label>
-                  <input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-6 py-4 rounded-2xl" placeholder="e.g. Choir Rehearsal" />
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 mb-3 block">Title</label>
+                  <input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-6 py-5 rounded-[22px] bg-white/50 backdrop-blur-xl border-brand-500/10 focus:border-brand-500/30 transition-all shadow-inner text-sm" placeholder="e.g. Choir Rehearsal" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Media URL</label>
-                  <input required value={form.url} onChange={e => setForm({...form, url: e.target.value})} className="w-full px-6 py-4 rounded-2xl font-mono text-xs" placeholder="Paste image/video link here..." />
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 mb-3 block">Media URL</label>
+                  <input required value={form.url} onChange={e => setForm({...form, url: e.target.value})} className="w-full px-6 py-5 rounded-[22px] bg-white/50 backdrop-blur-xl border-brand-500/10 focus:border-brand-500/30 transition-all shadow-inner text-xs font-mono" placeholder="Paste image/video link here..." />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Description</label>
-                  <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full px-6 py-4 rounded-2xl h-24 resize-none" placeholder="Add a caption..." />
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 mb-3 block">Description</label>
+                  <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full px-6 py-5 rounded-[22px] bg-white/50 backdrop-blur-xl border-brand-500/10 focus:border-brand-500/30 transition-all shadow-inner h-32 resize-none text-sm" placeholder="Add a caption..." />
                 </div>
-                <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-4 font-bold border border-stone-100 dark:border-stone-800 rounded-2xl opacity-60 hover:opacity-100 transition-opacity">Cancel</button>
-                  <button type="submit" disabled={loading} className="flex-1 py-4 bg-brand-900 text-white rounded-2xl font-bold shadow-xl shadow-brand-900/20 disabled:opacity-50">
+                <div className="flex gap-6 pt-4">
+                  <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-5 font-black uppercase tracking-[0.2em] text-[10px] border border-stone-200 dark:border-white/5 rounded-[22px] hover:bg-stone-50 dark:hover:bg-white/5 transition-all">Cancel</button>
+                  <button type="submit" disabled={loading} className="flex-1 btn-adorable py-5 shadow-2xl">
                     {loading ? 'Posting...' : 'Share Now'}
                   </button>
                 </div>

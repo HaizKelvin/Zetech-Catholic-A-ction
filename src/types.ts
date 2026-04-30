@@ -82,6 +82,25 @@ export interface DailyControl {
   updatedAt: Timestamp;
 }
 
+export interface MembershipRegistration {
+  id?: string;
+  fullName: string;
+  admissionNumber: string;
+  phoneNumber: string;
+  schoolEmail: string;
+  createdAt: Timestamp;
+}
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  timestamp: Timestamp;
+  isRead: boolean;
+  type: 'event' | 'message' | 'announcement';
+}
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',

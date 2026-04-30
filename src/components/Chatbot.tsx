@@ -247,21 +247,49 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
       </AnimatePresence>
 
       <motion.button
-        whileHover={{ scale: 1.05, y: -2 }}
+        whileHover={{ scale: 1.05, y: -4 }}
         whileTap={{ scale: 0.95, y: 0 }}
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-16 h-16 rounded-[24px] flex items-center justify-center shadow-[0_15px_45px_rgba(0,0,0,0.2)] transition-all duration-500 ${
-          isOpen ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-950 rotate-90' : 'bg-brand-900 text-white'
+        className={`w-16 h-16 rounded-[28px] flex items-center justify-center shadow-2xl transition-all duration-700 relative group overflow-hidden ${
+          isOpen 
+            ? 'bg-stone-950 text-white rotate-90 shadow-brand-500/30' 
+            : 'bg-brand-900 text-white shadow-brand-900/40'
         }`}
       >
-        {isOpen ? (
-          <X className="w-7 h-7" />
-        ) : (
-          <div className="relative">
-            <MessageCircle className="w-8 h-8" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-brand-900 animate-pulse" />
-          </div>
-        )}
+        {/* Divine Glow & Rays */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-brand-400/30 via-transparent to-brand-300/10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+        <div className="absolute -inset-2 bg-gradient-radial from-brand-500/20 to-transparent blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse-gentle" />
+        
+        {/* Animated Inner Shine */}
+        <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[45deg] group-hover:left-[100%] transition-all duration-1000 ease-in-out" />
+
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.div
+              key="close"
+              initial={{ opacity: 0, rotate: -90, scale: 0.8 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 90, scale: 0.8 }}
+              className="relative z-10"
+            >
+              <X className="w-7 h-7" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="open"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.2 }}
+              className="relative z-10 flex items-center justify-center"
+            >
+              <MessageCircle className="w-8 h-8 md:w-9 md:h-9 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+              <div className="absolute -top-1 -right-1 flex">
+                <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-75" />
+                <div className="relative w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-brand-900 shadow-[0_0_15px_rgba(16,185,129,0.6)]" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.button>
     </div>
   );

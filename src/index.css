@@ -6,37 +6,36 @@
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-200: #bfdbfe;
-  --color-brand-300: #93c5fd;
-  --color-brand-400: #60a5fa;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-brand-800: #1e40af;
-  --color-brand-900: #1e3a8a;
+  --color-brand-50: #f5f7ff;
+  --color-brand-100: #ebf0ff;
+  --color-brand-200: #d6e0ff;
+  --color-brand-300: #adc2ff;
+  --color-brand-400: #85a3ff;
+  --color-brand-500: #5c85ff;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+  --color-brand-950: #1e1b4b;
 }
 
 @layer base {
   :root {
-    --app-bg: #E3E5E8;
-    --card-bg: rgba(250, 251, 253, 0.98);
-    --text-primary: #0c0a09;
-    --text-secondary: #292524;
-    --border-subtle: rgba(0, 0, 0, 0.15);
+    --app-bg: #fdfcfb;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --text-primary: #1c1917;
+    --border-subtle: rgba(99, 102, 241, 0.1);
   }
 
   .dark {
-    --app-bg: #0c0a09;
-    --card-bg: rgba(28, 25, 23, 0.95);
-    --text-primary: #fafaf9;
-    --text-secondary: #d6d3d1;
-    --border-subtle: rgba(255, 255, 255, 0.1);
+    --app-bg: #09090b;
+    --card-bg: rgba(24, 24, 27, 0.8);
+    --text-primary: #f8fafc;
+    --border-subtle: rgba(255, 255, 255, 0.05);
   }
 
   body {
-    @apply font-sans antialiased text-[var(--text-primary)] transition-colors duration-700 min-h-screen relative overflow-x-hidden;
+    @apply font-sans antialiased text-[var(--text-primary)] transition-colors duration-1000 min-h-screen selection:bg-brand-500/30;
     background-color: var(--app-bg);
   }
 
@@ -44,100 +43,28 @@
     @apply min-h-screen relative z-10;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tighter;
-  }
-
   input, textarea, select {
-    @apply bg-stone-100/50 dark:bg-stone-900/50 backdrop-blur-md border border-stone-200/50 dark:border-stone-800 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all shadow-sm rounded-2xl;
+    @apply bg-stone-100/50 dark:bg-stone-900/50 backdrop-blur-md border border-stone-200 dark:border-stone-800 focus:ring-4 focus:ring-brand-500/20 outline-none transition-all shadow-sm rounded-2xl;
   }
-
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-stone-300 dark:bg-stone-800 rounded-full hover:bg-stone-400 dark:hover:bg-stone-700 transition-colors;
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.02); }
-}
-
-@keyframes pulse-gentle {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.5; }
 }
 
 @layer utilities {
+  .glass {
+    @apply backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-xl transition-all duration-300;
+    background-color: var(--card-bg);
+  }
+
   .divine-pattern {
     background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0);
-    background-size: 64px 64px;
+    background-size: 32px 32px;
   }
 
   .noise-pattern {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.05;
   }
 
   .shadow-3xl {
-    --tw-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
-    --tw-shadow-colored: 0 35px 60px -15px var(--tw-shadow-color);
-    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-  }
-
-  @keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .animate-spin-slow {
-    animation: spin-slow 20s linear infinite;
-  }
-
-  .sacred-grid {
-    background-image: 
-      linear-gradient(currentColor 0.5px, transparent 0.5px),
-      linear-gradient(90deg, currentColor 0.5px, transparent 0.5px);
-    background-size: 120px 120px;
-    background-position: center center;
-  }
-
-  .glass {
-    @apply backdrop-blur-3xl border border-stone-200/50 dark:border-white/5 transition-all duration-500 shadow-[0_12px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_24px_64px_rgba(0,0,0,0.3)];
-    background-color: var(--card-bg);
-  }
-
-  .glass-card {
-    @apply backdrop-blur-[40px] border border-stone-200/60 dark:border-white/5 transition-all duration-700 
-           shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.5)]
-           hover:shadow-[0_60px_120px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_80px_160px_rgba(0,0,0,0.8)]
-           hover:-translate-y-3 rounded-[48px] md:rounded-[64px] overflow-hidden;
-    background-color: var(--card-bg);
-  }
-
-  .serif-display {
-    @apply font-serif italic tracking-tight font-light;
-  }
-
-  .nav-item-active {
-    @apply bg-brand-900 text-white shadow-2xl shadow-brand-900/40 scale-105;
-  }
-
-  .nav-item-inactive {
-    @apply text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-white transition-all duration-500;
-  }
-
-  .animate-float {
-    animation: float 12s ease-in-out infinite;
-  }
-
-  .animate-pulse-gentle {
-    animation: pulse-gentle 8s ease-in-out infinite;
+    box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
   }
 }
