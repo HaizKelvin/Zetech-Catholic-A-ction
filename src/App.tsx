@@ -765,7 +765,7 @@ Can you provide more insight, theological context, or a related meditation for t
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               onClick={() => setIsSidebarOpen(true)}
-              className="fixed top-3 left-3 md:top-4 md:left-4 z-40 p-2.5 glass rounded-xl shadow-lg border border-subtle group hover:bg-brand-900 transition-colors"
+              className="fixed top-3 left-3 md:top-4 md:left-4 z-40 p-2.5 glass rounded-xl shadow-lg border border-white/20 dark:border-white/20 group hover:bg-brand-900 transition-colors"
             >
               <Menu className="w-4 h-4 md:w-5 md:h-5 text-brand-900 dark:text-brand-400 group-hover:text-white" />
             </motion.button>
@@ -785,7 +785,7 @@ Can you provide more insight, theological context, or a related meditation for t
                  whileHover={{ scale: 1.05 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={() => setIsNotificationOpen(true)}
-                 className="p-1.5 md:p-2 glass rounded-full shadow-xl border border-brand-500/10 text-stone-600 dark:text-brand-400 group transition-all relative"
+                 className="p-1.5 md:p-2 glass rounded-full shadow-xl border border-white/20 dark:border-white/20 text-stone-600 dark:text-brand-300 group transition-all relative"
                >
                  <Bell className="w-4 h-4 md:w-5 md:h-5" />
                  {notifications.some(n => !n.isRead) && (
@@ -801,7 +801,7 @@ Can you provide more insight, theological context, or a related meditation for t
                whileHover={{ scale: 1.05 }}
                whileTap={{ scale: 0.95 }}
                onClick={() => setDarkMode(!darkMode)}
-               className="p-1.5 glass rounded-full shadow-xl border border-subtle text-stone-600 dark:text-amber-400 group transition-all"
+               className="p-1.5 glass rounded-full shadow-xl border border-white/20 dark:border-white/20 text-stone-600 dark:text-amber-400 group transition-all"
                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
              >
                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -816,7 +816,7 @@ Can you provide more insight, theological context, or a related meditation for t
                  whileHover={{ scale: 1.05 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={() => setIsProfileModalOpen(true)}
-                 className="flex items-center gap-2.5 glass p-1 rounded-full shadow-xl border border-subtle group transition-all"
+                 className="flex items-center gap-2.5 glass p-1 rounded-full shadow-xl border border-white/20 dark:border-white/20 group transition-all"
                >
                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden bg-brand-50 flex items-center justify-center border-2 border-stone-100 dark:border-stone-800 shadow-md">
                    {profile?.photoURL ? (
