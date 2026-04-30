@@ -689,23 +689,23 @@ Can you provide more insight, theological context, or a related meditation for t
 
           {/* Menu Items */}
           <nav className="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
-            <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-5 h-5" />} label="Overview" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'about'} onClick={() => handleTabChange('about')} icon={<Shield className="w-5 h-5" />} label="About CA" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-5 h-5" />} label="Events" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-5 h-5" />} label="Activities" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-5 h-5" />} label="Community Hub" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-5 h-5" />} label="Divine Library" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-5 h-5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-5 h-5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'join'} onClick={() => handleTabChange('join')} icon={<UserPlus className="w-5 h-5" />} label="Join Us" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} icon={<CreditCard className="w-5 h-5" />} label="Payments" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'guide'} onClick={() => handleTabChange('guide')} icon={<HelpCircle className="w-5 h-5" />} label="User Guide" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'contact'} onClick={() => handleTabChange('contact')} icon={<Mail className="w-5 h-5" />} label="Contact Us" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4 ml-0.5" />} label="Overview" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'about'} onClick={() => handleTabChange('about')} icon={<Shield className="w-4 h-4 ml-0.5" />} label="About CA" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-4 h-4 ml-0.5" />} label="Events" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4 ml-0.5" />} label="Activities" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4 ml-0.5" />} label="Community Hub" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-4 h-4 ml-0.5" />} label="Divine Library" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4 ml-0.5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4 ml-0.5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'join'} onClick={() => handleTabChange('join')} icon={<UserPlus className="w-4 h-4 ml-0.5" />} label="Join Us" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} icon={<CreditCard className="w-4 h-4 ml-0.5" />} label="Payments" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'guide'} onClick={() => handleTabChange('guide')} icon={<HelpCircle className="w-4 h-4 ml-0.5" />} label="User Guide" isOpen={isSidebarOpen} />
+            <NavItem active={activeTab === 'contact'} onClick={() => handleTabChange('contact')} icon={<Mail className="w-4 h-4 ml-0.5" />} label="Contact Us" isOpen={isSidebarOpen} />
             
             {isAdmin && (
-              <div className="pt-6 mt-6 border-t border-stone-100 dark:border-stone-800">
-                {isSidebarOpen && <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-300 ml-4 mb-4">Admin Only</p>}
-                <NavItem active={activeTab === 'admin'} onClick={() => handleTabChange('admin')} icon={<Shield className="w-5 h-5" />} label="Admin Panel" isOpen={isSidebarOpen} admin />
+              <div className="pt-4 mt-4 border-t border-stone-100 dark:border-stone-800">
+                {isSidebarOpen && <p className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-300 dark:text-stone-600 ml-4 mb-2">Admin Only</p>}
+                <NavItem active={activeTab === 'admin'} onClick={() => handleTabChange('admin')} icon={<Shield className="w-4 h-4 ml-0.5" />} label="Admin Panel" isOpen={isSidebarOpen} admin />
               </div>
             )}
           </nav>
@@ -714,33 +714,33 @@ Can you provide more insight, theological context, or a related meditation for t
           <div className="pt-6 border-t border-stone-100 dark:border-stone-800 space-y-4">
             <button 
               onClick={() => setDarkMode(!darkMode)}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all ${darkMode ? 'text-amber-400 hover:bg-white/5' : 'text-stone-500 hover:bg-stone-50'}`}
+              className={`w-full flex items-center gap-4 px-4 py-2 rounded-xl transition-all ${darkMode ? 'text-amber-400 hover:bg-white/5' : 'text-stone-500 hover:bg-stone-50'}`}
             >
               <div className="w-6 h-6 flex items-center justify-center">
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </div>
-              {isSidebarOpen && <span className="text-sm font-bold">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>}
+              {isSidebarOpen && <span className="text-[11px] font-bold">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>}
             </button>
 
-            <div className={`flex items-center gap-3 p-3 ${isSidebarOpen ? 'bg-stone-50 dark:bg-white/5 rounded-2xl border border-stone-100 dark:border-white/5' : ''}`}>
+            <div className={`flex items-center gap-3 p-2 ${isSidebarOpen ? 'bg-stone-50 dark:bg-white/5 rounded-xl border border-stone-100 dark:border-white/5' : ''}`}>
               <div 
-                className="w-10 h-10 bg-white dark:bg-stone-800 rounded-xl flex items-center justify-center shrink-0 cursor-pointer overflow-hidden border border-brand-500/10 shadow-lg"
+                className="w-8 h-8 bg-white dark:bg-stone-800 rounded-lg flex items-center justify-center shrink-0 cursor-pointer overflow-hidden border border-brand-500/10 shadow-lg"
                 onClick={() => setIsProfileModalOpen(true)}
               >
                 {profile?.photoURL ? (
                   <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-brand-600 dark:text-brand-400 font-bold text-xs">{profile?.displayName?.charAt(0)}</span>
+                  <span className="text-brand-600 dark:text-brand-400 font-bold text-[10px]">{profile?.displayName?.charAt(0)}</span>
                 )}
               </div>
               {isSidebarOpen && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold text-stone-900 dark:text-white truncate">{profile?.displayName}</p>
-                  <button onClick={() => setIsProfileModalOpen(true)} className="text-[9px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest text-left block">Sanctify Profile</button>
+                  <p className="text-[11px] font-bold text-stone-900 dark:text-white truncate">{profile?.displayName}</p>
+                  <button onClick={() => setIsProfileModalOpen(true)} className="text-[8px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest text-left block">Sanctify Profile</button>
                 </div>
               )}
-              <button onClick={handleLogout} className="p-2 text-stone-300 dark:text-stone-600 hover:text-red-500 transition-all hover:scale-110">
-                 <LogOut className="w-5 h-5" />
+              <button onClick={handleLogout} className="p-1.5 text-stone-300 dark:text-stone-600 hover:text-red-500 transition-all hover:scale-110">
+                 <LogOut className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -776,7 +776,7 @@ Can you provide more insight, theological context, or a related meditation for t
       {/* Top Header Widgets - Fixed Top Right */}
       <AnimatePresence>
         {isMenuVisible && user && (
-          <div className="fixed top-3 right-3 md:top-4 md:right-4 z-40 flex items-center gap-3">
+          <div className="fixed top-2 right-2 md:top-3 md:right-3 z-40 flex items-center gap-1.5 md:gap-2">
              {/* Notifications */}
              <div className="relative">
                <motion.button
@@ -785,11 +785,11 @@ Can you provide more insight, theological context, or a related meditation for t
                  whileHover={{ scale: 1.05 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={() => setIsNotificationOpen(true)}
-                 className="p-1.5 md:p-2 glass rounded-full shadow-xl border border-white/20 dark:border-white/20 text-stone-600 dark:text-brand-300 group transition-all relative"
+                 className="p-1.5 md:p-2 glass rounded-full shadow-xl border border-white/40 dark:border-white/20 bg-white/40 dark:bg-brand-900/40 text-stone-800 dark:text-brand-50 group transition-all relative"
                >
-                 <Bell className="w-4 h-4 md:w-5 md:h-5" />
+                 <Bell className="w-3.5 h-3.5 md:w-4.5 md:h-4.5" />
                  {notifications.some(n => !n.isRead) && (
-                   <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-stone-900" />
+                   <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-stone-900 shadow-sm" />
                  )}
                </motion.button>
              </div>
@@ -801,10 +801,10 @@ Can you provide more insight, theological context, or a related meditation for t
                whileHover={{ scale: 1.05 }}
                whileTap={{ scale: 0.95 }}
                onClick={() => setDarkMode(!darkMode)}
-               className="p-1.5 glass rounded-full shadow-xl border border-white/20 dark:border-white/20 text-stone-600 dark:text-amber-400 group transition-all"
+               className="p-1.5 glass rounded-full shadow-xl border border-white/40 dark:border-white/20 bg-white/40 dark:bg-brand-900/40 text-stone-800 dark:text-amber-400 group transition-all"
                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
              >
-               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+               {darkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
              </motion.button>
 
              <motion.div 
@@ -816,17 +816,17 @@ Can you provide more insight, theological context, or a related meditation for t
                  whileHover={{ scale: 1.05 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={() => setIsProfileModalOpen(true)}
-                 className="flex items-center gap-2.5 glass p-1 rounded-full shadow-xl border border-white/20 dark:border-white/20 group transition-all"
+                 className="flex items-center gap-1.5 glass p-0.5 md:p-1 rounded-full shadow-xl border border-white/40 dark:border-white/20 bg-white/40 dark:bg-brand-900/40 group transition-all"
                >
-                 <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden bg-brand-50 flex items-center justify-center border-2 border-stone-100 dark:border-stone-800 shadow-md">
+                 <div className="w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden bg-white/80 dark:bg-stone-800/80 flex items-center justify-center border border-white/50 dark:border-stone-700 shadow-sm">
                    {profile?.photoURL ? (
                      <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
                    ) : (
-                     <UserIcon className="w-4 h-4 md:w-5 text-brand-300" />
+                     <UserIcon className="w-3 h-3 md:w-4 text-brand-400" />
                    )}
                  </div>
-                 <div className="text-left hidden sm:block pr-3">
-                    <p className="text-[9px] font-bold text-stone-900 dark:text-stone-100 truncate max-w-[60px] md:max-w-[80px]">
+                 <div className="text-left hidden sm:block pr-1.5">
+                    <p className="text-[7px] md:text-[8px] font-black text-stone-950 dark:text-brand-50 truncate max-w-[40px] md:max-w-[70px] uppercase tracking-tighter">
                       {profile?.displayName?.split(' ')[0] || 'Member'}
                     </p>
                  </div>
@@ -1172,14 +1172,14 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-[16px] transition-all duration-500 relative group font-medium text-[12px] ${
+      className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-[12px] transition-all duration-500 relative group font-bold text-[10px] ${
         active 
           ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20 -translate-y-0.5' 
           : 'text-stone-500 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
       }`}
     >
-      <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-700 ${active ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
-        {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-[18px] h-[18px]' })}
+      <div className={`w-4 h-4 shrink-0 flex items-center justify-center transition-all duration-700 ${active ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
+        {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-[16px] h-[16px]' })}
       </div>
       {isOpen && (
         <motion.span 

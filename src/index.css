@@ -29,9 +29,9 @@
 
   .dark {
     --app-bg: #09090b;
-    --card-bg: rgba(30, 30, 35, 0.9);
+    --card-bg: rgba(35, 35, 45, 0.95);
     --text-primary: #f8fafc;
-    --border-subtle: rgba(255, 255, 255, 0.1);
+    --border-subtle: rgba(255, 255, 255, 0.15);
   }
 
   body {
@@ -50,7 +50,7 @@
 
 @layer utilities {
   .glass {
-    @apply backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-xl transition-all duration-300;
+    @apply backdrop-blur-xl border border-white/20 dark:border-white/20 shadow-xl transition-all duration-300;
     background-color: var(--card-bg);
   }
 
