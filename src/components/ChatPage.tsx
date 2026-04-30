@@ -207,9 +207,9 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
   );
 
   return (
-    <div className="h-[70vh] md:h-[550px] flex shadow-xl border border-brand-500/10 relative mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-[24px] glass">
+    <div className="h-[60vh] md:h-[480px] flex shadow-xl border border-brand-500/10 relative mx-auto max-w-2xl overflow-hidden rounded-xl md:rounded-[24px] glass">
       {/* Sidebar - Contacts */}
-      <div className={`${showMembers ? 'flex translate-x-0' : 'hidden lg:flex -translate-x-full lg:translate-x-0'} absolute lg:relative inset-0 lg:inset-auto z-40 w-full lg:w-56 border-r border-brand-100 dark:border-stone-800 flex-col bg-stone-50/80 dark:bg-stone-900/80 backdrop-blur-2xl transition-transform duration-500`}>
+      <div className={`${showMembers ? 'flex translate-x-0' : 'hidden lg:flex -translate-x-full lg:translate-x-0'} absolute lg:relative inset-0 lg:inset-auto z-40 w-full lg:w-48 border-r border-brand-100 dark:border-stone-800 flex-col bg-stone-50/80 dark:bg-stone-900/80 backdrop-blur-2xl transition-transform duration-500`}>
         <div className="p-3 border-b border-brand-100 dark:border-stone-800 flex items-center justify-between bg-brand-50/30 dark:bg-brand-900/10">
           <h2 className="text-base font-black tracking-tight text-brand-950 dark:text-brand-50 uppercase tracking-[0.2em]">Souls</h2>
           <button 
@@ -236,11 +236,11 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
           <div className="space-y-1.5">
             <button 
               onClick={() => setShowMembers(false)}
-              className="w-full flex items-center gap-2.5 p-2.5 rounded-lg bg-brand-600 text-white shadow-md shadow-brand-600/20 text-left transition-all hover:scale-[1.01] active:scale-[0.98] group relative overflow-hidden"
+              className="w-full flex items-center gap-2.5 p-1.5 rounded-full bg-brand-600 text-white shadow-md shadow-brand-600/20 text-left transition-all hover:scale-[1.01] active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
-              <div className="w-8 h-8 rounded-md bg-white/20 flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
-                <Church className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
+                <Church className="w-3.5 h-3.5" />
               </div>
               <div className="overflow-hidden relative z-10">
                 <div className="font-black tracking-tight text-[12px] truncate text-white">Hub</div>
@@ -258,9 +258,9 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.03 }}
-                className="w-full flex items-center gap-2.5 p-1.5 rounded-md hover:bg-white dark:hover:bg-white/5 transition-all text-left group"
+                className="w-full flex items-center gap-2 p-1 rounded-full hover:bg-white dark:hover:bg-white/5 transition-all text-left group"
               >
-                <div className="w-8 h-8 rounded-md overflow-hidden shrink-0 border border-brand-500/10 shadow-sm relative transition-transform duration-500">
+                <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 border border-brand-500/10 shadow-sm relative transition-transform duration-500">
                   {u.photoURL ? (
                     <img src={u.photoURL} alt={u.displayName} className="w-full h-full object-cover" />
                   ) : (
@@ -366,10 +366,10 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         </div>
 
         {/* Messages Layout */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-5 space-y-3 md:space-y-4 custom-scrollbar z-0 flex flex-col relative">
+        <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-2 md:space-y-3 custom-scrollbar z-0 flex flex-col relative">
           <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
           
-          <div className="flex justify-center mb-1">
+          <div className="flex justify-center mb-0.5">
             <motion.span 
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -403,11 +403,11 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   className={`flex items-end gap-1.5 md:gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}
                 >
-                  <div className={`w-6 h-6 md:w-8 md:h-8 shrink-0`}>
-                    <div className={`w-full h-full rounded-md md:rounded-lg p-0.5 bg-gradient-to-br ${
+                  <div className={`w-6 h-6 md:w-7 md:h-7 shrink-0`}>
+                    <div className={`w-full h-full rounded-full p-0.5 bg-gradient-to-br ${
                       isMine ? 'from-brand-400 to-brand-600 shadow-sm' : 'from-stone-200 to-stone-400 dark:from-stone-700 dark:to-stone-600'
                     }`}>
-                      <div className="w-full h-full rounded-[4px] md:rounded-md overflow-hidden bg-white dark:bg-stone-900">
+                      <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-stone-900">
                         {msg.senderPhoto ? (
                           <img src={msg.senderPhoto} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -419,10 +419,10 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                     </div>
                   </div>
                   
-                  <div className={`max-w-[85%] lg:max-w-[70%] group relative px-3 py-1.5 rounded-lg md:rounded-xl transition-all duration-300 ${
+                  <div className={`max-w-[88%] lg:max-w-[80%] group relative px-2.5 py-1.5 rounded-2xl transition-all duration-300 ${
                     isMine 
-                      ? 'bg-brand-600 text-white rounded-br-[2px] shadow-sm' 
-                      : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 rounded-bl-[2px] border border-brand-500/5 shadow-sm'
+                      ? 'bg-brand-600 text-white rounded-br-[4px] shadow-sm' 
+                      : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 rounded-bl-[4px] border border-brand-500/5 shadow-sm'
                   }`}>
                     <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
                     

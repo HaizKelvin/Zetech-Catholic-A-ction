@@ -1172,7 +1172,7 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-[12px] transition-all duration-500 relative group font-bold text-[10px] ${
+      className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-full transition-all duration-500 relative group font-bold text-[10px] ${
         active 
           ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20 -translate-y-0.5' 
           : 'text-stone-500 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
