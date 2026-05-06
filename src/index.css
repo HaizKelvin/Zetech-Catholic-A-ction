@@ -50,8 +50,16 @@
 
 @layer utilities {
   .glass {
-    @apply backdrop-blur-xl border border-white/20 dark:border-white/20 shadow-xl transition-all duration-300;
+    @apply backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl transition-all duration-300;
     background-color: var(--card-bg);
+  }
+
+  .glass-dark {
+    @apply backdrop-blur-2xl border border-white/10 shadow-2xl transition-all duration-300 bg-stone-950/80;
+  }
+
+  .glass-light {
+    @apply backdrop-blur-xl border border-white/40 shadow-lg transition-all duration-300 bg-white/60;
   }
 
   .divine-pattern {

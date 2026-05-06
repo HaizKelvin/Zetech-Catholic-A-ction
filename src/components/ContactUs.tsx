@@ -60,101 +60,144 @@ export default function ContactUs() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 pb-24">
-      <div className="text-center space-y-4">
-         <h1 className="text-5xl font-bold tracking-tighter">Contact <span className="serif-display text-brand-600 italic">Us</span>.</h1>
-         <p className="text-stone-500 dark:text-stone-400 max-w-lg mx-auto">
-           Have a complaint, feedback, or inquiry? We are here to listen and grow together in faith.
-         </p>
-      </div>
+    <div className="max-w-7xl mx-auto space-y-16 lg:space-y-32 pb-32">
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative py-24 md:py-48 px-10 md:px-32 rounded-[60px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-12 md:mb-20"
+      >
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a?auto=format&fit=crop&q=80" 
+            className="w-full h-full object-cover mix-blend-overlay scale-110 opacity-30 transition-transform duration-[15s] group-hover:scale-100"
+            alt="Sanctuary Assistance"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
+        </div>
+        
+        <div className="relative z-10 space-y-8 md:space-y-12 max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="inline-flex items-center gap-4 px-8 py-3 rounded-full glass-dark border border-white/10 text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-xl"
+          >
+            <div className="w-2 h-2 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
+            Sanctuary Assistance
+          </motion.div>
+          
+          <h1 className="text-6xl md:text-[9rem] font-black tracking-[-0.05em] leading-[0.8] text-white serif-display italic">
+            Seek & <br />
+            <span className="text-brand-400 not-italic uppercase font-black text-2xl md:text-5xl tracking-[0.4em] block mt-4">Inquire</span>
+          </h1>
+          
+          <p className="text-stone-400 text-xl md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
+            Have a complaint, feedback, or inquiry? We are here to listen and grow together in faith.
+          </p>
+        </div>
+      </motion.header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 space-y-6">
-          <div className="p-6 glass rounded-3xl space-y-4 border border-white/10 shadow-sm">
-            <div className="w-12 h-12 bg-brand-50 dark:bg-white/5 rounded-2xl flex items-center justify-center">
-              <Mail className="w-6 h-6 text-brand-600" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 px-4">
+        <div className="lg:col-span-12 xl:col-span-4 space-y-8">
+          <div className="p-10 glass rounded-[50px] space-y-6 border border-stone-100 dark:border-white/5 shadow-2xl group overflow-hidden">
+            <div className="w-16 h-16 bg-brand-500/10 dark:bg-brand-500/20 rounded-[28px] flex items-center justify-center border border-brand-500/20 group-hover:bg-brand-900 group-hover:text-white transition-all duration-700">
+              <Mail className="w-8 h-8 text-brand-600 dark:text-brand-400" />
             </div>
             <div>
-              <h3 className="font-bold">Email Us</h3>
-              <p className="text-xs text-stone-700 dark:text-stone-400">zuca@zetech.ac.ke</p>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-stone-400 mb-2">Sacred Mail</h3>
+              <p className="text-xl font-bold text-stone-900 dark:text-stone-100">zuca@zetech.ac.ke</p>
             </div>
           </div>
 
-          <div className="p-6 glass rounded-3xl space-y-4 border border-white/10 shadow-sm">
-            <div className="w-12 h-12 bg-brand-50 dark:bg-white/5 rounded-2xl flex items-center justify-center">
-              <Phone className="w-6 h-6 text-brand-600" />
+          <div className="p-10 glass rounded-[50px] space-y-6 border border-stone-100 dark:border-white/5 shadow-2xl group overflow-hidden">
+            <div className="w-16 h-16 bg-brand-500/10 dark:bg-brand-500/20 rounded-[28px] flex items-center justify-center border border-brand-500/20 group-hover:bg-brand-900 group-hover:text-white transition-all duration-700">
+              <Phone className="w-8 h-8 text-brand-600 dark:text-brand-400" />
             </div>
             <div>
-              <h3 className="font-bold">Call Us</h3>
-              <p className="text-xs text-stone-700 dark:text-stone-400">+254 700 000 000</p>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-stone-400 mb-2">Voice Assistance</h3>
+              <p className="text-xl font-bold text-stone-900 dark:text-stone-100">+254 700 000 000</p>
             </div>
           </div>
 
-          <div className="p-6 bg-brand-900 text-white rounded-3xl space-y-4 shadow-xl shadow-brand-900/20">
-             <h3 className="font-bold">Sanctuary Hours</h3>
-             <div className="space-y-2 text-xs opacity-70">
-               <p className="flex justify-between"><span>Mon - Fri</span> <span>08:00 - 18:00</span></p>
-               <p className="flex justify-between"><span>Saturday</span> <span>09:00 - 13:00</span></p>
-               <p className="flex justify-between"><span>Sunday</span> <span>Sanctuary Mode</span></p>
+          <div className="p-12 bg-brand-950 text-white rounded-[60px] space-y-10 shadow-3xl shadow-brand-900/40 relative overflow-hidden">
+             <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
+             <h3 className="text-3xl font-black tracking-tight serif-display italic relative z-10">Sanctuary Hours</h3>
+             <div className="space-y-6 text-sm relative z-10">
+               <p className="flex justify-between items-center opacity-70 group hover:opacity-100 transition-opacity">
+                 <span className="font-bold uppercase tracking-widest text-[10px]">Mon - Fri</span> 
+                 <span className="font-black">08:00 - 18:00</span>
+               </p>
+               <p className="flex justify-between items-center opacity-70 group hover:opacity-100 transition-opacity">
+                 <span className="font-bold uppercase tracking-widest text-[10px]">Saturday</span> 
+                 <span className="font-black">09:00 - 13:00</span>
+               </p>
+               <div className="h-px bg-white/10 w-full" />
+               <p className="flex justify-between items-center text-brand-400">
+                 <span className="font-bold uppercase tracking-widest text-[10px]">Sunday</span> 
+                 <span className="font-black tracking-widest uppercase">Sanctuary Mode</span>
+               </p>
              </div>
           </div>
         </div>
 
-        <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="glass p-8 md:p-12 rounded-[40px] border border-white/10 shadow-xl space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400">Subject</label>
+        <div className="lg:col-span-12 xl:col-span-8">
+          <form onSubmit={handleSubmit} className="glass p-12 md:p-20 rounded-[60px] md:rounded-[80px] border border-stone-100 dark:border-white/5 shadow-2xl space-y-12 relative overflow-hidden">
+            <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
+              <div className="space-y-4">
+                <label className="text-[11px] font-black uppercase tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-2 block">Matter Subject</label>
                 <input 
                   required
                   type="text" 
                   value={form.subject}
                   onChange={e => setForm({...form, subject: e.target.value})}
-                  className="w-full px-5 py-4 rounded-2xl bg-stone-50/50 dark:bg-white/5 border border-stone-200/50 dark:border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all font-medium"
-                  placeholder="What is this regarding?"
+                  className="w-full px-8 py-7 rounded-[32px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all font-bold tracking-tight text-lg shadow-inner outline-none"
+                  placeholder="The focus of your message..."
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400">Type</label>
+              <div className="space-y-4">
+                <label className="text-[11px] font-black uppercase tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-2 block">Inquiry Class</label>
                 <select 
                   value={form.type}
                   onChange={e => setForm({...form, type: e.target.value as any})}
-                  className="w-full px-5 py-4 rounded-2xl bg-stone-50/50 dark:bg-white/5 border border-stone-200/50 dark:border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all font-bold"
+                  className="w-full px-8 py-7 rounded-[32px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all font-black tracking-[0.2em] text-sm md:text-base shadow-inner outline-none uppercase appearance-none"
                 >
-                  <option value="feedback">Feedback</option>
-                  <option value="complaint">Complaint</option>
-                  <option value="inquiry">Inquiry</option>
+                  <option value="feedback">Sanctuary Feedback</option>
+                  <option value="complaint">Internal Complaint</option>
+                  <option value="inquiry">Divine Inquiry</option>
                 </select>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400">Message</label>
+            <div className="space-y-4 relative z-10">
+              <label className="text-[11px] font-black uppercase tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-2 block">Revelation / Message</label>
               <textarea 
                 required
                 value={form.message}
                 onChange={e => setForm({...form, message: e.target.value})}
-                className="w-full px-5 py-4 rounded-3xl bg-stone-50/50 dark:bg-white/5 border border-stone-200/50 dark:border-none outline-none focus:ring-2 focus:ring-brand-500/20 transition-all h-40 resize-none font-medium"
+                className="w-full px-8 py-8 rounded-[40px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all h-60 resize-none font-medium text-lg lg:text-xl shadow-inner outline-none leading-relaxed italic serif-display scrollbar-none"
                 placeholder="Share your thoughts with the sanctuary..."
               />
             </div>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02, y: -5 }}
+              whileTap={{ scale: 0.98 }}
               disabled={loading}
-              className="w-full py-5 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-[28px] font-bold flex items-center justify-center gap-3 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
+              className="w-full py-8 bg-brand-900 text-white rounded-[40px] font-black uppercase tracking-[0.5em] flex items-center justify-center gap-6 shadow-3xl shadow-brand-900/40 transition-all group disabled:opacity-50 text-sm lg:text-base"
             >
               {loading ? (
                 <>
-                  <Send className="w-5 h-5 animate-bounce" />
-                  <span>Sending Message...</span>
+                  <Send className="w-6 h-6 animate-pulse" />
+                  <span>TRANSMITTING...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-5 h-5 flex-shrink-0" />
-                  <span>Send Sanctuary Message</span>
+                  <Send className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
+                  <span>SUBMIT TO SANCTUARY</span>
                 </>
               )}
-            </button>
+            </motion.button>
           </form>
         </div>
       </div>

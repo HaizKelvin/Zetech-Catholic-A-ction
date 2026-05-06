@@ -59,6 +59,7 @@ import {
   X,
   LogOut,
   ChevronRight,
+  ChevronDown,
   Sun,
   Moon,
   MessageCircle,
@@ -115,6 +116,7 @@ export default function App() {
   });
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     'Notification' in window ? Notification.permission : 'denied'
@@ -160,6 +162,14 @@ export default function App() {
   // Update URL and history when tab changes
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
+    
+    // Toggle About dropdown if clicking about
+    if (tab === 'about') {
+      setIsAboutOpen(!isAboutOpen);
+    } else {
+      // Auto-expand about if a sub-tab is clicked from elsewhere (if we had specific subtabs)
+    }
+
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
     
@@ -211,9 +221,9 @@ Can you provide more insight, theological context, or a related meditation for t
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "¿Matins? Peace be with you this morning.";
-    if (hour < 18) return "¿Angelus? Wishing you a blessed afternoon.";
-    return "¿Vespers? Peace be with you this evening.";
+    if (hour < 12) return "Peace be with you this morning.";
+    if (hour < 18) return "Wishing you a blessed afternoon.";
+    return "Peace be with you this evening.";
   };
 
   useEffect(() => {
@@ -365,7 +375,11 @@ Can you provide more insight, theological context, or a related meditation for t
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error('Login error:', error);
-      setAuthError(error.message || 'Login failed');
+      if (error.code === 'auth/popup-blocked') {
+        setAuthError('Popup blocked! Please allow popups or open this app in a new tab to sign in with Google.');
+      } else {
+        setAuthError(error.message || 'Login failed');
+      }
     } finally {
       setAuthLoading(false);
     }
@@ -593,6 +607,8 @@ Can you provide more insight, theological context, or a related meditation for t
                         ? "Network error. Please check your connection." 
                         : authError.includes('auth/operation-not-allowed')
                         ? "Email login is disabled. Please use Google Login."
+                        : authError.includes('auth/popup-blocked') || authError.includes('Popup blocked')
+                        ? "Popup blocked! Tap the 'Open' icon in the top right to open in a new tab."
                         : authError}
                     </p>
                   </motion.div>
@@ -688,22 +704,71 @@ Can you provide more insight, theological context, or a related meditation for t
           </div>
 
           {/* Menu Items */}
-          <nav className="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
-            <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4 ml-0.5" />} label="Overview" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'about'} onClick={() => handleTabChange('about')} icon={<Shield className="w-4 h-4 ml-0.5" />} label="About CA" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-4 h-4 ml-0.5" />} label="Events" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4 ml-0.5" />} label="Activities" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4 ml-0.5" />} label="Community Hub" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-4 h-4 ml-0.5" />} label="Divine Library" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4 ml-0.5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4 ml-0.5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'join'} onClick={() => handleTabChange('join')} icon={<UserPlus className="w-4 h-4 ml-0.5" />} label="Join Us" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} icon={<CreditCard className="w-4 h-4 ml-0.5" />} label="Payments" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'guide'} onClick={() => handleTabChange('guide')} icon={<HelpCircle className="w-4 h-4 ml-0.5" />} label="User Guide" isOpen={isSidebarOpen} />
-            <NavItem active={activeTab === 'contact'} onClick={() => handleTabChange('contact')} icon={<Mail className="w-4 h-4 ml-0.5" />} label="Contact Us" isOpen={isSidebarOpen} />
+          <nav className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-1">
+              {isSidebarOpen && <p className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-300 dark:text-stone-600 ml-4 mb-2">Sanctuary</p>}
+              <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4 ml-0.5" />} label="Overview" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4 ml-0.5" />} label="Community Hub" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-4 h-4 ml-0.5" />} label="Events" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4 ml-0.5" />} label="Activities" isOpen={isSidebarOpen} />
+            </div>
+
+            <div className="space-y-1">
+              {isSidebarOpen && <p className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-300 dark:text-stone-600 ml-4 mb-3">Community</p>}
+              <div className="space-y-1">
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      if (isSidebarOpen) setIsAboutOpen(!isAboutOpen);
+                      else handleTabChange('about');
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-500 relative group font-bold text-[11px] ${
+                      activeTab === 'about' || (isAboutOpen && isSidebarOpen)
+                        ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20' 
+                        : 'text-stone-500 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                       <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-700 ${activeTab === 'about' || isAboutOpen ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
+                        <Shield className="w-full h-full" />
+                      </div>
+                      {isSidebarOpen && <span className="uppercase tracking-widest leading-none">About CA</span>}
+                    </div>
+                    {isSidebarOpen && (
+                      <motion.div animate={{ rotate: isAboutOpen ? 180 : 0 }} className="mr-1">
+                        <ChevronDown className="w-4 h-4 text-current opacity-40" />
+                      </motion.div>
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isAboutOpen && isSidebarOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0, y: -10 }}
+                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                        exit={{ opacity: 0, height: 0, y: -10 }}
+                        className="overflow-hidden bg-stone-100/50 dark:bg-white/5 rounded-3xl mt-2 ml-4 mb-2 shadow-inner"
+                      >
+                        <div className="p-2 space-y-1">
+                          <SubNavItem active={activeTab === 'about'} onClick={() => handleTabChange('about')} label="Identity" />
+                          <SubNavItem active={activeTab === 'join'} onClick={() => handleTabChange('join')} label="Sanctify (Join)" />
+                          <SubNavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} label="Tithes (Payments)" />
+                          <SubNavItem active={activeTab === 'guide'} onClick={() => handleTabChange('guide')} label="Holy Guide" />
+                          <SubNavItem active={activeTab === 'contact'} onClick={() => handleTabChange('contact')} label="Messenger (Contact)" />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4 ml-0.5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-4 h-4 ml-0.5" />} label="Divine Library" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4 ml-0.5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
+              </div>
+            </div>
             
             {isAdmin && (
-              <div className="pt-4 mt-4 border-t border-stone-100 dark:border-stone-800">
+              <div className="pt-2">
                 {isSidebarOpen && <p className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-300 dark:text-stone-600 ml-4 mb-2">Admin Only</p>}
                 <NavItem active={activeTab === 'admin'} onClick={() => handleTabChange('admin')} icon={<Shield className="w-4 h-4 ml-0.5" />} label="Admin Panel" isOpen={isSidebarOpen} admin />
               </div>
@@ -755,19 +820,18 @@ Can you provide more insight, theological context, or a related meditation for t
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed top-0 inset-x-0 h-32 pointer-events-none z-30"
+              className="fixed top-0 inset-x-0 h-32 pointer-events-none z-[60]"
             >
               <div className="absolute inset-0 bg-gradient-to-b from-stone-950/20 to-transparent dark:from-brand-900/5" />
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-32 bg-brand-400/5 blur-[80px] rounded-full animate-pulse" />
             </motion.div>
             <motion.button 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.8, x: -20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.8, x: -20 }}
               onClick={() => setIsSidebarOpen(true)}
-              className="fixed top-3 left-3 md:top-4 md:left-4 z-40 p-2.5 glass rounded-xl shadow-lg border border-white/20 dark:border-white/20 group hover:bg-brand-900 transition-colors"
+              className="fixed top-4 left-4 z-[70] p-3 glass-dark rounded-2xl shadow-2xl border border-white/10 group hover:bg-brand-900 transition-all active:scale-90"
             >
-              <Menu className="w-4 h-4 md:w-5 md:h-5 text-brand-900 dark:text-brand-400 group-hover:text-white" />
+              <Menu className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </motion.button>
           </>
         )}
@@ -785,7 +849,7 @@ Can you provide more insight, theological context, or a related meditation for t
                  whileHover={{ scale: 1.05 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={() => setIsNotificationOpen(true)}
-                 className="p-1.5 md:p-2 glass rounded-full shadow-xl border border-white/40 dark:border-white/20 bg-white/40 dark:bg-brand-900/40 text-stone-800 dark:text-brand-50 group transition-all relative"
+                 className="p-1.5 md:p-2 glass-dark rounded-full shadow-2xl border border-white/20 text-white dark:text-brand-50 group transition-all relative"
                >
                  <Bell className="w-3.5 h-3.5 md:w-4.5 md:h-4.5" />
                  {notifications.some(n => !n.isRead) && (
@@ -801,7 +865,7 @@ Can you provide more insight, theological context, or a related meditation for t
                whileHover={{ scale: 1.05 }}
                whileTap={{ scale: 0.95 }}
                onClick={() => setDarkMode(!darkMode)}
-               className="p-1.5 glass rounded-full shadow-xl border border-white/40 dark:border-white/20 bg-white/40 dark:bg-brand-900/40 text-stone-800 dark:text-amber-400 group transition-all"
+               className="p-1.5 glass-dark rounded-full shadow-2xl border border-white/20 text-white dark:text-amber-400 group transition-all"
                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
              >
                {darkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
@@ -816,7 +880,7 @@ Can you provide more insight, theological context, or a related meditation for t
                  whileHover={{ scale: 1.05 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={() => setIsProfileModalOpen(true)}
-                 className="flex items-center gap-1.5 glass p-0.5 md:p-1 rounded-full shadow-xl border border-white/40 dark:border-white/20 bg-white/40 dark:bg-brand-900/40 group transition-all"
+                 className="flex items-center gap-1.5 glass-dark p-0.5 md:p-1 rounded-full shadow-2xl border border-white/20 group transition-all"
                >
                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden bg-white/80 dark:bg-stone-800/80 flex items-center justify-center border border-white/50 dark:border-stone-700 shadow-sm">
                    {profile?.photoURL ? (
@@ -1197,6 +1261,30 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_10px_white]"
+        />
+      )}
+    </button>
+  );
+});
+
+const SubNavItem = React.memo(({ active, onClick, label }: { active: boolean, onClick: () => void, label: string }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-300 font-bold text-[9px] uppercase tracking-wider relative group ${
+        active 
+          ? 'text-brand-600 dark:text-brand-400 bg-brand-500/10 shadow-sm' 
+          : 'text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5'
+      }`}
+    >
+      <div className={`w-1 h-1 rounded-full transition-all duration-300 ${active ? 'bg-brand-500 scale-125' : 'bg-stone-300 dark:bg-stone-700 opacity-30 group-hover:opacity-100'}`} />
+      <span className="truncate">{label}</span>
+      {active && (
+        <motion.div 
+          layoutId="subnav-indicator"
+          className="absolute left-0 w-1 h-4 bg-brand-500 rounded-r-full"
+          initial={{ opacity: 0, x: -2 }}
+          animate={{ opacity: 1, x: 0 }}
         />
       )}
     </button>

@@ -35,96 +35,115 @@ export default function JoinUs() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+    <div className="max-w-7xl mx-auto space-y-16 lg:space-y-32 pb-32">
+      {/* Hero Section - Cinematic Upgrade */}
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-16"
+        className="relative py-24 md:py-48 px-10 md:px-32 rounded-[60px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-12 md:mb-20"
       >
-        <span className="px-4 py-1.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-300 text-[10px] font-black uppercase tracking-[0.3em] mb-6 inline-block border border-brand-500/20 shadow-sm">
-          Vocations & Membership
-        </span>
-        <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-r from-stone-900 to-brand-600 dark:from-white dark:to-brand-400">
-          Walk with us in Faith.
-        </h1>
-        <p className="text-stone-500 dark:text-stone-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-          The Zetech Catholic Action family is open and welcoming to all students. 
-          Join a community of prayer, service, and spiritual growth.
-        </p>
-      </motion.div>
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&q=80" 
+            className="w-full h-full object-cover mix-blend-overlay scale-110 opacity-30 transition-transform duration-[15s] group-hover:scale-100"
+            alt="Sanctuary Fellowship"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
+        </div>
+        
+        <div className="relative z-10 space-y-8 md:space-y-12 max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="inline-flex items-center gap-4 px-8 py-3 rounded-full glass-dark border border-white/10 text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-xl"
+          >
+            <div className="w-2 h-2 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
+            Sanctify Your Path
+          </motion.div>
+          
+          <h1 className="text-6xl md:text-[9rem] font-black tracking-[-0.05em] leading-[0.8] text-white serif-display italic">
+            Walk with <br />
+            <span className="text-brand-400 not-italic uppercase font-black text-2xl md:text-5xl tracking-[0.4em] block mt-4">Us in Faith</span>
+          </h1>
+          
+          <p className="text-stone-400 text-xl md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
+            A sanctuary for students seeking spiritual nourishment, intellectual growth, and authentic community.
+          </p>
+        </div>
+      </motion.header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-        {/* Registration Form */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 px-4">
+        {/* Registration Form - Refined */}
         <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="lg:col-span-7 glass-card p-8 md:p-12 relative overflow-hidden"
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          className="lg:col-span-12 xl:col-span-7 glass p-12 md:p-20 relative overflow-hidden rounded-[60px] md:rounded-[80px] border border-stone-100 dark:border-white/5 shadow-2xl"
         >
-          <div className="absolute inset-0 sparkle-bg opacity-10 pointer-events-none" />
+          <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
           
           <AnimatePresence mode="wait">
             {!submitted ? (
               <motion.form 
                 key="join-form"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 onSubmit={handleSubmit} 
-                className="space-y-8 relative z-10"
+                className="space-y-12 relative z-10"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400 flex items-center gap-3">
-                      <User className="w-4 h-4" /> Full Name
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-4 ml-4">
+                      <User className="w-5 h-5" /> Full Name
                     </label>
                     <input
                       required
                       type="text"
                       placeholder="e.g. John Doe"
-                      className="w-full p-5 rounded-[26px] text-sm bg-white/50 backdrop-blur-xl border-brand-500/10 focus:border-brand-500/30 transition-all shadow-inner"
+                      className="w-full px-8 py-7 rounded-[32px] text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
                       value={formData.fullName}
                       onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 flex items-center gap-3">
-                      <GraduationCap className="w-4 h-4" /> Admission
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-4 ml-4">
+                      <GraduationCap className="w-5 h-5" /> Admission
                     </label>
                     <input
                       required
                       type="text"
                       placeholder="BSCIT-01-0001/2024"
-                      className="w-full p-5 rounded-[26px] text-sm bg-white/50 backdrop-blur-xl border-brand-500/10 focus:border-brand-500/30 transition-all shadow-inner"
+                      className="w-full px-8 py-7 rounded-[32px] text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
                       value={formData.admissionNumber}
                       onChange={e => setFormData({ ...formData, admissionNumber: e.target.value })}
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 flex items-center gap-3">
-                      <Phone className="w-4 h-4" /> Phone Number
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-4 ml-4">
+                      <Phone className="w-5 h-5" /> Phone Number
                     </label>
                     <input
                       required
                       type="tel"
                       placeholder="0712 345 678"
-                      className="w-full p-5 rounded-[26px] text-sm bg-white/50 backdrop-blur-xl border-brand-500/10 focus:border-brand-500/30 transition-all shadow-inner"
+                      className="w-full px-8 py-7 rounded-[32px] text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
                       value={formData.phoneNumber}
                       onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 flex items-center gap-3">
-                      <Mail className="w-4 h-4" /> School Email
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-4 ml-4">
+                      <Mail className="w-5 h-5" /> School Email
                     </label>
                     <input
                       required
                       type="email"
                       placeholder="john.doe@zetech.ac.ke"
-                      className="w-full p-5 rounded-[26px] text-sm bg-white/50 backdrop-blur-xl border-brand-500/10 focus:border-brand-500/30 transition-all shadow-inner"
+                      className="w-full px-8 py-7 rounded-[32px] text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
                       value={formData.schoolEmail}
                       onChange={e => setFormData({ ...formData, schoolEmail: e.target.value })}
                     />
@@ -132,17 +151,17 @@ export default function JoinUs() {
                 </div>
 
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, y: -5 }}
                   whileTap={{ scale: 0.98 }}
                   disabled={loading}
                   type="submit"
-                  className="w-full btn-adorable py-6 shadow-2xl mt-4"
+                  className="w-full bg-brand-900 text-white py-8 rounded-[40px] font-black uppercase tracking-[0.4em] shadow-3xl shadow-brand-900/40 mt-6 text-sm lg:text-base flex items-center justify-center gap-6 group"
                 >
                   {loading ? (
                     'Recording Covenant...'
                   ) : (
                     <>
-                      Confirm My Journey <Send className="w-4 h-4" />
+                      Confirm My Journey <Send className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
                     </>
                   )}
                 </motion.button>
@@ -152,63 +171,66 @@ export default function JoinUs() {
                 key="success"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-12 relative z-10"
+                className="text-center py-20 relative z-10"
               >
-                <div className="w-24 h-24 bg-emerald-500/10 rounded-[32px] flex items-center justify-center mx-auto mb-10 animate-bounce">
-                  <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+                <div className="w-32 h-32 bg-emerald-500/10 rounded-[48px] flex items-center justify-center mx-auto mb-10 animate-pulse border border-emerald-500/20">
+                  <CheckCircle2 className="w-16 h-16 text-emerald-500" />
                 </div>
-                <h2 className="text-4xl font-black tracking-tighter mb-6 text-stone-900 dark:text-white">
-                  Welcome Aboard!
+                <h2 className="text-5xl md:text-6xl font-black tracking-tighter mb-8 text-stone-900 dark:text-white serif-display italic">
+                  Welcome Home
                 </h2>
-                <p className="text-stone-500 dark:text-stone-400 mb-12 text-base max-w-sm mx-auto leading-relaxed">
-                  Your registration has been received and recorded in our sanctified registry. 
-                  We are excited to have you!
+                <p className="text-xl text-stone-500 dark:text-stone-400 mb-16 max-w-sm mx-auto leading-relaxed italic font-light serif-display">
+                  "Your registration has been recorded in our sanctified registry. We are excited to have you in the family."
                 </p>
                 <button 
                   onClick={() => setSubmitted(false)}
-                  className="btn-adorable bg-stone-100 text-stone-600 shadow-none border border-stone-200"
+                  className="px-12 py-6 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 rounded-full font-black uppercase tracking-[0.3em] text-[10px] hover:bg-brand-500 hover:text-white transition-all shadow-sm"
                 >
-                  Register another soul?
+                  Register another soul
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
 
-        {/* Community Links */}
+        {/* Community Links - Balanced */}
         <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-          className="lg:col-span-5 space-y-8"
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          className="lg:col-span-12 xl:col-span-5 flex flex-col gap-10 md:gap-16"
         >
-          <div className="glass-card p-10 bg-brand-600 text-white shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 sparkle-bg opacity-20 pointer-events-none" />
-            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/20 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-1000" />
+          <div className="glass-dark p-12 md:p-16 bg-brand-950 text-white shadow-3xl shadow-brand-900/20 relative overflow-hidden group rounded-[60px] flex flex-col justify-between h-full min-h-[400px]">
+            <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
+            <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-brand-500/20 blur-[100px] rounded-full group-hover:scale-150 transition-transform duration-[3s]" />
             
-            <h3 className="text-3xl font-black tracking-tight mb-6 relative z-10">Join the Group</h3>
-            <p className="text-white/80 text-sm md:text-base leading-relaxed mb-10 relative z-10 font-medium">
-              Connect instantly with fellow members via our official WhatsApp community for daily updates, prayer calls, and event notifications.
-            </p>
+            <div className="space-y-8 relative z-10">
+              <h3 className="text-4xl md:text-5xl font-black tracking-tight serif-display italic">The Assembly</h3>
+              <p className="text-stone-400 text-lg md:text-xl font-light leading-relaxed italic serif-display">
+                "Connect instantly with fellow members via our official WhatsApp community for daily updates and prayer calls."
+              </p>
+            </div>
+            
             <motion.a
               href="https://chat.whatsapp.com/your-group-link" 
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.05 }}
-              className="inline-flex items-center gap-4 px-10 py-5 bg-white text-stone-900 rounded-[24px] text-[10px] font-black uppercase tracking-widest shadow-2xl relative z-10"
+              whileHover={{ scale: 1.05, y: -5 }}
+              className="inline-flex items-center justify-between gap-6 px-10 py-7 bg-white text-brand-950 rounded-[40px] text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl relative z-10 w-full hover:bg-brand-50 transition-colors"
             >
-              Go to WhatsApp <MessageCircle className="w-5 h-5 text-[#25D366]" />
+              Go to WhatsApp <MessageCircle className="w-6 h-6 text-[#25D366]" />
             </motion.a>
           </div>
 
-          <div className="glass-card p-10 border-brand-500/10">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400 mb-6">
-              Our Vision
+          <div className="glass p-12 md:p-16 border-stone-100 dark:border-white/5 rounded-[60px] shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
+            <h4 className="text-[11px] font-black uppercase tracking-[0.5em] text-brand-600 mb-10 flex items-center gap-4">
+              <div className="w-8 h-px bg-brand-600/30" /> Our Vision
             </h4>
             <div className="relative">
-              <Quote className="absolute -top-4 -left-4 w-10 h-10 text-brand-500/10" />
-              <p className="text-stone-600 dark:text-stone-300 text-sm md:text-base leading-relaxed italic font-serif pl-6 border-l-2 border-brand-500/20">
-                "To be a vibrant Catholic community in academia, fostering spiritual nourishment and intellectual growth through prayer, faith sharing, and service."
+              <Quote className="absolute -top-6 -left-6 w-16 h-16 text-brand-500/5 group-hover:scale-125 transition-transform duration-1000" />
+              <p className="text-2xl md:text-3xl text-stone-900 dark:text-stone-200 leading-[1.3] italic font-serif pl-8 border-l-2 border-brand-500/20">
+                To be a vibrant Catholic community in academia, fostering spiritual nourishment and intellectual growth through prayer and service.
               </p>
             </div>
           </div>

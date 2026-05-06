@@ -195,26 +195,41 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
         <motion.div 
           initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
           animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          className="glass-card p-16 md:p-32 shadow-[0_60px_120px_-30px_rgba(0,0,0,0.4)] text-center relative overflow-hidden"
+          className="glass-card p-20 md:p-40 shadow-[0_80px_160px_-40px_rgba(0,0,0,0.5)] text-center relative overflow-hidden bg-white/40 dark:bg-black/40 backdrop-blur-3xl rounded-[64px] border border-white/20"
         >
           <div className="absolute inset-0 bg-gradient-to-t from-brand-900/10 via-transparent to-transparent opacity-50" />
+          <div className="absolute inset-0 sacred-grid opacity-[0.03] pointer-events-none" />
+          
           <div className="relative z-10">
-            <div className="mb-12 relative inline-block">
-              <div className="absolute inset-0 bg-brand-500/20 blur-[60px] rounded-full animate-pulse" />
-              <Trophy className="w-24 h-24 md:w-40 md:h-40 text-brand-500 mx-auto animate-float drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
+            <div className="mb-16 relative inline-block">
+              <div className="absolute inset-0 bg-brand-500/20 blur-[100px] rounded-full animate-pulse" />
+              <div className="relative">
+                <Trophy className="w-32 h-32 md:w-56 md:h-56 text-brand-500 mx-auto animate-float drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]" />
+              </div>
             </div>
-            <h2 className="text-5xl md:text-8xl font-bold text-stone-950 dark:text-white mb-6 tracking-tighter serif-display italic">Sacred <span className="text-brand-500 not-italic uppercase font-black text-2xl md:text-4xl tracking-[0.2em] block mt-2">Commendation</span></h2>
-            <div className="flex items-end justify-center gap-4 mb-16">
-               <p className="text-stone-400 font-black uppercase tracking-widest text-xs">Divine Score</p>
-               <span className="text-7xl md:text-9xl font-black tracking-tighter text-stone-900 dark:text-white leading-none">{score}</span>
-               <span className="text-3xl md:text-5xl font-serif italic text-stone-300">/ {questions.length}</span>
+            
+            <div className="space-y-6 mb-16">
+              <h2 className="text-6xl md:text-9xl font-bold text-stone-950 dark:text-white tracking-tighter serif-display italic">
+                Sacred <span className="text-brand-500 not-italic uppercase font-black text-2xl md:text-5xl tracking-[0.4em] block mt-4">Wisdom</span>
+              </h2>
+              <div className="h-0.5 w-24 bg-brand-500/20 mx-auto rounded-full" />
+            </div>
+
+            <div className="flex items-center justify-center gap-6 mb-24">
+               <div>
+                  <p className="text-stone-400 font-black uppercase tracking-[0.4em] text-[10px] mb-2">Divine Score</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-8xl md:text-[12rem] font-black tracking-tighter text-stone-900 dark:text-white leading-none">{score}</span>
+                    <span className="text-3xl md:text-6xl font-serif italic text-stone-300 dark:text-stone-700">/ {questions.length}</span>
+                  </div>
+               </div>
             </div>
             
             <button 
               onClick={() => { setCurrentIndex(0); setScore(0); setShowResult(false); setIsAnswered(false); setSelectedOption(null); }}
-              className="bg-brand-900 text-white px-16 py-6 rounded-full font-black uppercase tracking-[0.4em] text-[10px] md:text-xs shadow-2xl hover:bg-brand-800 transition-all hover:-translate-y-2 active:translate-y-0"
+              className="bg-brand-900 text-white px-20 py-7 rounded-full font-black uppercase tracking-[0.5em] text-[10px] md:text-xs shadow-3xl shadow-brand-900/40 hover:bg-brand-800 transition-all hover:-translate-y-2 active:translate-y-0 group"
             >
-              Begin New Cycle
+              Begin New Pilgrimage <span className="inline-block transition-transform group-hover:translate-x-2 ml-2">→</span>
             </button>
           </div>
         </motion.div>
