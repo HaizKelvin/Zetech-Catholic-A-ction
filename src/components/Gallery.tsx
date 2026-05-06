@@ -93,11 +93,11 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-16 lg:space-y-32 pb-32">
+    <div className="max-w-7xl mx-auto space-y-12 lg:space-y-32 pb-32">
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-24 md:py-48 px-10 md:px-32 rounded-[60px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-12 md:mb-20"
+        className="relative py-12 md:py-48 px-6 md:px-32 rounded-[40px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-8 md:mb-20"
       >
         <div className="absolute inset-0 z-0">
           <img 
@@ -113,18 +113,18 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-4 px-8 py-3 rounded-full glass-dark border border-white/10 text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-xl"
+              className="inline-flex items-center gap-3 px-6 py-2 md:px-8 md:py-3 rounded-full glass-dark border border-white/10 text-[9px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-xl"
             >
-              <div className="w-2 h-2 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
+              <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
               Living Testimony
             </motion.div>
             
-            <h1 className="text-6xl md:text-[9rem] font-black tracking-[-0.05em] leading-[0.8] text-white serif-display italic">
+            <h1 className="text-4xl md:text-[9rem] font-black tracking-[-0.05em] leading-tight md:leading-[0.8] text-white serif-display italic">
               Activity <br />
-              <span className="text-brand-400 not-italic uppercase font-black text-2xl md:text-5xl tracking-[0.4em] block mt-4">Gallery</span>
+              <span className="text-brand-400 not-italic uppercase font-black text-xl md:text-5xl tracking-[0.4em] block mt-2 md:mt-4">Gallery</span>
             </h1>
             
-            <p className="text-stone-400 text-xl md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
+            <p className="text-stone-400 text-base md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
               Reliving our moments of worship, fellowship, and divine connection.
             </p>
           </div>
@@ -133,7 +133,7 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
             whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowAdd(true)}
-            className="w-full md:w-auto flex items-center justify-center gap-4 bg-brand-600 text-white px-10 py-6 rounded-[32px] hover:bg-brand-500 transition-all font-black uppercase tracking-[0.3em] shadow-3xl shadow-brand-600/40 text-[10px]"
+            className="w-full md:w-auto flex items-center justify-center gap-4 bg-brand-600 text-white px-8 py-5 md:px-10 md:py-6 rounded-[24px] md:rounded-[32px] hover:bg-brand-500 transition-all font-black uppercase tracking-[0.3em] shadow-3xl shadow-brand-600/40 text-[9px] md:text-[10px]"
           >
             <Plus className="w-5 h-5" />
             Share Moment
@@ -141,7 +141,7 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
         </div>
       </motion.header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-16 px-4">
         {items.map((item) => (
           <motion.div
             layout
@@ -180,20 +180,20 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
               </div>
             </div>
             
-            <div className="p-8 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-brand-500/10 dark:bg-brand-500/20 flex items-center justify-center border border-brand-500/20">
-                  <span className="text-xs font-black text-brand-600 dark:text-brand-400 uppercase">{item.userName[0]}</span>
+            <div className="p-6 md:p-8 flex items-center justify-between">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-brand-500/10 dark:bg-brand-500/20 flex items-center justify-center border border-brand-500/20">
+                  <span className="text-[10px] md:text-xs font-black text-brand-600 dark:text-brand-400 uppercase">{item.userName[0]}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest">{item.userName}</span>
-                  <span className="text-[8px] font-bold text-stone-400 uppercase tracking-widest">Sanctuary Citizen</span>
+                  <span className="text-[9px] md:text-[10px] font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest">{item.userName}</span>
+                  <span className="text-[7px] md:text-[8px] font-bold text-stone-400 uppercase tracking-widest">Sanctuary Citizen</span>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4 md:gap-6">
                 <button className="flex flex-col items-center group/like">
-                  <Heart className="w-6 h-6 text-stone-300 dark:text-stone-700 group-hover/like:text-rose-500 group-hover/like:scale-110 transition-all transition-colors" />
-                  <span className="text-[8px] font-black mt-1 text-stone-400">{item.likes || 0}</span>
+                  <Heart className="w-5 h-5 md:w-6 md:h-6 text-stone-300 dark:text-stone-700 group-hover/like:text-rose-500 group-hover/like:scale-110 transition-all transition-colors" />
+                  <span className="text-[7px] md:text-[8px] font-black mt-1 text-stone-400">{item.likes || 0}</span>
                 </button>
               </div>
             </div>

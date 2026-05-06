@@ -722,21 +722,21 @@ Can you provide more insight, theological context, or a related meditation for t
                       if (isSidebarOpen) setIsAboutOpen(!isAboutOpen);
                       else handleTabChange('about');
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-500 relative group font-bold text-[11px] ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-full transition-all duration-500 relative group font-bold text-[10px] ${
                       activeTab === 'about' || (isAboutOpen && isSidebarOpen)
                         ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20' 
                         : 'text-stone-500 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                       <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-700 ${activeTab === 'about' || isAboutOpen ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
-                        <Shield className="w-full h-full" />
+                    <div className="flex items-center gap-2">
+                       <div className={`w-4 h-4 shrink-0 flex items-center justify-center transition-all duration-700 ${activeTab === 'about' || isAboutOpen ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
+                        <Shield className="w-4 h-4" />
                       </div>
-                      {isSidebarOpen && <span className="uppercase tracking-widest leading-none">About CA</span>}
+                      {isSidebarOpen && <span className="whitespace-nowrap leading-none">About CA</span>}
                     </div>
                     {isSidebarOpen && (
                       <motion.div animate={{ rotate: isAboutOpen ? 180 : 0 }} className="mr-1">
-                        <ChevronDown className="w-4 h-4 text-current opacity-40" />
+                        <ChevronDown className="w-3.5 h-3.5 text-current opacity-40" />
                       </motion.div>
                     )}
                   </button>
