@@ -1,36 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote } from 'lucide-react';
+import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote, Camera, Download, ShieldCheck, Zap } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 export default function JoinUs() {
   const [formData, setFormData] = useState({
     fullName: '',
     admissionNumber: '',
     phoneNumber: '',
-    schoolEmail: ''
+    schoolEmail: '',
+    profileImage: ''
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [membershipInfo, setMembershipInfo] = useState<any>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 1024 * 1024) {
+        alert('Image is too large. Please select a photo under 1MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, profileImage: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.profileImage) {
+      alert('Please upload a profile photo for your membership card.');
+      return;
+    }
     setLoading(true);
     
     try {
       const path = 'registrations';
-      await addDoc(collection(db, path), {
+      const docRef = await addDoc(collection(db, path), {
         ...formData,
         createdAt: serverTimestamp()
       });
+      
+      const info = {
+        ...formData,
+        id: docRef.id.slice(-8).toUpperCase(),
+        joinDate: new Date().toLocaleDateString()
+      };
+      
+      setMembershipInfo(info);
       setSubmitted(true);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'registrations');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const downloadCard = async () => {
+    if (cardRef.current) {
+      try {
+        const canvas = await html2canvas(cardRef.current, {
+          backgroundColor: null,
+          scale: 3,
+          useCORS: true,
+          logging: false
+        });
+        const link = document.createElement('a');
+        link.download = `ZUCA-Card-${membershipInfo.fullName.replace(/\s+/g, '-')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        console.error('Failed to generate card', err);
+      }
     }
   };
 
@@ -40,7 +90,7 @@ export default function JoinUs() {
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-12 md:py-48 px-6 md:px-32 rounded-[40px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-8 md:mb-20"
+        className="relative py-12 md:py-48 px-6 md:px-32 rounded-[32px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-20 mx-2 md:mx-0"
       >
         <div className="absolute inset-0 z-0">
           <img 
@@ -62,11 +112,11 @@ export default function JoinUs() {
           </motion.div>
           
           <h1 className="text-4xl md:text-[9rem] font-black tracking-[-0.05em] leading-tight md:leading-[0.8] text-white serif-display italic">
-            Walk with <br />
+            Walk with <br className="hidden md:block" />
             <span className="text-brand-400 not-italic uppercase font-black text-xl md:text-5xl tracking-[0.4em] block mt-2 md:mt-4">Us in Faith</span>
           </h1>
           
-          <p className="text-stone-400 text-base md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
+          <p className="text-stone-400 text-sm md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
             A sanctuary for students seeking spiritual nourishment, intellectual growth, and authentic community.
           </p>
         </div>
@@ -78,7 +128,7 @@ export default function JoinUs() {
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          className="lg:col-span-12 xl:col-span-7 glass p-8 md:p-20 relative overflow-hidden rounded-[32px] md:rounded-[80px] border border-stone-100 dark:border-white/5 shadow-2xl"
+          className="lg:col-span-12 xl:col-span-7 glass p-6 md:p-20 relative overflow-hidden rounded-[32px] md:rounded-[80px] border border-stone-100 dark:border-white/5 shadow-2xl"
         >
           <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
           
@@ -90,9 +140,36 @@ export default function JoinUs() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 onSubmit={handleSubmit} 
-                className="space-y-12 relative z-10"
+                className="space-y-8 md:space-y-12 relative z-10"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                {/* Photo Upload Section */}
+                <div className="flex flex-col items-center justify-center space-y-6 mb-4">
+                   <div className="relative group cursor-pointer">
+                     <div className="w-32 h-32 md:w-48 md:h-48 rounded-[40px] md:rounded-[56px] bg-stone-100 dark:bg-white/5 border-2 border-dashed border-stone-200 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all group-hover:border-brand-500/50 group-hover:bg-brand-50/50 dark:group-hover:bg-brand-500/5 shadow-inner ring-0 group-hover:ring-8 ring-brand-500/5">
+                        {formData.profileImage ? (
+                          <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                        ) : (
+                          <div className="text-center p-4">
+                            <Camera className="w-8 h-8 md:w-12 md:h-12 text-stone-300 dark:text-stone-700 mx-auto mb-2" />
+                            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-stone-400">Click to Upload</p>
+                            <p className="text-[6px] md:text-[8px] font-bold text-stone-300 dark:text-stone-700 uppercase mt-1">Identity Capture</p>
+                          </div>
+                        )}
+                     </div>
+                     <input 
+                       type="file" 
+                       accept="image/*" 
+                       onChange={handleImageChange}
+                       className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                     />
+                     <div className="absolute -bottom-2 -right-2 bg-brand-600 text-white p-3 md:p-4 rounded-3xl shadow-xl shadow-brand-600/30 group-hover:scale-110 group-hover:rotate-6 transition-all">
+                        <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
+                     </div>
+                   </div>
+                   <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 text-center">Profile Authentication Required</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                   <div className="space-y-3 md:space-y-4">
                     <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-3 md:gap-4 ml-4">
                       <User className="w-4 h-4 md:w-5 md:h-5" /> Full Name
@@ -101,7 +178,7 @@ export default function JoinUs() {
                       required
                       type="text"
                       placeholder="e.g. John Doe"
-                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-base md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
+                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-sm md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
                       value={formData.fullName}
                       onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                     />
@@ -113,15 +190,15 @@ export default function JoinUs() {
                     <input
                       required
                       type="text"
-                      placeholder="BSCIT-01-0001/2024"
-                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-base md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
+                      placeholder="BSCIT-01..."
+                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-sm md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
                       value={formData.admissionNumber}
                       onChange={e => setFormData({ ...formData, admissionNumber: e.target.value })}
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                   <div className="space-y-3 md:space-y-4">
                     <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-3 md:gap-4 ml-4">
                       <Phone className="w-4 h-4 md:w-5 md:h-5" /> Phone Number
@@ -130,7 +207,7 @@ export default function JoinUs() {
                       required
                       type="tel"
                       placeholder="0712 345 678"
-                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-base md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
+                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-sm md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
                       value={formData.phoneNumber}
                       onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
                     />
@@ -143,7 +220,7 @@ export default function JoinUs() {
                       required
                       type="email"
                       placeholder="john.doe@zetech.ac.ke"
-                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-base md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
+                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-sm md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
                       value={formData.schoolEmail}
                       onChange={e => setFormData({ ...formData, schoolEmail: e.target.value })}
                     />
@@ -155,13 +232,13 @@ export default function JoinUs() {
                   whileTap={{ scale: 0.98 }}
                   disabled={loading}
                   type="submit"
-                  className="w-full bg-brand-900 text-white py-6 md:py-8 rounded-[30px] md:rounded-[40px] font-black uppercase tracking-[0.4em] shadow-3xl shadow-brand-900/40 mt-4 md:mt-6 text-xs md:text-sm lg:text-base flex items-center justify-center gap-4 md:gap-6 group"
+                  className="w-full bg-brand-900 text-white py-6 md:py-8 rounded-[24px] md:rounded-[40px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] shadow-3xl shadow-brand-900/40 mt-4 md:mt-6 text-[10px] md:text-sm flex items-center justify-center gap-4 md:gap-6 group"
                 >
                   {loading ? (
                     'Recording Covenant...'
                   ) : (
                     <>
-                      Confirm My Journey <Send className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
+                      Confirm My Journey <Send className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-3 transition-transform" />
                     </>
                   )}
                 </motion.button>
@@ -171,23 +248,102 @@ export default function JoinUs() {
                 key="success"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-20 relative z-10"
+                className="text-center py-6 md:py-12 relative z-10 flex flex-col items-center"
               >
-                <div className="w-32 h-32 bg-emerald-500/10 rounded-[48px] flex items-center justify-center mx-auto mb-10 animate-pulse border border-emerald-500/20">
-                  <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-500/10 rounded-[24px] flex items-center justify-center mb-6 border border-emerald-500/20">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                 </div>
-                <h2 className="text-5xl md:text-6xl font-black tracking-tighter mb-8 text-stone-900 dark:text-white serif-display italic">
-                  Welcome Home
+                
+                <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-3 text-stone-900 dark:text-white serif-display italic">
+                  Sanctified Identity
                 </h2>
-                <p className="text-xl text-stone-500 dark:text-stone-400 mb-16 max-w-sm mx-auto leading-relaxed italic font-light serif-display">
-                  "Your registration has been recorded in our sanctified registry. We are excited to have you in the family."
+                <p className="text-xs md:text-base text-stone-500 dark:text-stone-400 mb-10 max-w-sm italic font-light serif-display">
+                  "Behold your membership credential. Download it to carry the resonance of our community."
                 </p>
-                <button 
-                  onClick={() => setSubmitted(false)}
-                  className="px-12 py-6 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 rounded-full font-black uppercase tracking-[0.3em] text-[10px] hover:bg-brand-500 hover:text-white transition-all shadow-sm"
-                >
-                  Register another soul
-                </button>
+
+                {/* Membership Card - Pro Design */}
+                <div className="mb-8 perspective-1000 scale-[0.7] md:scale-100 origin-center">
+                  <div 
+                    ref={cardRef}
+                    className="w-[300px] h-[480px] md:w-[400px] md:h-[600px] rounded-[40px] md:rounded-[60px] bg-brand-950 text-white p-8 md:p-12 relative overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10"
+                  >
+                    {/* Background Elements */}
+                    <div className="absolute inset-0 divine-pattern opacity-[0.12] mix-blend-overlay" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-500/10 blur-[60px] rounded-full translate-y-1/2 -translate-x-1/2" />
+                    
+                    <div className="relative z-10 h-full flex flex-col justify-between items-center text-center">
+                      {/* Logo & Header */}
+                      <div className="space-y-4 w-full">
+                        <div className="flex items-center justify-center gap-3">
+                           <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
+                             <Zap className="w-6 h-6 md:w-7 md:h-7 text-brand-950 fill-brand-950" />
+                           </div>
+                           <div className="text-left">
+                             <p className="text-[12px] md:text-[14px] font-black tracking-[0.3em] uppercase leading-none mb-1">ZUCA</p>
+                             <p className="text-[8px] md:text-[9px] font-bold text-brand-400 uppercase tracking-widest">Sanctuary Assembly</p>
+                           </div>
+                        </div>
+                        <div className="h-px w-24 bg-gradient-to-r from-transparent via-brand-500/50 to-transparent mx-auto" />
+                      </div>
+
+                      {/* Profile Section */}
+                      <div className="space-y-6 md:space-y-8 w-full">
+                        <div className="relative mx-auto w-32 h-32 md:w-44 md:h-44">
+                          <div className="absolute inset-0 bg-brand-500 blur-2xl opacity-20 rounded-full" />
+                          <div className="relative w-full h-full rounded-[40px] md:rounded-[50px] border-4 border-white/20 overflow-hidden shadow-2xl ring-8 ring-white/5 bg-stone-900">
+                             <img src={membershipInfo.profileImage} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="text-2xl md:text-4xl font-black tracking-tight serif-display italic leading-none mb-2">{membershipInfo.fullName}</h3>
+                          <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-400">Certified Community Soul</p>
+                        </div>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-6 w-full pt-8 border-t border-white/10">
+                        <div className="text-left space-y-1">
+                          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-500">Member ID</p>
+                          <p className="text-[11px] md:text-[13px] font-bold tracking-wider">#{membershipInfo.id}</p>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-500">Join Date</p>
+                          <p className="text-[11px] md:text-[13px] font-bold tracking-wider">{membershipInfo.joinDate}</p>
+                        </div>
+                        <div className="text-left space-y-1">
+                          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-500">Phone Signal</p>
+                          <p className="text-[11px] md:text-[13px] font-bold tracking-wider">{membershipInfo.phoneNumber}</p>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-500">Security Access</p>
+                           <div className="flex items-center justify-end gap-1.5">
+                             <ShieldCheck className="w-3 h-3 text-brand-400" />
+                             <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Verified</p>
+                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full max-w-md">
+                  <motion.button 
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={downloadCard}
+                    className="flex-1 bg-brand-600 text-white py-5 md:py-6 rounded-[24px] md:rounded-[28px] font-black uppercase tracking-[0.3em] text-[10px] shadow-3xl shadow-brand-600/30 flex items-center justify-center gap-4 group"
+                  >
+                    Download Card <Download className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+                  </motion.button>
+                  <button 
+                    onClick={() => setSubmitted(false)}
+                    className="flex-1 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 py-5 md:py-6 rounded-[24px] md:rounded-[28px] font-black uppercase tracking-[0.3em] text-[10px] hover:bg-stone-200 dark:hover:bg-white/10 transition-all border border-stone-200/50 dark:border-white/5"
+                  >
+                    New Registration
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -222,14 +378,14 @@ export default function JoinUs() {
             </motion.a>
           </div>
 
-          <div className="glass p-10 md:p-16 border-stone-100 dark:border-white/5 rounded-[40px] md:rounded-[60px] shadow-2xl relative overflow-hidden group">
+          <div className="glass p-8 md:p-16 border-stone-100 dark:border-white/5 rounded-[40px] md:rounded-[60px] shadow-2xl relative overflow-hidden group">
             <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
-            <h4 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.5em] text-brand-600 mb-8 md:mb-10 flex items-center gap-4">
+            <h4 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.5em] text-brand-600 mb-6 md:mb-10 flex items-center gap-4">
               <div className="w-6 md:w-8 h-px bg-brand-600/30" /> Our Vision
             </h4>
             <div className="relative">
-              <Quote className="absolute -top-6 -left-6 w-12 md:w-16 h-12 md:h-16 text-brand-500/5 group-hover:scale-125 transition-transform duration-1000" />
-              <p className="text-xl md:text-3xl text-stone-900 dark:text-stone-200 leading-snug md:leading-[1.3] italic font-serif pl-6 md:pl-8 border-l-2 border-brand-500/20">
+              <Quote className="absolute -top-6 -left-6 w-12 md:w-16 h-12 md:h-16 text-brand-500/5 group-hover:scale-125 transition-transform duration-1000 shrink-0" />
+              <p className="text-lg md:text-3xl text-stone-900 dark:text-stone-200 leading-snug md:leading-[1.3] italic font-serif pl-6 md:pl-8 border-l-2 border-brand-500/20">
                 To be a vibrant Catholic community in academia, fostering spiritual nourishment and intellectual growth through prayer and service.
               </p>
             </div>

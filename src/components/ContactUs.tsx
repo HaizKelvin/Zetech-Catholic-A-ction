@@ -64,7 +64,7 @@ export default function ContactUs() {
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-12 md:py-48 px-6 md:px-32 rounded-[40px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-8 md:mb-20"
+        className="relative py-12 md:py-48 px-6 md:px-32 rounded-[40px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-8 md:mb-20 mx-4 md:mx-0"
       >
         <div className="absolute inset-0 z-0">
           <img 
@@ -86,11 +86,11 @@ export default function ContactUs() {
           </motion.div>
           
           <h1 className="text-4xl md:text-[9rem] font-black tracking-[-0.05em] leading-tight md:leading-[0.8] text-white serif-display italic">
-            Seek & <br />
+            Seek & <br className="hidden md:block" />
             <span className="text-brand-400 not-italic uppercase font-black text-xl md:text-5xl tracking-[0.4em] block mt-2 md:mt-4">Inquire</span>
           </h1>
           
-          <p className="text-stone-400 text-base md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
+          <p className="text-stone-400 text-sm md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
             Have a complaint, feedback, or inquiry? We are here to listen and grow together in faith.
           </p>
         </div>
@@ -98,41 +98,41 @@ export default function ContactUs() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-20 px-4">
         <div className="lg:col-span-12 xl:col-span-4 space-y-6 md:space-y-8">
-          <div className="p-8 md:p-10 glass rounded-[40px] md:rounded-[50px] space-y-4 md:space-y-6 border border-stone-100 dark:border-white/5 shadow-2xl group overflow-hidden">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-brand-500/10 dark:bg-brand-500/20 rounded-[22px] md:rounded-[28px] flex items-center justify-center border border-brand-500/20 group-hover:bg-brand-900 group-hover:text-white transition-all duration-700">
-              <Mail className="w-6 h-6 md:w-8 md:h-8 text-brand-600 dark:text-brand-400" />
+          <div className="p-6 md:p-10 glass rounded-[32px] md:rounded-[50px] space-y-4 md:space-y-6 border border-stone-100 dark:border-white/5 shadow-2xl group overflow-hidden">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-brand-500/10 dark:bg-brand-500/20 rounded-[20px] md:rounded-[28px] flex items-center justify-center border border-brand-500/20 group-hover:bg-brand-900 group-hover:text-white transition-all duration-700">
+              <Mail className="w-5 h-5 md:w-8 md:h-8 text-brand-600 dark:text-brand-400" />
             </div>
             <div>
-              <h3 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.5em] text-stone-400 mb-1 md:mb-2 text-xs">Sacred Mail</h3>
-              <p className="text-lg md:text-xl font-bold text-stone-900 dark:text-stone-100">zuca@zetech.ac.ke</p>
+              <h3 className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-stone-400 mb-1 md:mb-2 text-xs">Sacred Mail</h3>
+              <p className="text-base md:text-xl font-bold text-stone-900 dark:text-stone-100">zuca@zetech.ac.ke</p>
             </div>
           </div>
 
-          <div className="p-8 md:p-10 glass rounded-[40px] md:rounded-[50px] space-y-4 md:space-y-6 border border-stone-100 dark:border-white/5 shadow-2xl group overflow-hidden">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-brand-500/10 dark:bg-brand-500/20 rounded-[22px] md:rounded-[28px] flex items-center justify-center border border-brand-500/20 group-hover:bg-brand-900 group-hover:text-white transition-all duration-700">
-              <Phone className="w-6 h-6 md:w-8 md:h-8 text-brand-600 dark:text-brand-400" />
+          <div className="p-6 md:p-10 glass rounded-[32px] md:rounded-[50px] space-y-4 md:space-y-6 border border-stone-100 dark:border-white/5 shadow-2xl group overflow-hidden">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-brand-500/10 dark:bg-brand-500/20 rounded-[20px] md:rounded-[28px] flex items-center justify-center border border-brand-500/20 group-hover:bg-brand-900 group-hover:text-white transition-all duration-700">
+              <Phone className="w-5 h-5 md:w-8 md:h-8 text-brand-600 dark:text-brand-400" />
             </div>
             <div>
-              <h3 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.5em] text-stone-400 mb-1 md:mb-2 text-xs">Voice Assistance</h3>
-              <p className="text-lg md:text-xl font-bold text-stone-900 dark:text-stone-100">+254 700 000 000</p>
+              <h3 className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-stone-400 mb-1 md:mb-2 text-xs">Voice Assistance</h3>
+              <p className="text-base md:text-xl font-bold text-stone-900 dark:text-stone-100">+254 700 000 000</p>
             </div>
           </div>
 
-          <div className="p-10 md:p-12 bg-brand-950 text-white rounded-[40px] md:rounded-[60px] space-y-8 md:space-y-10 shadow-3xl shadow-brand-900/40 relative overflow-hidden">
+          <div className="p-8 md:p-12 bg-brand-950 text-white rounded-[32px] md:rounded-[60px] space-y-8 md:space-y-10 shadow-3xl shadow-brand-900/40 relative overflow-hidden">
              <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
              <h3 className="text-2xl md:text-3xl font-black tracking-tight serif-display italic relative z-10">Sanctuary Hours</h3>
-             <div className="space-y-4 md:space-y-6 text-xs md:text-sm relative z-10">
+             <div className="space-y-4 md:space-y-6 text-[10px] md:text-sm relative z-10">
                <p className="flex justify-between items-center opacity-70 group hover:opacity-100 transition-opacity">
-                 <span className="font-bold uppercase tracking-widest text-[9px] md:text-[10px]">Mon - Fri</span> 
+                 <span className="font-bold uppercase tracking-widest text-[8px] md:text-[10px]">Mon - Fri</span> 
                  <span className="font-black">08:00 - 18:00</span>
                </p>
                <p className="flex justify-between items-center opacity-70 group hover:opacity-100 transition-opacity">
-                 <span className="font-bold uppercase tracking-widest text-[9px] md:text-[10px]">Saturday</span> 
+                 <span className="font-bold uppercase tracking-widest text-[8px] md:text-[10px]">Saturday</span> 
                  <span className="font-black">09:00 - 13:00</span>
                </p>
                <div className="h-px bg-white/10 w-full" />
                <p className="flex justify-between items-center text-brand-400">
-                 <span className="font-bold uppercase tracking-widest text-[9px] md:text-[10px]">Sunday</span> 
+                 <span className="font-bold uppercase tracking-widest text-[8px] md:text-[10px]">Sunday</span> 
                  <span className="font-black tracking-widest uppercase">Sanctuary Mode</span>
                </p>
              </div>
@@ -145,22 +145,22 @@ export default function ContactUs() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 relative z-10">
               <div className="space-y-3 md:space-y-4">
-                <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-1 md:mb-2 block">Matter Subject</label>
+                <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-1 md:mb-2 block">Matter Subject</label>
                 <input 
                   required
                   type="text" 
                   value={form.subject}
                   onChange={e => setForm({...form, subject: e.target.value})}
-                  className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[28px] md:rounded-[32px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all font-bold tracking-tight text-base md:text-lg shadow-inner outline-none"
+                  className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[28px] md:rounded-[32px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all font-bold tracking-tight text-sm md:text-lg shadow-inner outline-none"
                   placeholder="The focus..."
                 />
               </div>
               <div className="space-y-3 md:space-y-4">
-                <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-1 md:mb-2 block">Inquiry Class</label>
+                <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-1 md:mb-2 block">Inquiry Class</label>
                 <select 
                   value={form.type}
                   onChange={e => setForm({...form, type: e.target.value as any})}
-                  className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[28px] md:rounded-[32px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all font-black tracking-[0.2em] text-xs md:text-base shadow-inner outline-none uppercase appearance-none"
+                  className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[28px] md:rounded-[32px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all font-black tracking-[0.1em] md:tracking-[0.2em] text-[10px] md:text-base shadow-inner outline-none uppercase appearance-none"
                 >
                   <option value="feedback">Sanctuary Feedback</option>
                   <option value="complaint">Internal Complaint</option>
@@ -170,12 +170,12 @@ export default function ContactUs() {
             </div>
 
             <div className="space-y-3 md:space-y-4 relative z-10">
-              <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-1 md:mb-2 block">Revelation / Message</label>
+              <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-brand-600 dark:text-brand-400 ml-4 mb-1 md:mb-2 block">Revelation / Message</label>
               <textarea 
                 required
                 value={form.message}
                 onChange={e => setForm({...form, message: e.target.value})}
-                className="w-full px-6 md:px-8 py-6 md:py-8 rounded-[32px] md:rounded-[40px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all h-48 md:h-60 resize-none font-medium text-base md:text-xl shadow-inner outline-none leading-relaxed italic serif-display scrollbar-none"
+                className="w-full px-6 md:px-8 py-6 md:py-8 rounded-[32px] md:rounded-[40px] bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all h-48 md:h-60 resize-none font-medium text-sm md:text-xl shadow-inner outline-none leading-relaxed italic serif-display scrollbar-none"
                 placeholder="Share your thoughts..."
               />
             </div>
@@ -184,16 +184,16 @@ export default function ContactUs() {
               whileHover={{ scale: 1.02, y: -5 }}
               whileTap={{ scale: 0.98 }}
               disabled={loading}
-              className="w-full py-6 md:py-8 bg-brand-900 text-white rounded-[32px] md:rounded-[40px] font-black uppercase tracking-[0.5em] flex items-center justify-center gap-4 md:gap-6 shadow-3xl shadow-brand-900/40 transition-all group disabled:opacity-50 text-xs md:text-sm lg:text-base"
+              className="w-full py-6 md:py-8 bg-brand-900 text-white rounded-[28px] md:rounded-[40px] font-black uppercase tracking-[0.3em] md:tracking-[0.5em] flex items-center justify-center gap-4 md:gap-6 shadow-3xl shadow-brand-900/40 transition-all group disabled:opacity-50 text-[10px] md:text-sm lg:text-base"
             >
               {loading ? (
                 <>
-                  <Send className="w-6 h-6 animate-pulse" />
+                  <Send className="w-5 h-5 md:w-6 md:h-6 animate-pulse" />
                   <span>TRANSMITTING...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
+                  <Send className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-3 transition-transform" />
                   <span>SUBMIT TO SANCTUARY</span>
                 </>
               )}

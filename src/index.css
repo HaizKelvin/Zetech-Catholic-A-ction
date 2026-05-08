@@ -49,6 +49,10 @@
 }
 
 @layer utilities {
+  .serif-display {
+    font-family: var(--font-serif);
+  }
+
   .glass {
     @apply backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl transition-all duration-300;
     background-color: var(--card-bg);

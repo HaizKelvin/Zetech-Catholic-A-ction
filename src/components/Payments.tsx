@@ -211,27 +211,27 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
   };
 
   return (
-    <div className="space-y-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-           <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">Treasury <span className="serif-display text-brand-600 dark:text-brand-400">& Payments</span>.</h1>
-           <p className="text-stone-500 dark:text-stone-400 mt-2 text-sm md:text-base">Dues, contributions, and project support.</p>
+    <div className="space-y-8 md:space-y-12">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 px-4 md:px-0">
+        <div className="space-y-1">
+           <h1 className="text-3xl md:text-5xl font-bold tracking-tighter leading-none">Treasury <span className="serif-display text-brand-600 dark:text-brand-400">& Payments</span>.</h1>
+           <p className="text-stone-500 dark:text-stone-400 text-xs md:text-base font-medium">Dues, contributions, and project support.</p>
         </div>
-        <div className="flex flex-wrap gap-4 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-3 w-full sm:w-auto mt-2 sm:mt-0">
            {isAdmin && payments.length > 0 && (
              <button 
               onClick={downloadRecords}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 glass px-4 py-2.5 md:px-6 md:py-3 rounded-2xl font-bold hover:bg-stone-50 dark:hover:bg-white/5 transition-all shadow-sm text-xs md:text-sm"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 glass px-4 py-3 md:px-6 md:py-3.5 rounded-xl md:rounded-2xl font-bold hover:bg-stone-50 dark:hover:bg-white/5 transition-all shadow-sm text-[10px] md:text-sm uppercase tracking-wider"
              >
-                <Download className="w-4 h-4 md:w-5 md:h-5 text-stone-400" />
-                Download CSV
+                <Download className="w-3.5 h-3.5 md:w-5 md:h-5 text-stone-400" />
+                Download Report
              </button>
            )}
            <button 
             onClick={() => setShowAdd(true)}
-            className="flex-1 sm:flex-none bg-brand-900 text-white px-4 py-2.5 md:px-6 md:py-3 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 text-xs md:text-sm"
+            className="flex-1 sm:flex-none bg-brand-900 text-white px-4 py-3 md:px-6 md:py-3.5 rounded-xl md:rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-brand-800 transition-all shadow-xl shadow-brand-900/20 text-[10px] md:text-sm uppercase tracking-wider"
            >
-              <Plus className="w-4 h-4 md:w-5 md:h-5" />
+              <Plus className="w-3.5 h-3.5 md:w-5 md:h-5" />
               Upload Record
            </button>
         </div>
@@ -244,85 +244,156 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
              <p className="text-stone-400 font-medium italic text-sm md:text-base">No payment records found.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto glass shadow-xl rounded-[32px] md:rounded-[40px]">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="bg-stone-50/50 dark:bg-stone-900/50 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">
-                  <th className="px-6 md:px-8 py-4 md:py-6">Status</th>
-                  <th className="px-6 md:px-8 py-4 md:py-6">Contributor</th>
-                  <th className="px-6 md:px-8 py-4 md:py-6">Purpose</th>
-                  <th className="px-6 md:px-8 py-4 md:py-6">Amount</th>
-                  <th className="px-6 md:px-8 py-4 md:py-6 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-50 dark:divide-stone-800">
-                {payments.map((p) => (
-                  <tr key={p.id} className="hover:bg-brand-50/30 dark:hover:bg-brand-900/10 transition-colors group">
-                    <td className="px-6 md:px-8 py-4 md:py-6">
-                      <div className="flex items-center gap-2">
-                        {p.status === 'verified' ? (
-                          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold">
-                             <CheckCircle2 className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                             VERIFIED
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold">
-                             <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 animate-pulse" />
-                             PENDING
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 md:px-8 py-4 md:py-6">
-                      <div>
-                        <p className="font-bold text-stone-900 dark:text-stone-100 text-xs md:text-sm">{p.userName}</p>
-                        <p className="text-[9px] md:text-xs text-stone-400 uppercase font-bold tracking-wider">{p.timestamp?.toDate().toLocaleDateString()}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 md:px-8 py-4 md:py-6">
-                      <span className="text-xs md:text-sm font-medium text-stone-600 dark:text-stone-400">{p.purpose}</span>
-                    </td>
-                    <td className="px-6 md:px-8 py-4 md:py-6">
-                      <span className="text-base md:text-lg font-bold text-stone-900 dark:text-stone-100">KES {p.amount.toLocaleString()}</span>
-                    </td>
-                    <td className="px-6 md:px-8 py-4 md:py-6 text-right">
-                       <div className="flex items-center justify-end gap-2 md:gap-3">
-                         <button 
-                          onClick={() => setReceipt(p)}
-                          className="p-1.5 md:p-2 text-stone-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-all"
-                          title="View Receipt"
-                         >
-                            <Receipt className="w-4 h-4 md:w-5 md:h-5" />
-                         </button>
-                         
-                         {isAdmin && p.status === 'pending' ? (
-                           <button 
-                            onClick={() => handleVerify(p.id)}
-                            className="bg-brand-900 text-white p-1.5 md:p-2 rounded-xl hover:bg-brand-800 transition-all shadow-sm"
-                            title="Verify Payment"
-                           >
-                              <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
-                           </button>
-                         ) : (
-                           <CheckCircle2 className={`w-4 h-4 md:w-5 md:h-5 ${p.status === 'verified' ? 'text-emerald-500' : 'text-stone-200 dark:text-stone-700'}`} />
-                         )}
-                         
-                         {(isAdmin || p.userId === auth.currentUser?.uid) && (
-                           <button 
-                            onClick={() => handleDelete(p.id)}
-                            className="p-1.5 md:p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
-                            title="Delete Record"
-                           >
-                              <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
-                           </button>
-                         )}
-                       </div>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto glass shadow-xl rounded-[32px] md:rounded-[40px]">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="bg-stone-50/50 dark:bg-stone-900/50 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">
+                    <th className="px-6 md:px-8 py-4 md:py-6">Status</th>
+                    <th className="px-6 md:px-8 py-4 md:py-6">Contributor</th>
+                    <th className="px-6 md:px-8 py-4 md:py-6">Purpose</th>
+                    <th className="px-6 md:px-8 py-4 md:py-6">Amount</th>
+                    <th className="px-6 md:px-8 py-4 md:py-6 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-stone-50 dark:divide-stone-800">
+                  {payments.map((p) => (
+                    <tr key={p.id} className="hover:bg-brand-50/30 dark:hover:bg-brand-900/10 transition-colors group">
+                      <td className="px-6 md:px-8 py-4 md:py-6">
+                        <div className="flex items-center gap-2">
+                          {p.status === 'verified' ? (
+                            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold">
+                               <CheckCircle2 className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                               VERIFIED
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold">
+                               <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 animate-pulse" />
+                               PENDING
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 md:px-8 py-4 md:py-6">
+                        <div>
+                          <p className="font-bold text-stone-900 dark:text-stone-100 text-xs md:text-sm">{p.userName}</p>
+                          <p className="text-[9px] md:text-xs text-stone-400 uppercase font-bold tracking-wider">{p.timestamp?.toDate().toLocaleDateString()}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 md:px-8 py-4 md:py-6">
+                        <span className="text-xs md:text-sm font-medium text-stone-600 dark:text-stone-400">{p.purpose}</span>
+                      </td>
+                      <td className="px-6 md:px-8 py-4 md:py-6">
+                        <span className="text-base md:text-lg font-bold text-stone-900 dark:text-stone-100">KES {p.amount.toLocaleString()}</span>
+                      </td>
+                      <td className="px-6 md:px-8 py-4 md:py-6 text-right">
+                         <div className="flex items-center justify-end gap-2 md:gap-3">
+                           <button 
+                            onClick={() => setReceipt(p)}
+                            className="p-1.5 md:p-2 text-stone-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-all"
+                            title="View Receipt"
+                           >
+                              <Receipt className="w-4 h-4 md:w-5 md:h-5" />
+                           </button>
+                           
+                           {isAdmin && p.status === 'pending' ? (
+                             <button 
+                              onClick={() => handleVerify(p.id)}
+                              className="bg-brand-900 text-white p-1.5 md:p-2 rounded-xl hover:bg-brand-800 transition-all shadow-sm"
+                              title="Verify Payment"
+                             >
+                                <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
+                             </button>
+                           ) : (
+                             <CheckCircle2 className={`w-4 h-4 md:w-5 md:h-5 ${p.status === 'verified' ? 'text-emerald-500' : 'text-stone-200 dark:text-stone-700'}`} />
+                           )}
+                           
+                           {(isAdmin || p.userId === auth.currentUser?.uid) && (
+                             <button 
+                              onClick={() => handleDelete(p.id)}
+                              className="p-1.5 md:p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                              title="Delete Record"
+                             >
+                                <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+                             </button>
+                           )}
+                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="block sm:hidden space-y-4">
+              {payments.map((p) => (
+                <motion.div 
+                  layout
+                  key={p.id} 
+                  className="glass p-6 rounded-3xl shadow-sm border border-stone-100 dark:border-stone-800 space-y-4"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      {p.status === 'verified' ? (
+                        <div className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full text-[9px] font-bold">
+                           <CheckCircle2 className="w-3 h-3" />
+                           VERIFIED
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full text-[9px] font-bold">
+                           <Clock className="w-3 h-3 animate-pulse" />
+                           PENDING
+                        </div>
+                      )}
+                      <p className="text-[10px] text-stone-400 uppercase font-black tracking-widest block pt-1">{p.timestamp?.toDate().toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <button 
+                        onClick={() => setReceipt(p)}
+                        className="p-2 text-stone-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all"
+                       >
+                          <Receipt className="w-5 h-5" />
+                       </button>
+                       {isAdmin && p.status === 'pending' && (
+                         <button 
+                          onClick={() => handleVerify(p.id)}
+                          className="bg-brand-900 text-white p-2 rounded-xl"
+                         >
+                            <ShieldCheck className="w-5 h-5" />
+                         </button>
+                       )}
+                       {(isAdmin || p.userId === auth.currentUser?.uid) && (
+                         <button 
+                          onClick={() => handleDelete(p.id)}
+                          className="p-2 text-stone-300 hover:text-red-500 rounded-xl"
+                         >
+                            <Trash2 className="w-5 h-5" />
+                         </button>
+                       )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-stone-400 text-[10px] font-black uppercase tracking-widest">Contributor</p>
+                    <p className="font-bold text-stone-950 dark:text-white">{p.userName}</p>
+                  </div>
+
+                  <div className="flex justify-between items-end">
+                    <div className="space-y-1">
+                      <p className="text-stone-400 text-[10px] font-black uppercase tracking-widest">Purpose</p>
+                      <p className="text-sm font-medium text-stone-600 dark:text-stone-400">{p.purpose}</p>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-stone-400 text-[10px] font-black uppercase tracking-widest">Amount</p>
+                       <p className="text-xl font-black text-brand-900 dark:text-brand-400 tracking-tight">KES {p.amount.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

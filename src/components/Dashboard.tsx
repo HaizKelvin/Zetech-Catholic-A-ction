@@ -47,7 +47,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
       {/* Immersive Header - More spacious and clean */}
       <motion.header 
         variants={item}
-        className="relative py-16 md:py-52 px-8 md:px-28 rounded-[40px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group h-auto flex items-center mb-8 md:mb-12"
+        className="relative py-12 md:py-52 px-6 md:px-28 rounded-[32px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group h-auto flex items-center mb-6 md:mb-12"
       >
         <div className="absolute inset-0 z-0">
           <img 

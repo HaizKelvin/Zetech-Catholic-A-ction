@@ -722,21 +722,21 @@ Can you provide more insight, theological context, or a related meditation for t
                       if (isSidebarOpen) setIsAboutOpen(!isAboutOpen);
                       else handleTabChange('about');
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-full transition-all duration-500 relative group font-bold text-[10px] ${
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-[20px] transition-all duration-500 relative group ${
                       activeTab === 'about' || (isAboutOpen && isSidebarOpen)
                         ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20' 
-                        : 'text-stone-500 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
+                        : 'text-stone-500 dark:text-stone-400 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                       <div className={`w-4 h-4 shrink-0 flex items-center justify-center transition-all duration-700 ${activeTab === 'about' || isAboutOpen ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
+                    <div className="flex items-center gap-4">
+                       <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-700 ${activeTab === 'about' || isAboutOpen ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
                         <Shield className="w-4 h-4" />
                       </div>
-                      {isSidebarOpen && <span className="whitespace-nowrap leading-none">About CA</span>}
+                      {isSidebarOpen && <span className="text-[9px] font-black uppercase tracking-[0.2em] whitespace-nowrap leading-none">About CA</span>}
                     </div>
                     {isSidebarOpen && (
                       <motion.div animate={{ rotate: isAboutOpen ? 180 : 0 }} className="mr-1">
-                        <ChevronDown className="w-3.5 h-3.5 text-current opacity-40" />
+                        <ChevronDown className="w-3.5 h-3.5 text-current opacity-40 ml-2" />
                       </motion.div>
                     )}
                   </button>
@@ -784,24 +784,26 @@ Can you provide more insight, theological context, or a related meditation for t
               <div className="w-6 h-6 flex items-center justify-center">
                 {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </div>
-              {isSidebarOpen && <span className="text-[11px] font-bold">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>}
+              {isSidebarOpen && <span className="text-[9px] font-bold">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>}
             </button>
 
-            <div className={`flex items-center gap-3 p-2 ${isSidebarOpen ? 'bg-stone-50 dark:bg-white/5 rounded-xl border border-stone-100 dark:border-white/5' : ''}`}>
+            <div className={`flex items-center gap-3 p-2.5 ${isSidebarOpen ? 'bg-white dark:bg-white/5 rounded-[22px] border border-stone-100 dark:border-white/5 shadow-xl shadow-stone-200/40 dark:shadow-none transition-all hover:border-brand-500/20 group' : ''}`}>
               <div 
-                className="w-8 h-8 bg-white dark:bg-stone-800 rounded-lg flex items-center justify-center shrink-0 cursor-pointer overflow-hidden border border-brand-500/10 shadow-lg"
+                className="w-9 h-9 md:w-11 md:h-11 rounded-[16px] bg-gradient-to-tr from-brand-600 to-brand-400 p-[1.5px] shadow-lg shrink-0 cursor-pointer overflow-hidden transition-all group-hover:scale-105 active:scale-95"
                 onClick={() => setIsProfileModalOpen(true)}
               >
-                {profile?.photoURL ? (
-                  <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-brand-600 dark:text-brand-400 font-bold text-[10px]">{profile?.displayName?.charAt(0)}</span>
-                )}
+                <div className="w-full h-full rounded-[14.5px] bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950 flex items-center justify-center overflow-hidden">
+                  {profile?.photoURL ? (
+                    <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-brand-600 dark:text-brand-400 font-black text-[12px] md:text-[15px] tracking-tight">{profile?.displayName?.charAt(0)}</span>
+                  )}
+                </div>
               </div>
               {isSidebarOpen && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-stone-900 dark:text-white truncate">{profile?.displayName}</p>
-                  <button onClick={() => setIsProfileModalOpen(true)} className="text-[8px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest text-left block">Sanctify Profile</button>
+                  <p className="text-[11px] font-bold text-stone-900 dark:text-white truncate tracking-tight mb-0.5">{profile?.displayName}</p>
+                  <button onClick={() => setIsProfileModalOpen(true)} className="text-[8px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest text-left block opacity-60 hover:opacity-100 transition-opacity">Sanctify Profile</button>
                 </div>
               )}
               <button onClick={handleLogout} className="p-1.5 text-stone-300 dark:text-stone-600 hover:text-red-500 transition-all hover:scale-110">
@@ -1236,20 +1238,20 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-full transition-all duration-500 relative group font-bold text-[10px] ${
+      className={`w-full flex items-center gap-4 px-4 py-3 rounded-[20px] transition-all duration-500 relative group ${
         active 
-          ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20 -translate-y-0.5' 
-          : 'text-stone-500 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
+          ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20' 
+          : 'text-stone-500 dark:text-stone-400 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
       }`}
     >
-      <div className={`w-4 h-4 shrink-0 flex items-center justify-center transition-all duration-700 ${active ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
-        {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-[16px] h-[16px]' })}
+      <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-700 ${active ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
+        {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-[18px] h-[18px]' })}
       </div>
       {isOpen && (
         <motion.span 
           initial={{ opacity: 0, x: -5 }}
           animate={{ opacity: 1, x: 0 }}
-          className={`whitespace-nowrap transition-colors duration-500 ${active ? 'text-white' : 'group-hover:text-stone-950 dark:group-hover:text-white'}`}
+          className={`text-[9px] font-black uppercase tracking-[0.2em] whitespace-nowrap leading-none transition-colors duration-500 ${active ? 'text-white' : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-white'}`}
         >
           {label}
         </motion.span>
@@ -1258,9 +1260,9 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
       {active && isOpen && (
         <motion.div 
           layoutId="active-indicator" 
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_10px_white]"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute right-4 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_white]"
         />
       )}
     </button>

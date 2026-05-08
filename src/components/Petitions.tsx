@@ -65,51 +65,51 @@ export default function Petitions() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-24 pb-32">
+    <div className="max-w-7xl mx-auto space-y-12 lg:space-y-24 pb-32">
       <motion.div 
         initial={{ opacity: 0, scale: 0.98 }}
         whileInView={{ opacity: 1, scale: 1 }}
-        className="glass rounded-[64px] md:rounded-[80px] p-12 md:p-32 relative group overflow-hidden border border-brand-500/20 shadow-3xl shadow-brand-900/10"
+        className="glass rounded-[40px] md:rounded-[80px] p-8 md:p-32 relative group overflow-hidden border border-brand-500/20 shadow-3xl shadow-brand-900/10"
       >
         <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full animate-pulse" />
-        <div className="relative z-10 space-y-20">
-          <div className="text-center md:text-left space-y-10">
-            <h2 className="text-6xl md:text-[8rem] font-black tracking-tighter leading-[0.8] italic serif-display">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic uppercase font-black text-2xl md:text-4xl tracking-[0.4em] block mt-4">Altar</span></h2>
-            <div className="flex items-center justify-center md:justify-start gap-8">
-              <p className="text-stone-600 dark:text-stone-400 font-serif italic text-xl md:text-3xl opacity-80 border-l-2 border-brand-500/30 pl-10">"The prayer of the humble pierces the clouds."</p>
+        <div className="relative z-10 space-y-12 md:space-y-20">
+          <div className="text-center md:text-left space-y-6 md:space-y-10">
+            <h2 className="text-4xl md:text-[8rem] font-black tracking-tighter leading-tight md:leading-[0.8] italic serif-display">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic uppercase font-black text-xl md:text-4xl tracking-[0.4em] block mt-2 md:mt-4">Altar</span></h2>
+            <div className="flex items-center justify-center md:justify-start gap-4 md:gap-8">
+              <p className="text-stone-600 dark:text-stone-400 font-serif italic text-base md:text-3xl opacity-80 border-l-2 border-brand-500/30 pl-6 md:pl-10">"The prayer of the humble pierces the clouds."</p>
             </div>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-12">
+          <form onSubmit={handleSubmit} className="space-y-8 md:space-y-12">
             <div className="relative group/input">
               <div className="absolute inset-x-0 -bottom-1 h-[2px] bg-brand-500/0 group-focus-within/input:bg-brand-500/40 transition-all duration-700" />
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Entrust your deepest petitions to the sanctuary..."
-                className="w-full bg-white/40 dark:bg-white/5 rounded-[40px] p-12 md:p-16 min-h-[300px] text-2xl md:text-3xl font-serif italic resize-none border border-white/20 outline-none focus:ring-4 focus:ring-brand-500/10 placeholder:text-stone-300 dark:placeholder:text-stone-700 transition-all shadow-inner"
+                className="w-full bg-white/40 dark:bg-white/5 rounded-[32px] md:rounded-[40px] p-8 md:p-16 min-h-[200px] md:min-h-[300px] text-lg md:text-3xl font-serif italic resize-none border border-white/20 outline-none focus:ring-4 focus:ring-brand-500/10 placeholder:text-stone-300 dark:placeholder:text-stone-700 transition-all shadow-inner"
                 required
               />
-              <Heart className="absolute bottom-12 right-12 w-20 h-20 text-brand-900/5 group-focus-within/input:text-brand-500/10 transition-all duration-700 animate-pulse-gentle" />
+              <Heart className="absolute bottom-8 right-8 md:bottom-12 md:right-12 w-12 h-12 md:w-20 md:h-20 text-brand-900/5 group-focus-within/input:text-brand-500/10 transition-all duration-700 animate-pulse-gentle" />
             </div>
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-10">
-              <div className="flex items-center gap-3 p-3 glass rounded-[32px] shadow-2xl border border-white/20">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10">
+              <div className="flex flex-col sm:flex-row items-center gap-3 p-2 md:p-3 glass rounded-[28px] md:rounded-[32px] shadow-2xl border border-white/20 w-full md:w-auto">
                 <button
                   type="button"
                   onClick={() => setIsPublic(true)}
-                  className={`flex items-center gap-4 px-8 py-5 rounded-[24px] transition-all font-black text-[10px] md:text-[11px] uppercase tracking-[0.3em] ${isPublic ? 'bg-brand-900 text-white shadow-3xl shadow-brand-900/40 scale-105' : 'text-stone-500 dark:text-stone-400 hover:text-brand-600'}`}
+                  className={`w-full sm:w-auto flex items-center justify-center gap-4 px-6 md:px-8 py-4 md:py-5 rounded-[20px] md:rounded-[24px] transition-all font-black text-[9px] md:text-[11px] uppercase tracking-[0.3em] ${isPublic ? 'bg-brand-900 text-white shadow-3xl shadow-brand-900/40 scale-105' : 'text-stone-500 dark:text-stone-400 hover:text-brand-600'}`}
                 >
-                  <Globe className="w-4 h-4" />
+                  <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   Divine Publication
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsPublic(false)}
-                  className={`flex items-center gap-4 px-8 py-5 rounded-[24px] transition-all font-black text-[10px] md:text-[11px] uppercase tracking-[0.3em] ${!isPublic ? 'bg-brand-900 text-white shadow-3xl shadow-brand-900/40 scale-105' : 'text-stone-500 dark:text-stone-400 hover:text-brand-600'}`}
+                  className={`w-full sm:w-auto flex items-center justify-center gap-4 px-6 md:px-8 py-4 md:py-5 rounded-[20px] md:rounded-[24px] transition-all font-black text-[9px] md:text-[11px] uppercase tracking-[0.3em] ${!isPublic ? 'bg-brand-900 text-white shadow-3xl shadow-brand-900/40 scale-105' : 'text-stone-500 dark:text-stone-400 hover:text-brand-600'}`}
                 >
-                  <Lock className="w-4 h-4" />
+                  <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   Sacred Silence
                 </button>
               </div>
@@ -119,9 +119,9 @@ export default function Petitions() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 disabled={loading || !text.trim()}
-                className="w-full md:w-auto bg-brand-900 text-white px-16 py-7 rounded-[32px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-5 hover:bg-brand-800 transition-all shadow-3xl shadow-brand-900/40 disabled:opacity-50 text-[11px] active:scale-95 group/btn"
+                className="w-full md:w-auto bg-brand-900 text-white px-10 md:px-16 py-5 md:py-7 rounded-[28px] md:rounded-[32px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 md:gap-5 hover:bg-brand-800 transition-all shadow-3xl shadow-brand-900/40 disabled:opacity-50 text-[10px] md:text-[11px] active:scale-95 group/btn"
               >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6 group-hover/btn:translate-x-2 transition-transform" />}
+                {loading ? <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" /> : <Send className="w-5 h-5 md:w-6 md:h-6 group-hover/btn:translate-x-2 transition-transform" />}
                 Deposit Petition
               </motion.button>
             </div>
@@ -129,14 +129,14 @@ export default function Petitions() {
         </div>
       </motion.div>
 
-      <div className="space-y-16">
-        <div className="flex items-center gap-10">
-           <div className="h-[2px] flex-1 bg-gradient-to-r from-transparent via-stone-200 dark:via-white/10 to-transparent" />
-           <h3 className="text-[12px] font-black uppercase tracking-[0.6em] text-stone-500 dark:text-stone-600 shrink-0 italic serif-display">The Eternal Litany</h3>
-           <div className="h-[2px] flex-1 bg-gradient-to-r from-transparent via-stone-200 dark:via-white/10 to-transparent" />
+      <div className="space-y-12 md:space-y-16 px-2 md:px-0">
+        <div className="flex items-center gap-6 md:gap-10">
+           <div className="h-[1px] md:h-[2px] flex-1 bg-gradient-to-r from-transparent via-stone-200 dark:via-white/10 to-transparent" />
+           <h3 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.6em] text-stone-500 dark:text-stone-600 shrink-0 italic serif-display">The Eternal Litany</h3>
+           <div className="h-[1px] md:h-[2px] flex-1 bg-gradient-to-r from-transparent via-stone-200 dark:via-white/10 to-transparent" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
           <AnimatePresence mode="popLayout">
             {petitions.map((p, idx) => (
               <motion.div
@@ -146,20 +146,20 @@ export default function Petitions() {
                 viewport={{ once: true }}
                 transition={{ delay: idx % 2 * 0.1, duration: 0.8 }}
                 key={p.id}
-                className="glass rounded-[48px] p-12 lg:p-16 group relative border-white/20 shadow-xl hover:shadow-3xl hover:shadow-brand-900/10 transition-all duration-700 bg-white/20 dark:bg-black/10 backdrop-blur-2xl"
+                className="glass rounded-[32px] md:rounded-[48px] p-8 md:p-12 lg:p-16 group relative border-white/20 shadow-xl hover:shadow-3xl hover:shadow-brand-900/10 transition-all duration-700 bg-white/20 dark:bg-black/10 backdrop-blur-2xl"
               >
                 <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
-                <div className="flex justify-between items-start mb-10">
-                  <div className="flex items-center gap-6">
-                    <div className="w-14 h-14 bg-brand-900/10 rounded-[20px] flex items-center justify-center shadow-inner group-hover:bg-brand-900 group-hover:scale-110 transition-all duration-700">
-                      <Heart className="w-7 h-7 text-brand-900 group-hover:text-white group-hover:animate-pulse" />
+                <div className="flex justify-between items-start mb-8 md:mb-10">
+                  <div className="flex items-center gap-4 md:gap-6">
+                    <div className="w-10 h-10 md:w-14 md:h-14 bg-brand-900/10 rounded-[12px] md:rounded-[20px] flex items-center justify-center shadow-inner group-hover:bg-brand-900 group-hover:scale-110 transition-all duration-700">
+                      <Heart className="w-5 h-5 md:w-7 md:h-7 text-brand-900 group-hover:text-white group-hover:animate-pulse" />
                     </div>
-                    <div className="space-y-1">
-                      <h4 className="font-bold text-stone-900 dark:text-white italic serif-display text-2xl tracking-tighter truncate max-w-[200px] md:max-w-full">
+                    <div className="space-y-0.5 md:space-y-1">
+                      <h4 className="font-bold text-stone-900 dark:text-white italic serif-display text-xl md:text-2xl tracking-tighter truncate max-w-[150px] md:max-w-full">
                         {p.isPublic ? p.userName : 'Silent Guardian'}
                       </h4>
-                      <p className="text-[10px] text-brand-600/60 dark:text-brand-500/60 font-black uppercase tracking-[0.2em]">
-                        Offering of Grace: {p.timestamp?.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      <p className="text-[8px] md:text-[10px] text-brand-600/60 dark:text-brand-500/60 font-black uppercase tracking-[0.2em]">
+                        {p.timestamp?.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                       </p>
                     </div>
                   </div>
@@ -167,15 +167,15 @@ export default function Petitions() {
                     <motion.button 
                       whileHover={{ scale: 1.2, rotate: 12 }}
                       onClick={() => handleDelete(p.id)} 
-                      className="p-4 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all rounded-[20px] border border-transparent hover:border-red-500/20"
+                      className="p-3 md:p-4 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all rounded-[16px] md:rounded-[20px] border border-transparent hover:border-red-500/20"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
                     </motion.button>
                   )}
                 </div>
-                <div className="relative pt-6">
-                  <div className="absolute top-0 left-0 w-12 h-0.5 bg-brand-500/30 group-hover:w-full transition-all duration-1000" />
-                  <p className="text-stone-900 dark:text-stone-100 text-2xl lg:text-3xl leading-relaxed font-serif italic group-hover:tracking-tight transition-all duration-700">
+                <div className="relative pt-4 md:pt-6">
+                  <div className="absolute top-0 left-0 w-8 md:w-12 h-0.5 bg-brand-500/30 group-hover:w-full transition-all duration-1000" />
+                  <p className="text-stone-900 dark:text-stone-100 text-xl md:text-3xl leading-relaxed font-serif italic group-hover:tracking-tight transition-all duration-700">
                     "{p.text}"
                   </p>
                 </div>
