@@ -114,7 +114,7 @@ export default function ContactUs() {
             </div>
             <div>
               <h3 className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-stone-400 mb-1 md:mb-2 text-xs">Voice Assistance</h3>
-              <p className="text-base md:text-xl font-bold text-stone-900 dark:text-stone-100">+254 700 000 000</p>
+              <a href="tel:0710410436" className="text-base md:text-xl font-bold text-stone-900 dark:text-stone-100 hover:text-brand-600 transition-colors">0710410436</a>
             </div>
           </div>
 

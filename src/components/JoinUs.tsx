@@ -4,8 +4,9 @@ import { db } from '../firebase';
 import { OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote, Camera, Download, ShieldCheck, Zap } from 'lucide-react';
+import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote, Camera, Download, ShieldCheck, Zap, QrCode } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export default function JoinUs() {
   const [formData, setFormData] = useState({
@@ -69,17 +70,29 @@ export default function JoinUs() {
     if (cardRef.current) {
       try {
         const canvas = await html2canvas(cardRef.current, {
-          backgroundColor: null,
-          scale: 3,
+          backgroundColor: '#ffffff',
+          scale: 4,
           useCORS: true,
-          logging: false
+          logging: false,
+          width: cardRef.current.offsetWidth,
+          height: cardRef.current.offsetHeight
         });
-        const link = document.createElement('a');
-        link.download = `ZUCA-Card-${membershipInfo.fullName.replace(/\s+/g, '-')}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [canvas.width / 4, canvas.height / 4]
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 4, canvas.height / 4);
+        pdf.save(`ZUCA-Membership-${membershipInfo.fullName.replace(/\s+/g, '-')}.pdf`);
+        
+        // Show registered message
+        alert('Registration Complete! Your Membership Card has been downloaded.');
       } catch (err) {
-        console.error('Failed to generate card', err);
+        console.error('Failed to generate PDF', err);
+        alert('Failed to generate PDF. Please try again.');
       }
     }
   };
@@ -250,80 +263,98 @@ export default function JoinUs() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-6 md:py-12 relative z-10 flex flex-col items-center"
               >
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-500/10 rounded-[24px] flex items-center justify-center mb-6 border border-emerald-500/20">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-500/10 rounded-[24px] flex items-center justify-center mb-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+                  <CheckCircle2 className="w-8 h-8 md:w-10 md:h-10 text-emerald-600 dark:text-emerald-500" />
                 </div>
                 
-                <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-3 text-stone-900 dark:text-white serif-display italic">
-                  Sanctified Identity
+                <h2 className="text-3xl md:text-6xl font-black tracking-tighter mb-4 text-stone-900 dark:text-white leading-none">
+                  REGISTERED <br />
+                  <span className="text-brand-600 dark:text-brand-400 serif-display italic font-light lowercase">Successfully</span>
                 </h2>
-                <p className="text-xs md:text-base text-stone-500 dark:text-stone-400 mb-10 max-w-sm italic font-light serif-display">
-                  "Behold your membership credential. Download it to carry the resonance of our community."
+                <p className="text-sm md:text-lg text-stone-500 dark:text-stone-400 mb-12 max-w-sm font-medium tracking-tight">
+                  Your covenant with ZUCA is now official. Please secure your membership card below.
                 </p>
 
-                {/* Membership Card - Pro Design */}
-                <div className="mb-8 perspective-1000 scale-[0.7] md:scale-100 origin-center">
+                {/* Membership Card - Professional Horizontal Design (Inspired by CA Nexus) */}
+                <div className="mb-16 w-full flex justify-center">
                   <div 
                     ref={cardRef}
-                    className="w-[300px] h-[480px] md:w-[400px] md:h-[600px] rounded-[40px] md:rounded-[60px] bg-brand-950 text-white p-8 md:p-12 relative overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10"
+                    className="w-[350px] h-[220px] md:w-[680px] md:h-[400px] rounded-[24px] md:rounded-[40px] bg-white text-stone-900 relative overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border border-stone-100 flex flex-col"
+                    style={{ fontFamily: "'Outfit', sans-serif" }}
                   >
-                    {/* Background Elements */}
-                    <div className="absolute inset-0 divine-pattern opacity-[0.12] mix-blend-overlay" />
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-500/10 blur-[60px] rounded-full translate-y-1/2 -translate-x-1/2" />
-                    
-                    <div className="relative z-10 h-full flex flex-col justify-between items-center text-center">
-                      {/* Logo & Header */}
-                      <div className="space-y-4 w-full">
-                        <div className="flex items-center justify-center gap-3">
-                           <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
-                             <Zap className="w-6 h-6 md:w-7 md:h-7 text-brand-950 fill-brand-950" />
-                           </div>
-                           <div className="text-left">
-                             <p className="text-[12px] md:text-[14px] font-black tracking-[0.3em] uppercase leading-none mb-1">ZUCA</p>
-                             <p className="text-[8px] md:text-[9px] font-bold text-brand-400 uppercase tracking-widest">Sanctuary Assembly</p>
-                           </div>
-                        </div>
-                        <div className="h-px w-24 bg-gradient-to-r from-transparent via-brand-500/50 to-transparent mx-auto" />
-                      </div>
-
-                      {/* Profile Section */}
-                      <div className="space-y-6 md:space-y-8 w-full">
-                        <div className="relative mx-auto w-32 h-32 md:w-44 md:h-44">
-                          <div className="absolute inset-0 bg-brand-500 blur-2xl opacity-20 rounded-full" />
-                          <div className="relative w-full h-full rounded-[40px] md:rounded-[50px] border-4 border-white/20 overflow-hidden shadow-2xl ring-8 ring-white/5 bg-stone-900">
-                             <img src={membershipInfo.profileImage} alt="" className="w-full h-full object-cover" />
+                    {/* Top Decorative Header */}
+                    <div className="h-1/4 bg-brand-950 relative flex items-center px-6 md:px-12 justify-between">
+                       <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
+                       <div className="flex items-center gap-3 md:gap-5 z-10">
+                          <div className="w-10 h-10 md:w-16 md:h-16 bg-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg border border-brand-500/20">
+                             <Zap className="w-6 h-6 md:w-10 md:h-10 text-brand-950 fill-brand-950" />
                           </div>
-                        </div>
+                          <div className="text-white">
+                             <h3 className="text-lg md:text-3xl font-black tracking-tight leading-none">ZUCA ASSEMBLY</h3>
+                             <p className="text-[7px] md:text-[11px] font-bold text-brand-400 uppercase tracking-[0.2em] mt-1">Faith • Community • Excellence</p>
+                          </div>
+                       </div>
+                       <div className="bg-brand-600 text-white px-3 md:px-6 py-1 md:py-2 rounded-full text-[7px] md:text-[10px] font-black uppercase tracking-widest z-10 shadow-lg shadow-brand-600/20">
+                          Membership Card
+                       </div>
+                    </div>
 
-                        <div>
-                          <h3 className="text-2xl md:text-4xl font-black tracking-tight serif-display italic leading-none mb-2">{membershipInfo.fullName}</h3>
-                          <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-400">Certified Community Soul</p>
-                        </div>
-                      </div>
-
-                      {/* Details Grid */}
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-6 w-full pt-8 border-t border-white/10">
-                        <div className="text-left space-y-1">
-                          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-500">Member ID</p>
-                          <p className="text-[11px] md:text-[13px] font-bold tracking-wider">#{membershipInfo.id}</p>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-500">Join Date</p>
-                          <p className="text-[11px] md:text-[13px] font-bold tracking-wider">{membershipInfo.joinDate}</p>
-                        </div>
-                        <div className="text-left space-y-1">
-                          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-500">Phone Signal</p>
-                          <p className="text-[11px] md:text-[13px] font-bold tracking-wider">{membershipInfo.phoneNumber}</p>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-500">Security Access</p>
-                           <div className="flex items-center justify-end gap-1.5">
-                             <ShieldCheck className="w-3 h-3 text-brand-400" />
-                             <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Verified</p>
+                    {/* Main Card Body */}
+                    <div className="flex-1 flex p-6 md:p-12 relative">
+                        <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
+                        
+                        {/* Profile Photo Left */}
+                        <div className="w-1/3 flex flex-col items-center justify-center space-y-4">
+                           <div className="w-24 h-24 md:w-44 md:h-44 rounded-3xl md:rounded-[40px] border-4 md:border-8 border-stone-50 overflow-hidden shadow-xl ring-1 ring-stone-200">
+                              <img src={membershipInfo.profileImage} alt="" className="w-full h-full object-cover" />
+                           </div>
+                           <div className="text-center space-y-1">
+                              <p className="text-[6px] md:text-[9px] font-black uppercase tracking-widest text-stone-400">Verified Since</p>
+                              <p className="text-[10px] md:text-[14px] font-bold">{membershipInfo.joinDate}</p>
                            </div>
                         </div>
-                      </div>
+
+                        {/* Middle Info Column */}
+                        <div className="flex-1 px-4 md:px-8 flex flex-col justify-center space-y-4 md:space-y-6">
+                           <div>
+                              <h4 className="text-xl md:text-5xl font-black tracking-tight text-stone-900 leading-tight uppercase">{membershipInfo.fullName}</h4>
+                              <p className="text-[10px] md:text-[16px] font-medium text-stone-500 italic">Sanctuary Citizen</p>
+                           </div>
+
+                           <div className="space-y-4 pt-4 border-t border-stone-100">
+                              <div className="grid grid-cols-2 gap-4">
+                                 <div className="space-y-1">
+                                    <p className="text-[6px] md:text-[9px] font-black uppercase tracking-widest text-stone-400">Membership ID</p>
+                                    <p className="text-[10px] md:text-[16px] font-bold text-stone-900 tracking-wider">#{membershipInfo.id}</p>
+                                 </div>
+                                 <div className="space-y-1">
+                                    <p className="text-[6px] md:text-[9px] font-black uppercase tracking-widest text-stone-400">Member Type</p>
+                                    <p className="text-[10px] md:text-[16px] font-bold text-stone-900">Elite Sanctuary</p>
+                                 </div>
+                                 <div className="space-y-1">
+                                    <p className="text-[6px] md:text-[9px] font-black uppercase tracking-widest text-stone-400">Contact</p>
+                                    <p className="text-[10px] md:text-[16px] font-bold text-stone-900">{membershipInfo.phoneNumber}</p>
+                                 </div>
+                                 <div className="space-y-1">
+                                    <p className="text-[6px] md:text-[9px] font-black uppercase tracking-widest text-stone-400">Valid Through</p>
+                                    <p className="text-[10px] md:text-[16px] font-bold text-stone-900">Life Journey</p>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        {/* Right QR Column */}
+                        <div className="w-[80px] md:w-[150px] flex flex-col items-center justify-center">
+                           <div className="w-16 h-16 md:w-32 md:h-32 bg-stone-50 rounded-2xl md:rounded-[32px] flex items-center justify-center border-2 border-stone-100 p-2 shadow-inner">
+                              <QrCode className="w-full h-full text-brand-950/20" />
+                           </div>
+                           <p className="mt-2 md:mt-4 text-[6px] md:text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-center">Scan to Verify Covenant</p>
+                        </div>
+                    </div>
+
+                    {/* Bottom Link Bar */}
+                    <div className="h-6 md:h-10 bg-stone-50 border-t border-stone-100 flex items-center justify-center text-[6px] md:text-[10px] font-bold text-stone-400 tracking-[0.3em] uppercase">
+                       www.zuca-sanctuary.org
                     </div>
                   </div>
                 </div>
@@ -333,15 +364,24 @@ export default function JoinUs() {
                     whileHover={{ scale: 1.02, y: -5 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={downloadCard}
-                    className="flex-1 bg-brand-600 text-white py-5 md:py-6 rounded-[24px] md:rounded-[28px] font-black uppercase tracking-[0.3em] text-[10px] shadow-3xl shadow-brand-600/30 flex items-center justify-center gap-4 group"
+                    className="flex-1 bg-brand-600 text-white py-5 md:py-6 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-[12px] shadow-3xl shadow-brand-600/30 flex items-center justify-center gap-4 group"
                   >
-                    Download Card <Download className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+                    Download Certificate <Download className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
                   </motion.button>
                   <button 
-                    onClick={() => setSubmitted(false)}
-                    className="flex-1 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 py-5 md:py-6 rounded-[24px] md:rounded-[28px] font-black uppercase tracking-[0.3em] text-[10px] hover:bg-stone-200 dark:hover:bg-white/10 transition-all border border-stone-200/50 dark:border-white/5"
+                    onClick={() => {
+                      setSubmitted(false);
+                      setFormData({
+                        fullName: '',
+                        admissionNumber: '',
+                        phoneNumber: '',
+                        schoolEmail: '',
+                        profileImage: ''
+                      });
+                    }}
+                    className="flex-1 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 py-5 md:py-6 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-[12px] hover:bg-stone-200 dark:hover:bg-white/10 transition-all border border-stone-200/50 dark:border-white/5"
                   >
-                    New Registration
+                    Register Another
                   </button>
                 </div>
               </motion.div>
