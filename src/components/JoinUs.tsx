@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote, Camera, Download, ShieldCheck, Zap, QrCode } from 'lucide-react';
+import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote, Camera, Download, ShieldCheck, Zap, QrCode, Church } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
@@ -277,96 +277,102 @@ export default function JoinUs() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-6 md:py-12 relative z-10 flex flex-col items-center"
               >
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-500/10 rounded-[24px] flex items-center justify-center mb-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
-                  <CheckCircle2 className="w-8 h-8 md:w-10 md:h-10 text-emerald-600 dark:text-emerald-500" />
-                </div>
-                
-                <h2 className="text-3xl md:text-6xl font-black tracking-tighter mb-4 text-stone-900 dark:text-white leading-none">
-                  REGISTERED <br />
-                  <span className="text-brand-600 dark:text-brand-400 serif-display italic font-light lowercase">Successfully</span>
-                </h2>
-                <p className="text-sm md:text-lg text-stone-500 dark:text-stone-400 mb-12 max-w-sm font-medium tracking-tight">
-                  Your covenant with ZUCA is now official. Please secure your membership card below.
-                </p>
-
-                {/* Membership Card - Minimalist ID Card */}
-                <div className="mb-16 w-full flex justify-center">
-                  <div 
-                    ref={cardRef}
-                    id="membership-card-render"
-                    className="w-[300px] h-[450px] rounded-[24px] bg-white text-stone-900 relative overflow-hidden shadow-2xl border border-stone-100 flex flex-col items-center"
-                    style={{ fontFamily: "'Outfit', sans-serif" }}
-                  >
-                    {/* Brand Banner */}
-                    <div className="w-full h-24 bg-brand-600 flex items-center justify-center px-6 relative">
-                       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/10 to-transparent" />
-                       <div className="flex items-center gap-3 z-10">
-                          <Church className="w-6 h-6 text-white" />
-                          <h4 className="text-white font-black tracking-widest text-sm uppercase">ZUCA ASSEMBLY</h4>
-                       </div>
+                {membershipInfo && (
+                  <>
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-500/10 rounded-[24px] flex items-center justify-center mb-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+                      <CheckCircle2 className="w-8 h-8 md:w-10 md:h-10 text-emerald-600 dark:text-emerald-500" />
                     </div>
                     
-                    {/* Main Content */}
-                    <div className="flex-1 w-full flex flex-col items-center justify-center p-8 space-y-6">
-                       <div className="w-32 h-32 rounded-full border-4 border-stone-50 overflow-hidden shadow-lg ring-1 ring-stone-100">
-                          <img src={membershipInfo.profileImage} alt="" className="w-full h-full object-cover" />
-                       </div>
-                       
-                       <div className="text-center space-y-1 w-full overflow-hidden">
-                          <h3 className="text-xl font-black text-stone-900 uppercase truncate px-2">{membershipInfo.fullName}</h3>
-                          <div className="inline-block px-3 py-1 bg-brand-50 text-brand-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                             Member ID: #{membershipInfo.id}
-                          </div>
-                       </div>
-                       
-                       <div className="w-full space-y-3 pt-6 border-t border-stone-100">
-                          <div className="flex justify-between items-center px-1">
-                             <span className="text-[9px] font-bold text-stone-300 uppercase tracking-widest">Admission</span>
-                             <span className="text-xs font-bold text-stone-900">{membershipInfo.admissionNumber}</span>
-                          </div>
-                          <div className="flex justify-between items-center px-1">
-                             <span className="text-[9px] font-bold text-stone-300 uppercase tracking-widest">Since Date</span>
-                             <span className="text-xs font-bold text-stone-900">{membershipInfo.joinDate}</span>
-                          </div>
-                       </div>
+                    <h2 className="text-3xl md:text-6xl font-black tracking-tighter mb-4 text-stone-900 dark:text-white leading-none">
+                      REGISTERED <br />
+                      <span className="text-brand-600 dark:text-brand-400 serif-display italic font-light lowercase">Successfully</span>
+                    </h2>
+                    <p className="text-sm md:text-lg text-stone-500 dark:text-stone-400 mb-12 max-w-sm font-medium tracking-tight">
+                      Your covenant with ZUCA is now official. Please secure your membership card below.
+                    </p>
+
+                    {/* Membership Card - Minimalist ID Card */}
+                    <div className="mb-16 w-full flex justify-center">
+                      <div 
+                        ref={cardRef}
+                        id="membership-card-render"
+                        className="w-[300px] h-[450px] rounded-[24px] bg-white text-stone-900 relative overflow-hidden shadow-2xl border border-stone-100 flex flex-col items-center"
+                        style={{ fontFamily: "'Outfit', sans-serif" }}
+                      >
+                        {/* Brand Banner */}
+                        <div className="w-full h-24 bg-brand-600 flex items-center justify-center px-6 relative">
+                           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/10 to-transparent" />
+                           <div className="flex items-center gap-3 z-10">
+                              <Church className="w-6 h-6 text-white" />
+                              <h4 className="text-white font-black tracking-widest text-sm uppercase">ZUCA ASSEMBLY</h4>
+                           </div>
+                        </div>
+                        
+                        {/* Main Content */}
+                        <div className="flex-1 w-full flex flex-col items-center justify-center p-8 space-y-6">
+                           <div className="w-32 h-32 rounded-full border-4 border-stone-50 overflow-hidden shadow-lg ring-1 ring-stone-100 bg-stone-100">
+                              {membershipInfo.profileImage && (
+                                <img src={membershipInfo.profileImage} alt="" className="w-full h-full object-cover" />
+                              )}
+                           </div>
+                           
+                           <div className="text-center space-y-1 w-full overflow-hidden">
+                              <h3 className="text-xl font-black text-stone-900 uppercase truncate px-2">{membershipInfo.fullName}</h3>
+                              <div className="inline-block px-3 py-1 bg-brand-50 text-brand-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                 Member ID: #{membershipInfo.id}
+                              </div>
+                           </div>
+                           
+                           <div className="w-full space-y-3 pt-6 border-t border-stone-100">
+                              <div className="flex justify-between items-center px-1">
+                                 <span className="text-[9px] font-bold text-stone-300 uppercase tracking-widest">Admission</span>
+                                 <span className="text-xs font-bold text-stone-900">{membershipInfo.admissionNumber}</span>
+                              </div>
+                              <div className="flex justify-between items-center px-1">
+                                 <span className="text-[9px] font-bold text-stone-300 uppercase tracking-widest">Since Date</span>
+                                 <span className="text-xs font-bold text-stone-900">{membershipInfo.joinDate}</span>
+                              </div>
+                           </div>
+                        </div>
+
+                        {/* Footer / QR */}
+                        <div className="w-full p-6 bg-stone-50/50 flex flex-col items-center">
+                           <div className="flex items-center gap-2 text-emerald-600 mb-4 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span className="text-[9px] font-black uppercase tracking-widest leading-none">Holy Covenant Verified</span>
+                           </div>
+                           <p className="text-[8px] font-bold text-stone-300 uppercase tracking-[0.3em]">Official Sanctuary Credential</p>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Footer / QR */}
-                    <div className="w-full p-6 bg-stone-50/50 flex flex-col items-center">
-                       <div className="flex items-center gap-2 text-emerald-600 mb-4 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
-                          <ShieldCheck className="w-3 h-3" />
-                          <span className="text-[9px] font-black uppercase tracking-widest leading-none">Holy Covenant Verified</span>
-                       </div>
-                       <p className="text-[8px] font-bold text-stone-300 uppercase tracking-[0.3em]">Official Sanctuary Credential</p>
+                    <div className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full max-w-md">
+                      <motion.button 
+                        whileHover={{ scale: 1.02, y: -5 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={downloadCard}
+                        className="flex-1 bg-brand-600 text-white py-5 md:py-6 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-[12px] shadow-3xl shadow-brand-600/30 flex items-center justify-center gap-4 group"
+                      >
+                        Download Certificate <Download className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+                      </motion.button>
+                      <button 
+                        onClick={() => {
+                          setSubmitted(false);
+                          setFormData({
+                            fullName: '',
+                            admissionNumber: '',
+                            phoneNumber: '',
+                            schoolEmail: '',
+                            profileImage: ''
+                          });
+                        }}
+                        className="flex-1 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 py-5 md:py-6 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-[12px] hover:bg-stone-200 dark:hover:bg-white/10 transition-all border border-stone-200/50 dark:border-white/5"
+                      >
+                        Register Another
+                      </button>
                     </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full max-w-md">
-                  <motion.button 
-                    whileHover={{ scale: 1.02, y: -5 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={downloadCard}
-                    className="flex-1 bg-brand-600 text-white py-5 md:py-6 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-[12px] shadow-3xl shadow-brand-600/30 flex items-center justify-center gap-4 group"
-                  >
-                    Download Certificate <Download className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
-                  </motion.button>
-                  <button 
-                    onClick={() => {
-                      setSubmitted(false);
-                      setFormData({
-                        fullName: '',
-                        admissionNumber: '',
-                        phoneNumber: '',
-                        schoolEmail: '',
-                        profileImage: ''
-                      });
-                    }}
-                    className="flex-1 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 py-5 md:py-6 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-[12px] hover:bg-stone-200 dark:hover:bg-white/10 transition-all border border-stone-200/50 dark:border-white/5"
-                  >
-                    Register Another
-                  </button>
-                </div>
+                  </>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

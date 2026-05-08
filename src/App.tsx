@@ -588,6 +588,21 @@ Can you provide more insight, theological context, or a related meditation for t
                   />
                 </div>
 
+                {authMode === 'signup' && (
+                  <div className="flex items-start gap-3 px-4">
+                    <input 
+                      id="terms"
+                      type="checkbox" 
+                      checked={acceptedTerms}
+                      onChange={(e) => setAcceptedTerms(e.target.checked)}
+                      className="mt-1 w-4 h-4 rounded border-stone-200 dark:border-white/10 text-brand-600 focus:ring-brand-500/20"
+                    />
+                    <label htmlFor="terms" className="text-[10px] font-bold text-stone-500 dark:text-stone-400 leading-relaxed cursor-pointer">
+                      I accept the <button type="button" onClick={(e) => { e.stopPropagation(); setShowPolicyModal(true); }} className="text-brand-600 dark:text-brand-400 hover:underline">Terms of Service</button> and <button type="button" onClick={(e) => { e.stopPropagation(); setShowPolicyModal(true); }} className="text-brand-600 dark:text-brand-400 hover:underline">Community Covenant</button>.
+                    </label>
+                  </div>
+                )}
+
                 {authError && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
