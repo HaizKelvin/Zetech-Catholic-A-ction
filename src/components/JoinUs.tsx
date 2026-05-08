@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote, Camera, Download, ShieldCheck, Zap, QrCode, Church } from 'lucide-react';
+import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote, Camera, Download, ShieldCheck, Zap, QrCode, Church, AlertCircle, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
@@ -19,13 +19,15 @@ export default function JoinUs() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [membershipInfo, setMembershipInfo] = useState<any>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) {
-        alert('Image is too large. Please select a photo under 1MB.');
+        setNotification({ type: 'error', message: 'Image too large. Limit: 1MB' });
+        setTimeout(() => setNotification(null), 3000);
         return;
       }
       const reader = new FileReader();
@@ -39,7 +41,8 @@ export default function JoinUs() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.profileImage) {
-      alert('Please upload a profile photo for your membership card.');
+      setNotification({ type: 'error', message: 'Profile photo required for ID' });
+      setTimeout(() => setNotification(null), 3000);
       return;
     }
     setLoading(true);
@@ -70,12 +73,16 @@ export default function JoinUs() {
     if (cardRef.current && membershipInfo) {
       try {
         setLoading(true);
-        // Ensure fonts and images are ready
+        setNotification({ type: 'info', message: 'Generating your sacred identity card...' });
+        
+        // Brief delay to allow notification to show
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         await document.fonts.ready;
         
         const canvas = await html2canvas(cardRef.current, {
           backgroundColor: '#ffffff',
-          scale: 3,
+          scale: 2, // Slightly lower scale for better mobile compatibility
           useCORS: true,
           logging: false,
           allowTaint: false,
@@ -87,6 +94,8 @@ export default function JoinUs() {
                card.style.transform = 'none';
                card.style.boxShadow = 'none';
                card.style.borderRadius = '24px';
+               card.style.position = 'static';
+               card.style.margin = '0 auto';
             }
           }
         });
@@ -101,10 +110,14 @@ export default function JoinUs() {
         pdf.addImage(imgData, 'PNG', 0, 0, 85, 135, undefined, 'FAST');
         pdf.save(`ZUCA-ID-${membershipInfo.fullName.replace(/\s+/g, '-')}.pdf`);
         
-        alert('Covenant Identity Secured. Your registration is complete.');
+        setNotification({ type: 'success', message: 'Covenant Identity Secured. PDF Downloaded.' });
+        
+        // Clear notification after 4 seconds
+        setTimeout(() => setNotification(null), 4000);
       } catch (err) {
         console.error('Failed to generate PDF', err);
-        alert('Failed to generate PDF. Please try again.');
+        setNotification({ type: 'error', message: 'Generation failed. Please try again from a laptop if on mobile.' });
+        setTimeout(() => setNotification(null), 5000);
       } finally {
         setLoading(false);
       }
@@ -277,6 +290,27 @@ export default function JoinUs() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-6 md:py-12 relative z-10 flex flex-col items-center"
               >
+                {/* Custom Toast Notification */}
+                <AnimatePresence>
+                  {notification && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -50, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                      className={`fixed top-10 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-[30px] shadow-3xl border flex items-center gap-3 backdrop-blur-3xl min-w-[280px] justify-center ${
+                        notification.type === 'success' ? 'bg-emerald-600/90 border-emerald-400 text-white shadow-emerald-500/20' :
+                        notification.type === 'error' ? 'bg-red-600/90 border-red-400 text-white shadow-red-500/20' :
+                        'bg-brand-600/90 border-brand-400 text-white shadow-brand-500/20'
+                      }`}
+                    >
+                      {notification.type === 'success' && <CheckCircle2 className="w-5 h-5 shadow-inner" />}
+                      {notification.type === 'error' && <AlertCircle className="w-5 h-5 shadow-inner" />}
+                      {notification.type === 'info' && <Loader2 className="w-5 h-5 animate-spin" />}
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] leading-none pr-2">{notification.message}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {membershipInfo && (
                   <>
                     <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-500/10 rounded-[24px] flex items-center justify-center mb-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">

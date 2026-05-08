@@ -179,6 +179,10 @@ export default function App() {
       window.history.pushState({ tab }, '', url.toString());
     }
     
+    // Explicit scroll to top when changing tabs
+    const main = document.querySelector('main');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+
     if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -552,39 +556,39 @@ Can you provide more insight, theological context, or a related meditation for t
               <form onSubmit={handleEmailAuth} className="space-y-4">
                 {authMode === 'signup' && (
                   <div className="space-y-2 text-left">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500 ml-4">Full Name</label>
-                    <input 
-                      required
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={authForm.name}
-                      onChange={e => setAuthForm({...authForm, name: e.target.value})}
-                      className="w-full px-6 py-4 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-sm"
-                    />
+                      <label className="text-[11px] font-black uppercase tracking-widest text-stone-900 dark:text-stone-400 ml-4 mb-2 block">Full Name</label>
+                      <input 
+                        required
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={authForm.name}
+                        onChange={e => setAuthForm({...authForm, name: e.target.value})}
+                        className="w-full px-6 py-5 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-inner"
+                      />
                   </div>
                 )}
                 
                 <div className="space-y-2 text-left">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500 ml-4">Email Address</label>
+                  <label className="text-[11px] font-black uppercase tracking-widest text-stone-900 dark:text-stone-400 ml-4 mb-2 block">Email Address</label>
                   <input 
                     required
                     type="email"
                     placeholder="name@university.com"
                     value={authForm.email}
                     onChange={e => setAuthForm({...authForm, email: e.target.value})}
-                    className="w-full px-6 py-4 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-sm"
+                    className="w-full px-6 py-5 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-inner"
                   />
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500 ml-4">Password</label>
+                  <label className="text-[11px] font-black uppercase tracking-widest text-stone-900 dark:text-stone-400 ml-4 mb-2 block">Password</label>
                   <input 
                     required
                     type="password"
                     placeholder="Create a password"
                     value={authForm.password}
                     onChange={e => setAuthForm({...authForm, password: e.target.value})}
-                    className="w-full px-6 py-4 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-sm"
+                    className="w-full px-6 py-5 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-white text-sm outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 transition-all placeholder:text-stone-400 dark:placeholder:text-white/20 shadow-inner"
                   />
                 </div>
 
