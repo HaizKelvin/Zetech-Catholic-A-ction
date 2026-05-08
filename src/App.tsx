@@ -525,7 +525,7 @@ Can you provide more insight, theological context, or a related meditation for t
             <div className="mt-12 flex items-center gap-4 relative z-10">
                <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
                  <div className="flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">Official Hub</span>
                  </div>
                </div>
@@ -936,7 +936,7 @@ Can you provide more insight, theological context, or a related meditation for t
                          }}
                        >
                          <div className="flex items-start gap-4">
-                           <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${!n.isRead ? 'bg-brand-500 animate-pulse' : 'bg-stone-300 dark:bg-stone-700'}`} />
+                           <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${!n.isRead ? 'bg-brand-500' : 'bg-stone-300 dark:bg-stone-700'}`} />
                            <div className="flex-1 text-left">
                              <div className="flex items-center justify-between mb-1">
                                <p className="font-black text-[15px] text-stone-900 dark:text-white tracking-tight">{n.title}</p>
@@ -992,14 +992,14 @@ Can you provide more insight, theological context, or a related meditation for t
           if (isSidebarOpen) setIsSidebarOpen(false);
           if (isNotificationOpen) setIsNotificationOpen(false);
         }}
-        className={`flex-1 transition-all duration-500 ease-in-out pt-20 md:pt-12 p-4 md:p-12 relative z-10 ${isSidebarOpen ? 'ml-0 md:ml-80' : 'ml-0'}`}
+        className={`flex-1 transition-all duration-500 ease-in-out pt-16 md:pt-12 px-1 md:px-12 relative z-10 ${isSidebarOpen ? 'ml-0 md:ml-80' : 'ml-0'}`}
       >
         {/* Scroll Progress Bar */}
         <motion.div 
           className="fixed top-0 left-0 right-0 h-1 bg-brand-600 z-[60] origin-left"
           style={{ scaleX: scrollProgress }}
         />
-        <div className="max-w-6xl mx-auto pt-4 md:pt-16">
+        <div className="max-w-6xl mx-auto pt-2 md:pt-16">
           <AnimatePresence mode="wait">
             {activeTab === 'home' && (
               <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
