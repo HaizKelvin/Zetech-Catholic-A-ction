@@ -69,26 +69,32 @@ export default function JoinUs() {
   const downloadCard = async () => {
     if (cardRef.current) {
       try {
+        // Use a hidden container for PDF generation to avoid UI glitches
         const canvas = await html2canvas(cardRef.current, {
           backgroundColor: '#ffffff',
-          scale: 2, // Moderate scale for better mobile compatibility
+          scale: 3, // Higher scale for clarity
           useCORS: true,
           logging: false,
           allowTaint: true,
-          width: cardRef.current.offsetWidth,
-          height: cardRef.current.offsetHeight
+          onclone: (clonedDoc) => {
+            const card = clonedDoc.getElementById('membership-card-render');
+            if (card) {
+               card.style.borderRadius = '0px'; // Reset for PDF if needed
+            }
+          }
         });
         
-        const imgData = canvas.toDataURL('image/jpeg', 0.9);
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
-          format: [85, 135] // Standard vertical ID card size
+          format: [85, 135] 
         });
         
-        pdf.addImage(imgData, 'JPEG', 0, 0, 85, 135);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 85, 135, undefined, 'FAST');
         pdf.save(`ZUCA-ID-${membershipInfo.fullName.replace(/\s+/g, '-')}.pdf`);
         
+        setSubmitted(true); // Ensure view stays on success
         alert('Covenant Identity Secured. Your registration is complete.');
       } catch (err) {
         console.error('Failed to generate PDF', err);
