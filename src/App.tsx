@@ -81,7 +81,8 @@ import {
   CreditCard,
   Trophy,
   ShieldCheck,
-  UserPlus
+  UserPlus,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -529,11 +530,18 @@ Can you provide more insight, theological context, or a related meditation for t
 
           {/* Login Side */}
           <div className="lg:col-span-5 bg-white dark:bg-stone-900 p-8 md:p-12 lg:p-16 flex flex-col justify-center relative border-l border-stone-100 dark:border-white/5 overflow-y-auto custom-scrollbar">
-            <div className="mb-10 space-y-3 text-left">
-              <h3 className="text-4xl font-bold text-stone-900 dark:text-white tracking-tighter leading-none italic serif-display">
+            <div className="mb-10 space-y-4 text-left">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/20 mb-6 lg:hidden"
+              >
+                <Church className="w-6 h-6 text-white" />
+              </motion.div>
+              <h3 className="text-4xl font-black text-stone-900 dark:text-white tracking-tighter leading-none italic serif-display">
                 {authMode === 'login' ? 'Peace be with you.' : 'Join the Sanctuary.'}
               </h3>
-              <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed max-w-xs font-medium">
+              <p className="text-stone-500 dark:text-stone-400 text-sm md:text-base leading-relaxed max-w-sm font-medium">
                 {authMode === 'login' 
                   ? 'Sign in to access the Zetech University Catholic community.'
                   : 'Join our vibrant CA fellowship and grow in faith with fellow students.'}
@@ -655,12 +663,12 @@ Can you provide more insight, theological context, or a related meditation for t
         <div className="h-full flex flex-col p-6">
           <div className="mb-8 flex items-center gap-4 px-4 group cursor-pointer" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
             <div className="w-11 h-11 bg-brand-600 shrink-0 rounded-[15px] flex items-center justify-center shadow-lg shadow-brand-500/10 group-hover:rotate-6 transition-all duration-500 border border-white/5">
-              <Church className="w-5 h-5 text-white" />
+              <Church className="w-6 h-6 text-white" />
             </div>
             {isSidebarOpen && (
               <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="whitespace-nowrap flex flex-col pl-1">
-                <h1 className="text-xl font-bold tracking-tight text-stone-900 dark:text-white leading-none uppercase">ZUCA</h1>
-                <p className="text-[10px] font-medium text-brand-600 dark:text-brand-400 tracking-wider">Sacred Hub</p>
+                <h1 className="text-xl font-black tracking-tight text-stone-900 dark:text-white leading-none uppercase">ZUCA</h1>
+                <p className="text-[10px] font-black text-brand-600 dark:text-brand-400 tracking-widest uppercase">Sacred Hub</p>
               </motion.div>
             )}
           </div>
@@ -793,9 +801,9 @@ Can you provide more insight, theological context, or a related meditation for t
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.8, x: -20 }}
               onClick={() => setIsSidebarOpen(true)}
-              className="fixed top-4 left-4 z-[70] p-3 glass-dark rounded-2xl shadow-2xl border border-white/10 group hover:bg-brand-900 transition-all active:scale-90"
+              className="fixed top-4 left-4 z-[70] w-10 h-10 md:w-12 md:h-12 flex items-center justify-center glass shadow-2xl border border-white/20 dark:border-white/10 group hover:bg-brand-600 transition-all active:scale-90 rounded-[14px]"
             >
-              <Menu className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+              <Menu className="w-5 h-5 md:w-6 md:h-6 text-stone-900 dark:text-white group-hover:scale-110 group-hover:text-white transition-all" />
             </motion.button>
           </>
         )}
@@ -804,62 +812,57 @@ Can you provide more insight, theological context, or a related meditation for t
       {/* Top Header Widgets - Fixed Top Right */}
       <AnimatePresence>
         {isMenuVisible && user && (
-          <div className="fixed top-2 right-2 md:top-3 md:right-3 z-40 flex items-center gap-1.5 md:gap-2">
+          <div className="fixed top-2 right-2 md:top-4 md:right-4 z-40 flex items-center gap-2 md:gap-3">
              {/* Notifications */}
              <div className="relative">
                <motion.button
-                 initial={{ opacity: 0, x: 20 }}
-                 animate={{ opacity: 1, x: 0 }}
-                 whileHover={{ scale: 1.05 }}
+                 initial={{ opacity: 0, scale: 0.8 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 whileHover={{ scale: 1.05, y: -2 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={() => setIsNotificationOpen(true)}
-                 className="p-1.5 md:p-2 glass-dark rounded-full shadow-2xl border border-white/20 text-white dark:text-brand-50 group transition-all relative"
+                 className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center glass shadow-xl border border-white/20 dark:border-white/10 text-stone-900 dark:text-white rounded-2xl group transition-all relative"
                >
-                 <Bell className="w-3.5 h-3.5 md:w-4.5 md:h-4.5" />
+                 <Bell className="w-4 h-4 md:w-5 md:h-5" />
                  {notifications.some(n => !n.isRead) && (
-                   <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-stone-900 shadow-sm" />
+                   <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-stone-900 shadow-sm" />
                  )}
                </motion.button>
              </div>
 
-             {/* Dark Mode Toggle Component */}
+             {/* Dark Mode Toggle */}
              <motion.button
-               initial={{ opacity: 0, x: 20 }}
-               animate={{ opacity: 1, x: 0 }}
-               whileHover={{ scale: 1.05 }}
+               initial={{ opacity: 0, scale: 0.8 }}
+               animate={{ opacity: 1, scale: 1 }}
+               whileHover={{ scale: 1.05, y: -2 }}
                whileTap={{ scale: 0.95 }}
                onClick={() => setDarkMode(!darkMode)}
-               className="p-1.5 glass-dark rounded-full shadow-2xl border border-white/20 text-white dark:text-amber-400 group transition-all"
+               className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center glass shadow-xl border border-white/20 dark:border-white/10 text-stone-900 dark:text-amber-400 rounded-2xl transition-all"
                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
              >
-               {darkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+               {darkMode ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
              </motion.button>
 
-             <motion.div 
-               initial={{ opacity: 0, x: 20 }}
-               animate={{ opacity: 1, x: 0 }}
-               exit={{ opacity: 0, y: -20 }}
+             {/* Profile Button */}
+             <motion.button 
+               initial={{ opacity: 0, scale: 0.8 }}
+               animate={{ opacity: 1, scale: 1 }}
+               whileHover={{ scale: 1.05, y: -2 }}
+               whileTap={{ scale: 0.95 }}
+               onClick={() => setIsProfileModalOpen(true)}
+               className="h-9 md:h-11 pl-1 pr-3 md:pl-1.5 md:pr-4 flex items-center gap-2 glass shadow-xl border border-white/20 dark:border-white/10 rounded-2xl group transition-all"
              >
-               <motion.button 
-                 whileHover={{ scale: 1.05 }}
-                 whileTap={{ scale: 0.95 }}
-                 onClick={() => setIsProfileModalOpen(true)}
-                 className="flex items-center gap-1.5 glass-dark p-0.5 md:p-1 rounded-full shadow-2xl border border-white/20 group transition-all"
-               >
-                 <div className="w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden bg-white/80 dark:bg-stone-800/80 flex items-center justify-center border border-white/50 dark:border-stone-700 shadow-sm">
-                   {profile?.photoURL ? (
-                     <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                   ) : (
-                     <UserIcon className="w-3 h-3 md:w-4 text-brand-400" />
-                   )}
-                 </div>
-                 <div className="text-left hidden sm:block pr-1.5">
-                    <p className="text-[7px] md:text-[8px] font-black text-stone-950 dark:text-brand-50 truncate max-w-[40px] md:max-w-[70px] uppercase tracking-tighter">
-                      {profile?.displayName?.split(' ')[0] || 'Member'}
-                    </p>
-                 </div>
-               </motion.button>
-             </motion.div>
+               <div className="w-7 h-7 md:w-8 md:h-8 rounded-[12px] overflow-hidden bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center border border-brand-200 dark:border-brand-500/20">
+                 {profile?.photoURL ? (
+                   <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                 ) : (
+                   <UserIcon className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+                 )}
+               </div>
+               <span className="text-[10px] md:text-[11px] font-black text-stone-900 dark:text-white uppercase tracking-wider hidden sm:block">
+                 {profile?.displayName?.split(' ')[0] || 'Menu'}
+               </span>
+             </motion.button>
           </div>
         )}
       </AnimatePresence>

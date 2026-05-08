@@ -67,38 +67,46 @@ export default function JoinUs() {
   };
 
   const downloadCard = async () => {
-    if (cardRef.current) {
+    if (cardRef.current && membershipInfo) {
       try {
-        // Use a hidden container for PDF generation to avoid UI glitches
+        setLoading(true);
+        // Ensure fonts and images are ready
+        await document.fonts.ready;
+        
         const canvas = await html2canvas(cardRef.current, {
           backgroundColor: '#ffffff',
-          scale: 3, // Higher scale for clarity
+          scale: 3,
           useCORS: true,
           logging: false,
-          allowTaint: true,
+          allowTaint: false,
+          scrollX: 0,
+          scrollY: -window.scrollY,
           onclone: (clonedDoc) => {
             const card = clonedDoc.getElementById('membership-card-render');
             if (card) {
-               card.style.borderRadius = '0px'; // Reset for PDF if needed
+               card.style.transform = 'none';
+               card.style.boxShadow = 'none';
+               card.style.borderRadius = '24px';
             }
           }
         });
         
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const imgData = canvas.toDataURL('image/png', 1.0);
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
           format: [85, 135] 
         });
         
-        pdf.addImage(imgData, 'JPEG', 0, 0, 85, 135, undefined, 'FAST');
+        pdf.addImage(imgData, 'PNG', 0, 0, 85, 135, undefined, 'FAST');
         pdf.save(`ZUCA-ID-${membershipInfo.fullName.replace(/\s+/g, '-')}.pdf`);
         
-        setSubmitted(true); // Ensure view stays on success
         alert('Covenant Identity Secured. Your registration is complete.');
       } catch (err) {
         console.error('Failed to generate PDF', err);
         alert('Failed to generate PDF. Please try again.');
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -285,6 +293,7 @@ export default function JoinUs() {
                 <div className="mb-16 w-full flex justify-center">
                   <div 
                     ref={cardRef}
+                    id="membership-card-render"
                     className="w-[300px] h-[450px] rounded-[24px] bg-white text-stone-900 relative overflow-hidden shadow-2xl border border-stone-100 flex flex-col items-center"
                     style={{ fontFamily: "'Outfit', sans-serif" }}
                   >
