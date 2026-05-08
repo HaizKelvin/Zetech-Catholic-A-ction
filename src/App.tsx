@@ -691,14 +691,14 @@ Can you provide more insight, theological context, or a related meditation for t
         isSidebarOpen ? 'translate-x-0 w-72 md:w-80' : '-translate-x-full w-72 md:w-80'
       }`}>
         <div className="h-full flex flex-col p-6">
-          <div className="mb-10 flex items-center gap-3.5 px-2 group cursor-pointer" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-            <div className="w-11 h-11 bg-brand-600 shrink-0 rounded-full flex items-center justify-center shadow-lg shadow-brand-500/10 group-hover:scale-105 transition-all duration-500 border border-white/5">
+          <div className="mb-6 flex items-center gap-3.5 px-4 group cursor-pointer" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            <div className="w-11 h-11 bg-brand-600 shrink-0 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/10 group-hover:scale-105 transition-all duration-500 border border-white/5">
               <Church className="w-5 h-5 text-white" />
             </div>
             {isSidebarOpen && (
-              <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="whitespace-nowrap flex flex-col">
-                <h1 className="text-xl font-bold tracking-tight text-stone-900 dark:text-white leading-none uppercase">ZUCA</h1>
-                <p className="text-[10px] font-medium text-brand-600 dark:text-brand-400 tracking-wider">Sacred Hub</p>
+              <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="whitespace-nowrap flex flex-col pl-1">
+                <h1 className="text-lg font-bold tracking-tight text-stone-900 dark:text-white leading-none uppercase">ZUCA</h1>
+                <p className="text-[9px] font-medium text-brand-600 dark:text-brand-400 tracking-wider">Sacred Hub</p>
               </motion.div>
             )}
           </div>
@@ -707,10 +707,10 @@ Can you provide more insight, theological context, or a related meditation for t
           <nav className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
             <div className="space-y-1">
               {isSidebarOpen && <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 ml-4 mb-2">Sanctuary</p>}
-              <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4 ml-0.5" />} label="Overview" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4 ml-0.5" />} label="Community Hub" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-4 h-4 ml-0.5" />} label="Events" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4 ml-0.5" />} label="Activities" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4" />} label="Overview" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4" />} label="Community Hub" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-4 h-4" />} label="Events" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4" />} label="Activities" isOpen={isSidebarOpen} />
             </div>
 
             <div className="space-y-1">
@@ -730,7 +730,7 @@ Can you provide more insight, theological context, or a related meditation for t
                   >
                     <div className="flex items-center gap-4">
                        <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-700 ${activeTab === 'about' || isAboutOpen ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
-                        <Shield className="w-4 h-4" />
+                        <Shield className="w-[18px] h-[18px]" />
                       </div>
                       {isSidebarOpen && <span className="text-[13px] font-medium whitespace-nowrap leading-none">About CA</span>}
                     </div>
@@ -761,9 +761,9 @@ Can you provide more insight, theological context, or a related meditation for t
                   </AnimatePresence>
                 </div>
 
-                <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4 ml-0.5" />} label="Daily Trivia" isOpen={isSidebarOpen} />
-                <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-4 h-4 ml-0.5" />} label="Divine Library" isOpen={isSidebarOpen} />
-                <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4 ml-0.5" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4" />} label="Daily Trivia" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-4 h-4" />} label="Divine Library" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
               </div>
             </div>
             
