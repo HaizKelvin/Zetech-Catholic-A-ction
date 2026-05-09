@@ -44,10 +44,10 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
       animate="show"
       className="space-y-10 md:space-y-20 pb-20 mt-6 md:mt-20 px-2 md:px-10"
     >
-      {/* Immersive Header - More spacious and clean */}
+      {/* Immersive Header - More compact and clean */}
       <motion.header 
         variants={item}
-        className="relative py-12 md:py-52 px-6 md:px-28 rounded-[32px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group h-auto flex items-center mb-6 md:mb-12"
+        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group h-auto flex items-center mb-6 md:mb-8"
       >
         <div className="absolute inset-0 z-0">
           <img 
@@ -56,63 +56,63 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
             alt="Sanctuary"
           />
           <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
-          <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-brand-500/10 blur-[180px] rounded-full -mr-96 -mt-96" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[120px] rounded-full -mr-48 -mt-48" />
         </div>
 
-        <div className="relative z-10 flex flex-col gap-16 max-w-6xl">
+        <div className="relative z-10 flex flex-col gap-8 md:gap-12 max-w-6xl">
           <motion.div
             variants={item}
-            className="inline-flex items-center gap-3 px-6 py-2 md:px-8 md:py-3 rounded-full glass-dark border border-white/10 text-[9px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-xl"
+            className="inline-flex items-center gap-2 px-4 py-1.5 md:px-6 md:py-2 rounded-full glass-dark border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
           >
-            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-brand-400 shadow-[0_0_12px_rgba(92,133,255,1)]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-brand-400 shadow-[0_0_8px_rgba(92,133,255,1)]" />
             Cathedral of Connections
           </motion.div>
           
-          <div className="space-y-6 md:space-y-10">
+          <div className="space-y-4 md:space-y-6">
             <motion.h1 
               variants={item}
-              className="text-4xl md:text-[10rem] font-black tracking-[-0.05em] leading-tight md:leading-[0.8] text-white"
+              className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white"
             >
               Welcome Home, <br />
               <span className="serif-display italic font-light text-brand-400 lowercase drop-shadow-3xl">{userName}</span>
             </motion.h1>
             
-            <motion.p variants={item} className="text-stone-400 text-base md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
+            <motion.p variants={item} className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
               Your digital sanctuary for community, devotion, and divine exploration.
             </motion.p>
           </div>
         </div>
       </motion.header>
 
-      {/* Main Insights Bento Grid - More Spacing */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-16">
+      {/* Main Insights Bento Grid - Optimized Spacing */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         {/* Divine Bread - Primary Card */}
         <motion.div 
           variants={item}
-          className="lg:col-span-8 bg-white dark:bg-stone-900/40 p-8 md:p-24 relative overflow-hidden group shadow-2xl rounded-[40px] md:rounded-[90px] border border-stone-100 dark:border-white/5"
+          className="lg:col-span-8 bg-white dark:bg-stone-900/40 p-6 md:p-12 relative overflow-hidden group shadow-xl rounded-[32px] md:rounded-[64px] border border-stone-100 dark:border-white/5"
         >
           <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
-          <div className="relative z-10 space-y-10 md:space-y-16">
-            <div className="flex items-center gap-6 md:gap-8">
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center rounded-[22px] md:rounded-[28px] shadow-sm group-hover:rotate-6 transition-transform duration-500">
-                <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-brand-600 dark:text-brand-400" />
+          <div className="relative z-10 space-y-6 md:space-y-10">
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center rounded-[18px] md:rounded-[22px] shadow-sm group-hover:rotate-6 transition-transform duration-500">
+                <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-brand-600 dark:text-brand-400" />
               </div>
               <div>
-                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.6em] text-stone-400 dark:text-brand-300/30">Daily Bread</span>
-                <p className="text-brand-600 dark:text-brand-400 font-serif italic text-lg md:text-xl">Morning Meditation</p>
+                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-stone-400 dark:text-brand-300/30">Daily Bread</span>
+                <p className="text-brand-600 dark:text-brand-400 font-serif italic text-base md:text-lg">Morning Meditation</p>
               </div>
             </div>
 
             {loading ? (
-              <div className="py-12 md:py-20 flex justify-center"><Loader2 className="w-8 h-8 md:w-10 md:h-10 animate-spin text-brand-100" /></div>
+              <div className="py-12 md:py-16 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-100" /></div>
             ) : daily ? (
-              <div className="space-y-8 md:space-y-12">
-                <p className="text-3xl md:text-7xl font-serif italic font-light text-stone-950 dark:text-white leading-[1.05] tracking-tight group-hover:-translate-x-2 transition-transform duration-1000">
+              <div className="space-y-6 md:space-y-8">
+                <p className="text-2xl md:text-4xl lg:text-5xl font-serif italic font-light text-stone-950 dark:text-white leading-[1.1] tracking-tight group-hover:-translate-x-1 transition-transform duration-1000">
                   "{daily.verse}"
                 </p>
-                <div className="flex items-center gap-4 md:gap-8">
-                  <div className="h-[1px] w-12 md:w-20 bg-brand-500/20 rounded-full group-hover:w-40 transition-all duration-1000" />
-                  <p className="text-[11px] md:text-xl font-black uppercase tracking-[0.5em] text-brand-500 italic">
+                <div className="flex items-center gap-3 md:gap-6">
+                  <div className="h-[1px] w-10 md:w-16 bg-brand-500/20 rounded-full group-hover:w-24 transition-all duration-1000" />
+                  <p className="text-[10px] md:text-base font-black uppercase tracking-[0.4em] text-brand-500 italic">
                     {daily.reference}
                   </p>
                 </div>
@@ -122,23 +122,23 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
         </motion.div>
 
         {/* Saint Insight & Community Stat Column */}
-        <div className="lg:col-span-4 flex flex-col gap-6 md:gap-10">
+        <div className="lg:col-span-4 flex flex-col gap-6 md:gap-8">
           <motion.div 
             variants={item}
-            className="flex-1 p-8 md:p-10 bg-stone-50 dark:bg-stone-950/80 border border-stone-100 dark:border-white/5 rounded-[40px] md:rounded-[70px] relative overflow-hidden group shadow-xl"
+            className="flex-1 p-6 md:p-8 bg-stone-50 dark:bg-stone-950/80 border border-stone-100 dark:border-white/5 rounded-[32px] md:rounded-[48px] relative overflow-hidden group shadow-lg"
           >
-            <div className="relative z-10 flex flex-col h-full space-y-6 md:space-y-10">
-              <div className="flex items-center gap-4 md:gap-5">
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-[18px] md:rounded-[20px] bg-white dark:bg-stone-900 flex items-center justify-center shadow-md">
-                  <UserIcon className="w-6 h-6 md:w-7 md:h-7 text-brand-500" />
+            <div className="relative z-10 flex flex-col h-full space-y-5 md:space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-[14px] md:rounded-[18px] bg-white dark:bg-stone-900 flex items-center justify-center shadow-md">
+                  <UserIcon className="w-5 h-5 md:w-6 md:h-6 text-brand-500" />
                 </div>
-                <h2 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.5em] text-stone-400 dark:text-brand-300/30">Patron Guide</h2>
+                <h2 className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-stone-400 dark:text-brand-300/30">Patron Guide</h2>
               </div>
 
               {daily && (
-                <div className="space-y-4 md:space-y-5 flex-1">
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tighter text-stone-900 dark:text-white leading-tight">{daily.saintName}</h3>
-                  <p className="text-stone-500 dark:text-stone-400 text-sm md:text-base leading-relaxed font-medium opacity-80 line-clamp-5 serif-display italic">
+                <div className="space-y-2 md:space-y-3 flex-1">
+                  <h3 className="text-lg md:text-xl font-black text-stone-900 dark:text-white leading-tight">{daily.saintName}</h3>
+                  <p className="text-stone-500 dark:text-stone-400 text-[11px] md:text-sm leading-relaxed opacity-80 line-clamp-4 md:line-clamp-6 serif-display italic">
                     {daily.saintInfo}
                   </p>
                 </div>
@@ -146,7 +146,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
               
               <button 
                 onClick={() => onTabChange('trivia')}
-                className="w-full py-5 bg-white dark:bg-white/5 text-brand-600 dark:text-brand-400 font-black tracking-[0.4em] text-[10px] rounded-[28px] border border-stone-100 dark:border-white/10 hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-all shadow-sm"
+                className="w-full py-3 md:py-4 bg-white dark:bg-white/5 text-brand-600 dark:text-brand-400 font-black tracking-[0.3em] text-[9px] rounded-2xl border border-stone-100 dark:border-white/10 hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-all shadow-sm"
               >
                 DAILY DEVOTION
               </button>
@@ -155,24 +155,24 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
 
           <motion.div 
             variants={item}
-            className="p-8 md:p-10 glass-dark rounded-[40px] md:rounded-[70px] overflow-hidden group relative border border-white/5 shadow-2xl flex items-center justify-center min-h-[160px] md:min-h-[200px]"
+            className="p-6 md:p-8 glass-dark rounded-[32px] md:rounded-[48px] overflow-hidden group relative border border-white/5 shadow-2xl flex items-center justify-center min-h-[120px] md:min-h-[160px]"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-brand-500/20 to-transparent group-hover:scale-125 transition-transform duration-[2s]" />
-            <div className="relative z-10 text-center space-y-3 md:space-y-4">
-              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.6em] text-brand-400">Atmosphere</span>
-              <p className="text-3xl md:text-5xl font-black text-white tracking-[0.2em] animate-pulse-gentle">DIVINE</p>
+            <div className="relative z-10 text-center space-y-2 md:space-y-3">
+              <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.5em] text-brand-400">Atmosphere</span>
+              <p className="text-2xl md:text-3xl font-black text-white tracking-[0.1em] animate-pulse-gentle">DIVINE</p>
             </div>
           </motion.div>
         </div>
       </div>
 
       {/* Quick Actions - Floating Style */}
-      <div className="relative pt-10">
+      <div className="relative pt-6">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-stone-200 dark:via-white/10 to-transparent" />
         
         <motion.div 
           variants={item}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8"
         >
           <CompactAction onClick={() => onTabChange('chat')} title="Chat" icon={<HelpCircle className="w-5 h-5 md:w-6 md:h-6" />} color="bg-indigo-500/10 text-indigo-500" />
           <CompactAction onClick={() => onTabChange('materials')} title="Study" icon={<Library className="w-5 h-5 md:w-6 md:h-6" />} color="bg-brand-500/10 text-brand-500" />

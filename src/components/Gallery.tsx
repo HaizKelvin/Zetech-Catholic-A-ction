@@ -93,11 +93,11 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 lg:space-y-32 pb-32">
+    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24">
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-12 md:py-48 px-6 md:px-32 rounded-[32px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-20 mx-2 md:mx-0"
+        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-12 mx-2 md:mx-0"
       >
         <div className="absolute inset-0 z-0">
           <img 
@@ -119,29 +119,29 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
               Living Testimony
             </motion.div>
             
-            <h1 className="text-4xl md:text-[9rem] font-black tracking-[-0.05em] leading-tight md:leading-[0.8] text-white serif-display italic">
+            <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white serif-display italic">
               Activity <br className="hidden md:block" />
-              <span className="text-brand-400 not-italic uppercase font-black text-2xl md:text-5xl tracking-[0.4em] block mt-2 md:mt-4">Gallery</span>
+              <span className="text-brand-400 not-italic uppercase font-black text-xl md:text-3xl tracking-[0.2em] block mt-1 md:mt-2">Gallery</span>
             </h1>
             
-            <p className="text-stone-400 text-sm md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
+            <p className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
               Reliving our moments of worship, fellowship, and divine connection.
             </p>
           </div>
           
           <motion.button
-            whileHover={{ scale: 1.05, y: -5 }}
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowAdd(true)}
-            className="w-full md:w-auto flex items-center justify-center gap-4 bg-brand-600 text-white px-8 py-5 md:px-10 md:py-6 rounded-[24px] md:rounded-[32px] hover:bg-brand-500 transition-all font-black uppercase tracking-[0.3em] shadow-3xl shadow-brand-600/40 text-[10px] md:text-[11px]"
+            className="w-full md:w-auto flex items-center justify-center gap-3 bg-brand-600 text-white px-6 py-4 md:px-8 md:py-4 rounded-2xl md:rounded-3xl hover:bg-brand-500 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-600/30 text-[9px] md:text-[10px]"
           >
-            <Plus className="w-4 h-4 md:w-5 md:h-5" />
+            <Plus className="w-4 h-4" />
             Share Moment
           </motion.button>
         </div>
       </motion.header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-16 px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-4">
         {items.map((item) => (
           <motion.div
             layout
