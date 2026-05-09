@@ -86,27 +86,61 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 lg:space-y-20">
-      <motion.div 
+    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24">
+      {/* Immersive Header - Matching Dashboard, Gallery & Sacred Materials */}
+      <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-8 lg:gap-10 px-4 md:px-0"
+        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-12 mx-2 md:mx-0"
       >
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-7xl font-black tracking-tighter text-stone-900 dark:text-stone-100 italic serif-display">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic">Trivia</span>.</h1>
-          <p className="text-[9px] md:text-sm font-bold text-stone-400 uppercase tracking-[0.3em] md:tracking-[0.5em]">Liturgy of Knowledge</p>
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1463171359979-3284627d3531?q=80&w=2670&auto=format&fit=crop" 
+            className="w-full h-full object-cover opacity-20 transform group-hover:scale-110 transition-transform duration-[3s]" 
+            alt="Sacred Trivia"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[120px] rounded-full -mr-48 -mt-48" />
         </div>
-        {isAdmin && (
-           <motion.button 
-             whileHover={{ scale: 1.05 }}
-             whileTap={{ scale: 0.95 }}
-             onClick={() => setShowAdd(true)} 
-             className="w-full sm:w-auto bg-brand-900 text-white px-8 py-4 md:px-10 md:py-5 rounded-[24px] md:rounded-[28px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-brand-800 transition-all shadow-3xl shadow-brand-900/40 text-[9px] md:text-[10px]"
-           >
-             <Plus className="w-4 h-4" /> Add Revelation
-           </motion.button>
-        )}
-      </motion.div>
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-12 max-w-full">
+          <div className="space-y-4 md:space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-dark border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(59,130,246,1)]" />
+              Wisdom Trial
+            </motion.div>
+            
+            <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white serif-display">
+              Sacred <br />
+              <span className="serif-display italic font-light text-brand-400 lowercase">Trivia</span>
+            </h1>
+            
+            <p className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
+              Test your spirit and knowledge through the liturgy of sacred questions.
+            </p>
+          </div>
+
+          {isAdmin && (
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowAdd(true)}
+              className="w-full md:w-auto flex items-center justify-center gap-3 bg-brand-600 text-white px-6 py-4 md:px-8 md:py-5 rounded-2xl md:rounded-3xl hover:bg-brand-500 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-600/30 text-[9px] md:text-[10px]"
+            >
+              <Plus className="w-4 h-4" />
+              Add Revelation
+            </motion.button>
+          )}
+        </div>
+      </motion.header>
+
+      <div className="max-w-4xl mx-auto space-y-12 lg:space-y-20 px-4 md:px-0">
+
 
       {!showResult && currentIndex < questions.length ? (
         <motion.div 
@@ -239,9 +273,8 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
             <p className="text-stone-400 font-medium tracking-wide">Daily trivia is coming soon!</p>
           </div>
       ) : null}
+      </div>
 
-      {/* Adding a wrapping div for consistency if needed, but and structure should be fine */}
-      
       <AnimatePresence>
         {showAdd && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-6 bg-stone-900/60 backdrop-blur-sm overflow-y-auto">

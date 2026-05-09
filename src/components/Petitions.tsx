@@ -65,33 +65,73 @@ export default function Petitions() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 lg:space-y-24 pb-32">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        className="glass rounded-[40px] md:rounded-[80px] p-8 md:p-32 relative group overflow-hidden border border-brand-500/20 shadow-3xl shadow-brand-900/10"
+    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100">
+      {/* Immersive Header - Standardized across all pages */}
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-12 mx-2 md:mx-0"
       >
-        <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full animate-pulse" />
-        <div className="relative z-10 space-y-12 md:space-y-20">
-          <div className="text-center md:text-left space-y-6 md:space-y-10">
-            <h2 className="text-4xl md:text-[8rem] font-black tracking-tighter leading-tight md:leading-[0.8] italic serif-display">Sacred <span className="text-brand-600 dark:text-brand-500 not-italic uppercase font-black text-xl md:text-4xl tracking-[0.4em] block mt-2 md:mt-4">Altar</span></h2>
-            <div className="flex items-center justify-center md:justify-start gap-4 md:gap-8">
-              <p className="text-stone-600 dark:text-stone-400 font-serif italic text-base md:text-3xl opacity-80 border-l-2 border-brand-500/30 pl-6 md:pl-10">"The prayer of the humble pierces the clouds."</p>
-            </div>
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1544256718-3bcf237f3974?q=80&w=2671&auto=format&fit=crop" 
+            className="w-full h-full object-cover opacity-20 transform group-hover:scale-110 transition-transform duration-[3s]" 
+            alt="Sacred Altar"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[120px] rounded-full -mr-48 -mt-48" />
+        </div>
+
+        <div className="relative z-10 flex flex-col gap-6 md:gap-8 max-w-full">
+          <div className="space-y-4 md:space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-dark border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,1)]" />
+              Sacred Altar
+            </motion.div>
+            
+            <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white serif-display">
+              Prayer <br />
+              <span className="serif-display italic font-light text-rose-400 lowercase">Petitions</span>
+            </h1>
+            
+            <p className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
+              "The prayer of the humble pierces the clouds." Entrust your intentions to the sanctuary.
+            </p>
           </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-8 md:space-y-12">
+        </div>
+      </motion.header>
+
+      <div className="px-4 md:px-0">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          className="glass rounded-[32px] md:rounded-[48px] p-6 md:p-16 lg:p-24 relative group overflow-hidden border border-brand-500/20 shadow-3xl shadow-brand-900/10"
+        >
+          <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
+
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full animate-pulse" />
+          <div className="relative z-10 space-y-8 md:space-y-16">
+            <div className="text-center md:text-left space-y-4 md:space-y-6">
+              <h2 className="text-2xl md:text-5xl font-black tracking-tight text-stone-900 dark:text-white uppercase">Submit <span className="text-brand-600 dark:text-brand-400">Intentions</span></h2>
+              <p className="text-stone-500 text-sm md:text-lg font-serif italic max-w-2xl">Your whispers in the sanctuary are heard in high places.</p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-6 md:space-y-10">
             <div className="relative group/input">
               <div className="absolute inset-x-0 -bottom-1 h-[2px] bg-brand-500/0 group-focus-within/input:bg-brand-500/40 transition-all duration-700" />
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Entrust your deepest petitions to the sanctuary..."
-                className="w-full bg-white/40 dark:bg-white/5 rounded-[32px] md:rounded-[40px] p-8 md:p-16 min-h-[200px] md:min-h-[300px] text-lg md:text-3xl font-serif italic resize-none border border-white/20 outline-none focus:ring-4 focus:ring-brand-500/10 placeholder:text-stone-300 dark:placeholder:text-stone-700 transition-all shadow-inner"
+                className="w-full bg-white/40 dark:bg-white/5 rounded-3xl md:rounded-[40px] p-6 md:p-12 min-h-[180px] md:min-h-[250px] text-base md:text-2xl font-serif italic resize-none border border-white/20 outline-none focus:ring-4 focus:ring-brand-500/10 placeholder:text-stone-300 dark:placeholder:text-stone-700 transition-all shadow-inner"
                 required
               />
-              <Heart className="absolute bottom-8 right-8 md:bottom-12 md:right-12 w-12 h-12 md:w-20 md:h-20 text-brand-900/5 group-focus-within/input:text-brand-500/10 transition-all duration-700 animate-pulse-gentle" />
+              <Heart className="absolute bottom-6 right-6 md:bottom-10 md:right-10 w-10 h-10 md:w-16 md:h-16 text-brand-900/5 group-focus-within/input:text-brand-500/10 transition-all duration-700 animate-pulse-gentle" />
             </div>
 
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10">
@@ -182,6 +222,7 @@ export default function Petitions() {
               </motion.div>
             ))}
           </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>

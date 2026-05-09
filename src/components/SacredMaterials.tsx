@@ -111,122 +111,104 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
   });
 
   return (
-    <div className="max-w-4xl mx-auto pb-12 px-4 md:px-0">
-      {/* Compact Manuscript Header */}
-      <div className="relative mb-6 pt-2">
-        <div className="absolute inset-0 bg-stone-900 dark:bg-black rounded-3xl overflow-hidden shadow-2xl border border-stone-800 ring-1 ring-white/10">
-           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-[80px] rounded-full -mr-16 -mt-16" />
-           <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-500/10 blur-[80px] rounded-full -ml-16 -mb-16" />
+    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24">
+      {/* Immersive Header - Matching Dashboard & Gallery */}
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-12 mx-2 md:mx-0"
+      >
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1548625361-04286f9f30be?q=80&w=2670&auto=format&fit=crop" 
+            className="w-full h-full object-cover opacity-20 transform group-hover:scale-110 transition-transform duration-[3s]" 
+            alt="Sacred Library"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[120px] rounded-full -mr-48 -mt-48" />
         </div>
-        
-        <div className="relative z-10 p-6 md:p-10 flex flex-col items-center text-center gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl md:text-5xl font-black tracking-tight text-white uppercase serif-display flex items-center justify-center gap-3">
-              <div className="w-8 h-8 md:w-12 md:h-12 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20 rotate-3">
-                <BookOpen className="w-5 h-5 md:w-7 md:h-7 text-black" />
-              </div>
-              Sacred <span className="text-amber-500 italic lowercase font-light">Archive</span>
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-12 max-w-full">
+          <div className="space-y-4 md:space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-dark border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,1)]" />
+              Sacred Archive
+            </motion.div>
+            
+            <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white serif-display">
+              Divine <br />
+              <span className="serif-display italic font-light text-amber-500 lowercase">Library</span>
             </h1>
-            <p className="text-stone-500 text-[9px] md:text-sm font-bold uppercase tracking-[0.3em]">
-              The Sanctum of Divine Knowledge
+            
+            <p className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
+              The sanctum of knowledge, liturgy, and spiritual manuscripts.
             </p>
           </div>
-          
+
           <motion.button
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-amber-500 text-black px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] shadow-xl shadow-amber-500/20 hover:bg-amber-400 transition-all border-b-4 border-amber-600"
+            className="w-full md:w-auto flex items-center justify-center gap-3 bg-amber-500 text-black px-6 py-4 md:px-8 md:py-5 rounded-2xl md:rounded-3xl hover:bg-amber-400 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-amber-500/30 text-[9px] md:text-[10px]"
           >
-            <Plus className="w-3.5 h-3.5" /> Deposit Resource
+            <Plus className="w-4 h-4" />
+            Deposit Wise Word
           </motion.button>
         </div>
-      </div>
+      </motion.header>
 
-      {/* Library Navigation - Tighter & Real Library Style */}
-      <div className="sticky top-1 z-40 mb-8 flex items-center justify-center">
-        <div className="flex items-center gap-3 p-2 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-3xl shadow-black/10 ring-1 ring-white/10 overflow-x-auto no-scrollbar max-w-full">
-          <button
-            onClick={() => setActiveCategory('All')}
-            className={`px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all shrink-0 flex items-center gap-2 ${
-              activeCategory === 'All' 
-                ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30' 
-                : 'bg-stone-900/50 text-stone-400 hover:text-white'
-            }`}
-          >
-            <Library className="w-3 h-3" />
-            All Books
-          </button>
-
-          <div className="w-[1px] h-4 bg-white/10 shrink-0" />
-
-          {/* Archive Dropdown */}
-          <div className="relative shrink-0">
+      {/* Optimized Navigation / Search */}
+      <div className="px-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-4 md:p-6 bg-white dark:bg-stone-900/40 border border-stone-200/60 dark:border-white/5 rounded-[32px] shadow-sm backdrop-blur-xl">
+          <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto overflow-x-auto no-scrollbar">
             <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all bg-stone-900/50 border border-white/5 ${
-                activeCategory !== 'All'
-                  ? 'text-amber-500 ring-1 ring-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+              onClick={() => setActiveCategory('All')}
+              className={`px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shrink-0 ${
+                activeCategory === 'All' 
+                  ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10' 
                   : 'text-stone-400 hover:text-white'
               }`}
             >
-              <span>{activeCategory === 'All' ? 'Select Shelf' : activeCategory}</span>
-              <ChevronDown className={`w-3 h-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              All Scrolls
             </button>
-
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-0 bg-black/0" onClick={() => setIsDropdownOpen(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute top-full left-0 mt-3 w-52 bg-stone-900 border border-white/10 rounded-2xl shadow-3xl p-2 z-10 backdrop-blur-3xl ring-1 ring-white/10"
-                  >
-                    <p className="px-3 py-2 text-[8px] font-black uppercase tracking-[0.2em] text-stone-500 border-b border-white/5 mb-2">Divine Sections</p>
-                    {CATEGORIES.map((cat) => (
-                      <button
-                        key={cat.id}
-                        onClick={() => {
-                          setActiveCategory(cat.id);
-                          setIsDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-left mb-1 ${
-                            activeCategory === cat.id ? 'bg-amber-500/10 text-amber-500' : 'hover:bg-white/5 text-stone-400'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={activeCategory === cat.id ? 'text-amber-500' : 'text-stone-600'}>{cat.icon}</div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider">{cat.id}</span>
-                        </div>
-                        {activeCategory === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,1)]" />}
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+            <div className="w-[1px] h-6 bg-white/10 shrink-0" />
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shrink-0 ${
+                  activeCategory === cat.id 
+                    ? 'bg-stone-900 dark:bg-white text-white dark:text-black shadow-lg' 
+                    : 'text-stone-400 hover:text-white'
+                }`}
+              >
+                {cat.icon}
+                {cat.id}
+              </button>
+            ))}
           </div>
 
-          <div className="w-[1px] h-4 bg-white/10 shrink-0" />
-
-          {/* Search Box - Real Library Search */}
-          <div className="relative w-40 md:w-52 shrink-0 group">
-             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 transition-colors group-focus-within:text-amber-500" />
+          <div className="relative w-full md:w-80 group">
+             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 transition-colors group-focus-within:text-amber-500" />
              <input 
                 type="text"
-                placeholder="Find a scroll..."
+                placeholder="Find in the archive..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-stone-900/50 border border-white/5 rounded-xl text-[10px] font-bold text-white outline-none placeholder:text-stone-600 focus:ring-2 focus:ring-amber-500/40 transition-all uppercase tracking-wider"
+                className="w-full pl-12 pr-6 py-3.5 bg-stone-100 dark:bg-black/20 border border-transparent focus:border-amber-500/30 rounded-2xl text-[11px] font-bold text-white outline-none transition-all uppercase tracking-widest placeholder:text-stone-600"
              />
           </div>
         </div>
       </div>
 
-      {/* Library Grid - Centered & Optimized */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+      {/* Library Grid - Polished & Spacious */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-4">
+
         <AnimatePresence mode="popLayout">
           {filteredMaterials.map((item, idx) => (
             <motion.div
@@ -240,56 +222,58 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
               {/* Card Spine Decor */}
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500/20 group-hover:bg-amber-500 transition-all" />
               
-              <div className="p-5 flex flex-col h-full min-h-[200px]">
-                <div className="flex items-start justify-between mb-2">
+              <div className="p-6 md:p-8 flex flex-col h-full min-h-[220px]">
+                <div className="flex items-start justify-between mb-6">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-1.5">
-                       <div className="p-1 bg-stone-100 dark:bg-white/5 rounded-md text-amber-500 scale-75">
-                          {item.category === 'Choir' ? <Music className="w-4 h-4" /> : 
-                           item.category === 'Rosary' ? <Cross className="w-4 h-4" /> : 
-                           item.category === 'Liturgy' ? <FileText className="w-4 h-4" /> : 
-                           <BookOpen className="w-4 h-4" />}
+                    <div className="flex items-center gap-2">
+                       <div className="p-2 bg-amber-500/10 rounded-xl text-amber-500">
+                          {item.category === 'Choir' ? <Music className="w-5 h-5" /> : 
+                           item.category === 'Rosary' ? <Cross className="w-5 h-5" /> : 
+                           item.category === 'Liturgy' ? <FileText className="w-5 h-5" /> : 
+                           <BookOpen className="w-5 h-5" />}
                        </div>
-                       <span className="text-[7px] font-black uppercase tracking-[0.1em] text-stone-400">{item.category} Shelf</span>
+                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500">{item.category} Manuscript</span>
                     </div>
                   </div>
                   {user?.role === 'admin' && (
-                    <button onClick={() => handleDelete(item.id)} className="p-1 text-stone-200 hover:text-red-500 transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
+                    <button onClick={() => handleDelete(item.id)} className="p-2 text-stone-300 hover:text-red-500 transition-colors bg-stone-100 dark:bg-white/5 rounded-xl">
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
 
-                <div className="flex-1 space-y-1.5">
-                  <h3 className="text-sm md:text-base font-black text-stone-900 dark:text-white serif-display tracking-tight leading-tight line-clamp-2">
+                <div className="flex-1 space-y-4">
+                  <h3 className="text-xl md:text-2xl font-black text-stone-900 dark:text-white serif-display tracking-tight leading-tight">
                     {item.title}
                   </h3>
-                  <div className="w-8 h-0.5 bg-amber-500/30" />
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-snug italic opacity-80 serif-display line-clamp-3">
+                  <div className="h-[2px] w-12 bg-amber-500/20 rounded-full group-hover:w-20 transition-all duration-700" />
+                  <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed italic opacity-80 serif-display line-clamp-4">
                     {item.description}
                   </p>
                 </div>
 
-              {/* Library Librarian Interaction */}
-              <div className="px-5 pb-5 mt-auto flex items-center justify-between pt-4 border-t border-stone-100 dark:border-white/5 bg-stone-50/50 dark:bg-stone-900/10">
-                <button 
+              {/* Enhanced Action Bar */}
+              <div className="mt-8 pt-6 border-t border-stone-100 dark:border-white/5 flex items-center gap-4">
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
-                  className="flex flex-1 items-center justify-center gap-2 text-stone-500 hover:text-amber-500 transition-colors group/btn py-2"
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-brand-500/10 text-brand-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-brand-500/20 transition-all"
                 >
-                  <Bot className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-                  <span className="text-[9px] font-black uppercase tracking-widest">AI Librarian</span>
-                </button>
+                  <Bot className="w-4 h-4" />
+                  Guide Me
+                </motion.button>
 
-                <div className="w-[1px] h-4 bg-stone-200 dark:bg-white/5 mx-2" />
-
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => item.link && window.open(item.link, '_blank')}
                   disabled={!item.link}
-                  className="flex flex-1 items-center justify-center gap-2 bg-stone-900 dark:bg-amber-500 text-white dark:text-black px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[9px] hover:scale-105 active:scale-95 transition-all shadow-sm disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-2 bg-stone-900 dark:bg-white text-white dark:text-black py-3.5 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  Read
-                </button>
+                  <Download className="w-4 h-4" />
+                  Access
+                </motion.button>
               </div>
             </div>
           </motion.div>
