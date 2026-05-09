@@ -11,98 +11,121 @@ interface AlertItem {
   timestamp: any;
 }
 
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
+
 export default function NotificationTicker() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    const unsubscribers: (() => void)[] = [];
+    let unsubscribers: (() => void)[] = [];
 
-    // Listen for new users
-    const usersQ = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(1));
-    unsubscribers.push(onSnapshot(usersQ, (snap) => {
-      snap.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const data = change.doc.data();
-          const newAlert: AlertItem = {
-            id: 'user-' + change.doc.id,
-            type: 'member',
-            text: `${data.displayName || 'A new member'} joined our community`,
-            timestamp: data.createdAt
-          };
-          addAlertIfNotExpired(newAlert);
-        }
-      });
-    }, (err) => console.error("Ticker users error:", err)));
+    const setupListeners = () => {
+      // Clear existing listeners if any
+      unsubscribers.forEach(unsub => unsub());
+      unsubscribers = [];
 
-    // Listen for new gallery items (activities)
-    const galleryQ = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'), limit(1));
-    unsubscribers.push(onSnapshot(galleryQ, (snap) => {
-      snap.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const data = change.doc.data();
-          const newAlert: AlertItem = {
-            id: 'gallery-' + change.doc.id,
-            type: 'activity',
-            text: `New activity: ${data.title}`,
-            timestamp: data.timestamp
-          };
-          addAlertIfNotExpired(newAlert);
-        }
-      });
-    }, (err) => console.error("Ticker gallery error:", err)));
+      // Listen for new users
+      const usersQ = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(1));
+      unsubscribers.push(onSnapshot(usersQ, (snap) => {
+        snap.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const data = change.doc.data();
+            const newAlert: AlertItem = {
+              id: 'user-' + change.doc.id,
+              type: 'member',
+              text: `${data.displayName || 'A new member'} joined our community`,
+              timestamp: data.createdAt
+            };
+            addAlertIfNotExpired(newAlert);
+          }
+        });
+      }, (err) => console.error("Ticker users error:", err)));
 
-    // Listen for new events
-    const eventsQ = query(collection(db, 'events'), orderBy('createdAt', 'desc'), limit(1));
-    unsubscribers.push(onSnapshot(eventsQ, (snap) => {
-      snap.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const data = change.doc.data();
-          const newAlert: AlertItem = {
-            id: 'event-' + change.doc.id,
-            type: 'event',
-            text: `Upcoming Event: ${data.title}`,
-            timestamp: data.createdAt
-          };
-          addAlertIfNotExpired(newAlert);
-        }
-      });
-    }, (err) => console.error("Ticker events error:", err)));
+      // Listen for new gallery items (activities)
+      const galleryQ = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'), limit(1));
+      unsubscribers.push(onSnapshot(galleryQ, (snap) => {
+        snap.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const data = change.doc.data();
+            const newAlert: AlertItem = {
+              id: 'gallery-' + change.doc.id,
+              type: 'activity',
+              text: `New activity: ${data.title}`,
+              timestamp: data.timestamp
+            };
+            addAlertIfNotExpired(newAlert);
+          }
+        });
+      }, (err) => console.error("Ticker gallery error:", err)));
 
-    // Listen for new resources
-    const resourcesQ = query(collection(db, 'resources'), orderBy('createdAt', 'desc'), limit(1));
-    unsubscribers.push(onSnapshot(resourcesQ, (snap) => {
-      snap.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const data = change.doc.data();
-          const newAlert: AlertItem = {
-            id: 'resource-' + change.doc.id,
-            type: 'resource',
-            text: `New Resource added: ${data.title}`,
-            timestamp: data.createdAt
-          };
-          addAlertIfNotExpired(newAlert);
-        }
-      });
-    }, (err) => console.error("Ticker resources error:", err)));
+      // Listen for new events
+      const eventsQ = query(collection(db, 'events'), orderBy('createdAt', 'desc'), limit(1));
+      unsubscribers.push(onSnapshot(eventsQ, (snap) => {
+        snap.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const data = change.doc.data();
+            const newAlert: AlertItem = {
+              id: 'event-' + change.doc.id,
+              type: 'event',
+              text: `Upcoming Event: ${data.title}`,
+              timestamp: data.createdAt
+            };
+            addAlertIfNotExpired(newAlert);
+          }
+        });
+      }, (err) => console.error("Ticker events error:", err)));
 
-    // Listen for Dashboard updates
-    unsubscribers.push(onSnapshot(doc(db, 'control', 'daily_bread'), (d) => {
-      if (d.exists()) {
-        const data = d.data();
-        if (data.updatedAt) {
-          const newAlert: AlertItem = {
-            id: 'dashboard-update-' + (data.updatedAt.toMillis?.() || Date.now()),
-            type: 'activity',
-            text: `Daily Inspiration has been updated!`,
-            timestamp: data.updatedAt
-          };
-          addAlertIfNotExpired(newAlert);
+      // Listen for new sacred materials
+      const materialsQ = query(collection(db, 'sacred_materials'), orderBy('timestamp', 'desc'), limit(1));
+      unsubscribers.push(onSnapshot(materialsQ, (snap) => {
+        snap.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const data = change.doc.data();
+            const newAlert: AlertItem = {
+              id: 'material-' + change.doc.id,
+              type: 'resource',
+              text: `New Material: ${data.title}`,
+              timestamp: data.timestamp
+            };
+            addAlertIfNotExpired(newAlert);
+          }
+        });
+      }, (err) => console.error("Ticker materials error:", err)));
+
+      // Listen for Dashboard updates
+      unsubscribers.push(onSnapshot(doc(db, 'control', 'daily_bread'), (d) => {
+        if (d.exists()) {
+          const data = d.data();
+          if (data.updatedAt) {
+            const newAlert: AlertItem = {
+              id: 'dashboard-update-' + (data.updatedAt.toMillis?.() || Date.now()),
+              type: 'activity',
+              text: `Daily Inspiration has been updated!`,
+              timestamp: data.updatedAt
+            };
+            addAlertIfNotExpired(newAlert);
+          }
         }
+      }, (err) => console.error("Ticker daily bread error:", err)));
+    };
+
+    const authUnsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setupListeners();
+      } else {
+        // Clear listeners if logged out
+        unsubscribers.forEach(unsub => unsub());
+        unsubscribers = [];
+        setAlerts([]);
       }
-    }));
+    });
 
-    return () => unsubscribers.forEach(unsub => unsub());
+    return () => {
+      authUnsubscribe();
+      unsubscribers.forEach(unsub => unsub());
+    };
   }, []);
 
   const addAlertIfNotExpired = (alert: AlertItem) => {

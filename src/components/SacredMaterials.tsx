@@ -110,8 +110,8 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
       {/* Header Section */}
       <div className="mb-6 p-5 md:p-10 rounded-3xl md:rounded-[40px] bg-indigo-950 text-white relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full -mr-20 -mt-20" />
-        <div className="relative z-10 flex flex-col md:flex-row gap-5 md:items-center justify-between">
-          <div className="space-y-1.5">
+        <div className="relative z-10 flex flex-col items-center text-center md:flex-row md:text-left gap-5 md:items-center justify-between">
+          <div className="space-y-1.5 flex flex-col items-center md:items-start">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 border border-white/10 text-[9px] font-black uppercase tracking-widest text-indigo-200">
               <Sparkles className="w-2.5 h-2.5" /> Shared Wisdom
             </div>
@@ -127,7 +127,7 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-white text-indigo-950 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[9px] shadow-lg shadow-indigo-900/20"
+            className="flex items-center justify-center gap-2 bg-white text-indigo-950 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[9px] shadow-lg shadow-indigo-900/20 w-fit"
           >
             <Plus className="w-3.5 h-3.5 ml-[-2px]" /> Deposit
           </motion.button>
@@ -135,13 +135,13 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
       </div>
 
       {/* Control Bar */}
-      <div className="sticky top-4 z-40 mb-6 p-2 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl border border-stone-200 dark:border-white/5 rounded-2xl shadow-sm flex flex-col md:flex-row items-center gap-3 transition-all">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar mask-fade-edges w-full md:flex-1 py-1">
+      <div className="sticky top-4 z-40 mb-6 p-2 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl border border-stone-200 dark:border-white/5 rounded-2xl shadow-sm flex flex-col items-center gap-3 transition-all">
+        <div className="flex items-center justify-start md:justify-center gap-1.5 overflow-x-auto no-scrollbar mask-fade-edges w-full py-1 px-2 snap-x">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl whitespace-nowrap transition-all font-bold text-[9px] uppercase tracking-wider border ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl whitespace-nowrap transition-all font-bold text-[9px] uppercase tracking-wider border snap-start ${
                 activeCategory === cat.id 
                   ? 'bg-indigo-600 text-white border-indigo-600' 
                   : 'bg-white dark:bg-white/5 text-stone-500 dark:text-stone-400 border-stone-100 dark:border-white/10 hover:border-indigo-500/20'
@@ -153,8 +153,8 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
           ))}
         </div>
 
-        <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 w-3.5 h-3.5 text-stone-400" />
+        <div className="relative w-full max-w-sm px-2">
+          <Search className="absolute left-5 w-3.5 h-3.5 text-stone-400" />
           <input
             type="text"
             placeholder="Search..."
@@ -164,6 +164,58 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
           />
         </div>
       </div>
+
+      {/* Featured Shelf - Horizontal Scroll */}
+      {searchTerm === '' && activeCategory === 'All' && materials.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Featured Archives</h2>
+            <div className="h-px flex-1 bg-stone-100 dark:bg-white/5 mx-4" />
+            <div className="flex gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              <div className="w-1.5 h-1.5 rounded-full bg-stone-200 dark:bg-stone-700" />
+              <div className="w-1.5 h-1.5 rounded-full bg-stone-200 dark:bg-stone-700" />
+            </div>
+          </div>
+          
+          <div className="flex overflow-x-auto no-scrollbar gap-4 pb-4 snap-x px-1">
+            {materials.slice(0, 5).map((item) => (
+              <motion.div
+                key={`featured-${item.id}`}
+                whileHover={{ y: -5 }}
+                className="flex-shrink-0 w-[280px] md:w-[320px] snap-start bg-gradient-to-br from-white to-stone-50 dark:from-stone-900/60 dark:to-stone-900/40 p-6 rounded-[32px] border border-stone-100 dark:border-white/5 shadow-sm relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-2xl rounded-full -mr-10 -mt-10" />
+                <div className="relative z-10">
+                   <div className="flex items-center gap-2 mb-4">
+                     <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500 scale-75">
+                        {item.category === 'Choir' ? <Music className="w-5 h-5" /> : 
+                         item.category === 'Rosary' ? <Cross className="w-5 h-5" /> : 
+                         item.category === 'Liturgy' ? <FileText className="w-5 h-5" /> : 
+                         <BookOpen className="w-5 h-5" />}
+                     </div>
+                     <span className="text-[8px] font-black uppercase tracking-widest text-stone-400">{item.category}</span>
+                   </div>
+                   <h3 className="text-sm font-black text-stone-900 dark:text-white serif-display tracking-tight mb-2 line-clamp-1">{item.title}</h3>
+                   <p className="text-[10px] text-stone-500 dark:text-stone-400 italic line-clamp-2 mb-6">{item.description}</p>
+                   
+                   <div className="flex gap-2">
+                     <button 
+                        onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
+                        className="flex-1 py-2 rounded-xl bg-indigo-600 text-white text-[8px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20"
+                     >
+                        Analyze
+                     </button>
+                     <button className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-400">
+                        <ChevronRight className="w-4 h-4" />
+                     </button>
+                   </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
