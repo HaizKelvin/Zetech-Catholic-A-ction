@@ -44,7 +44,7 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
 
   const formatDate = (ts: any) => {
     if (!ts) return '';
-    if (ts.toDate) return ts.toDate().toLocaleDateString();
+    if (ts.toDate) return ts.toDate()?.toLocaleDateString() || '';
     if (ts instanceof Date) return ts.toLocaleDateString();
     return '';
   };
@@ -189,7 +189,7 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
     if (!isAdmin) return;
     const headers = ['Date', 'Name', 'Email', 'Amount', 'Purpose', 'Transaction ID', 'Status'];
     const rows = payments.map(p => [
-      p.timestamp?.toDate().toLocaleString(),
+      p.timestamp?.toDate()?.toLocaleString() || 'N/A',
       p.userName,
       p.userEmail,
       p.amount,
@@ -278,7 +278,7 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
                       <td className="px-6 md:px-8 py-4 md:py-6">
                         <div>
                           <p className="font-bold text-stone-900 dark:text-stone-100 text-xs md:text-sm">{p.userName}</p>
-                          <p className="text-[9px] md:text-xs text-stone-400 uppercase font-bold tracking-wider">{p.timestamp?.toDate().toLocaleDateString()}</p>
+                          <p className="text-[9px] md:text-xs text-stone-400 uppercase font-bold tracking-wider">{p.timestamp?.toDate()?.toLocaleDateString() || 'Recent'}</p>
                         </div>
                       </td>
                       <td className="px-6 md:px-8 py-4 md:py-6">
@@ -347,7 +347,7 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
                            PENDING
                         </div>
                       )}
-                      <p className="text-[10px] text-stone-400 uppercase font-black tracking-widest block pt-1">{p.timestamp?.toDate().toLocaleDateString()}</p>
+                      <p className="text-[10px] text-stone-400 uppercase font-black tracking-widest block pt-1">{p.timestamp?.toDate()?.toLocaleDateString() || 'Recent'}</p>
                     </div>
                     <div className="flex items-center gap-2">
                        <button 

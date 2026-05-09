@@ -159,7 +159,7 @@ export default function Petitions() {
                         {p.isPublic ? p.userName : 'Silent Guardian'}
                       </h4>
                       <p className="text-[8px] md:text-[10px] text-brand-600/60 dark:text-brand-500/60 font-black uppercase tracking-[0.2em]">
-                        {p.timestamp?.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        {p.timestamp?.toDate()?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) || 'Recent'}
                       </p>
                     </div>
                   </div>

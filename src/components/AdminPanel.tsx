@@ -104,7 +104,7 @@ export default function AdminPanel() {
       u.displayName || 'N/A',
       u.email,
       u.role,
-      u.createdAt?.toDate().toLocaleDateString()
+      u.createdAt?.toDate()?.toLocaleDateString() || 'N/A'
     ]);
 
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -136,7 +136,7 @@ export default function AdminPanel() {
         r.admissionNumber.replace(/,/g, ' '),
         r.phoneNumber.replace(/,/g, ' '),
         r.schoolEmail.replace(/,/g, ' '),
-        r.createdAt?.toDate().toLocaleString().replace(/,/g, ' ')
+        r.createdAt?.toDate()?.toLocaleString().replace(/,/g, ' ') || 'N/A'
       ]);
 
       const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");

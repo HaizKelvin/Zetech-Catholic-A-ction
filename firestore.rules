@@ -40,10 +40,10 @@ service cloud.firestore {
                     (request.resource.data.role == resource.data.role || isAdmin());
     }
 
-    match /resources/{resourceId} {
+    match /sacred_materials/{id} {
       allow read: if isAuthenticated();
-      allow create, update: if isAdmin();
-      allow delete: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
     }
 
     match /users/{userId}/chatHistory/{messageId} {

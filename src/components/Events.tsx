@@ -65,7 +65,10 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
   const handleDeleteExpired = async () => {
     if (!isAdmin || !window.confirm('Delete all past events?')) return;
     const now = new Date();
-    const expiredEvents = events.filter(ev => ev.date?.toDate() < now);
+    const expiredEvents = events.filter(ev => {
+      const eventDate = ev.date?.toDate();
+      return eventDate && eventDate < now;
+    });
     
     if (expiredEvents.length === 0) {
       alert('No expired events found.');
@@ -139,9 +142,9 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
                 className="glass p-6 md:p-12 rounded-[32px] md:rounded-[40px] shadow-sm flex flex-col md:flex-row gap-8 md:gap-12 group hover:shadow-xl transition-all duration-500"
               >
                 <div className="w-full md:w-48 shrink-0 flex flex-row md:flex-col items-center justify-between md:justify-center p-6 md:p-8 bg-brand-50 dark:bg-brand-900/30 rounded-[24px] md:rounded-[32px] text-brand-900 dark:text-brand-400 group-hover:bg-brand-900 group-hover:text-stone-100 transition-colors duration-500">
-                  <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">{ev.date?.toDate().toLocaleDateString(undefined, { month: 'short' })}</span>
-                  <span className="text-4xl md:text-6xl font-bold tracking-tighter">{ev.date?.toDate().getDate()}</span>
-                  <span className="text-[10px] md:text-xs font-bold">{ev.date?.toDate().getFullYear()}</span>
+                  <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">{ev.date?.toDate()?.toLocaleDateString(undefined, { month: 'short' }) || '...'}</span>
+                  <span className="text-4xl md:text-6xl font-bold tracking-tighter">{ev.date?.toDate()?.getDate() || '--'}</span>
+                  <span className="text-[10px] md:text-xs font-bold">{ev.date?.toDate()?.getFullYear() || '----'}</span>
                 </div>
                 <div className="flex-1 space-y-4 md:space-y-6">
                   <div className="flex justify-between items-start">
@@ -155,7 +158,7 @@ export default function Events({ isAdmin }: { isAdmin: boolean }) {
                   <div className="flex flex-wrap gap-4 md:gap-6 text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">
                     <div className="flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-600" />
-                      {ev.date?.toDate().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                      {ev.date?.toDate()?.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) || '--:--'}
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-600" />

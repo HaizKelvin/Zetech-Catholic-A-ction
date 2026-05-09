@@ -15,19 +15,20 @@
       },
       "required": ["uid", "email", "role"]
     },
-    "Resource": {
-      "title": "Choir Resource",
-      "description": "Materials for choir practice.",
+    "SacredMaterial": {
+      "title": "Sacred Material",
+      "description": "Shared materials for choir, rosary, or liturgy.",
       "type": "object",
       "properties": {
         "title": { "type": "string" },
-        "category": { "type": "string", "enum": ["Hymn", "Sheet Music", "Liturgical Guide", "Audio"] },
-        "content": { "type": "string" },
-        "fileUrl": { "type": "string" },
-        "uploadedBy": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "category": { "type": "string", "enum": ["Choir", "Rosary", "Liturgy", "Other"] },
+        "description": { "type": "string" },
+        "link": { "type": "string" },
+        "addedBy": { "type": "string" },
+        "contentSnippet": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["title", "category", "uploadedBy"]
+      "required": ["title", "category", "addedBy"]
     },
     "ChatMessage": {
       "title": "Chat Message",
@@ -151,7 +152,7 @@
   },
   "firestore": {
     "/users/{userId}": { "schema": "User", "description": "Users." },
-    "/resources/{resourceId}": { "schema": "Resource", "description": "Resources." },
+    "/sacred_materials/{id}": { "schema": "SacredMaterial", "description": "Shared church materials." },
     "/users/{userId}/chatHistory/{messageId}": { "schema": "ChatMessage", "description": "Chat." },
     "/petitions/{id}": { "schema": "PrayerPetition", "description": "Prayer requests." },
     "/events/{id}": { "schema": "Event", "description": "Events." },

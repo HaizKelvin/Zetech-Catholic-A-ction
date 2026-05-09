@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   onAuthStateChanged, 
   signInWithPopup, 
@@ -30,7 +30,7 @@ import { NotificationManager } from './lib/notifications';
 // Components
 import AboutPage from './components/AboutPage';
 import Chatbot from './components/Chatbot';
-import Resources from './components/Resources';
+import SacredMaterials from './components/SacredMaterials';
 import Dashboard from './components/Dashboard';
 import Petitions from './components/Petitions';
 import Events from './components/Events';
@@ -75,18 +75,18 @@ import {
   BellOff,
   Youtube,
   Image as ImageIcon,
-  Library,
   Home,
   Hash,
   CreditCard,
   Trophy,
   ShieldCheck,
   UserPlus,
-  ArrowRight
+  ArrowRight,
+  BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'resources' | 'petitions' | 'events' | 'join' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
+type TabType = 'home' | 'materials' | 'petitions' | 'events' | 'join' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -202,27 +202,29 @@ export default function App() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [aiContext, setAiContext] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      const winScroll = document.documentElement.scrollTop;
+      // Progress calculation
+      const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
       const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       const scrolled = winScroll / height;
       setScrollProgress(scrolled);
+
+      // Menu visibility (sticky header behavior for floating icons)
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
+        setIsMenuVisible(false);
+      } else {
+        setIsMenuVisible(true);
+      }
+      lastScrollYRef.current = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const handleStudyResource = (title: string, content: string) => {
-    setAiContext(`I am studying the resource titled "${title}". 
-
-Summary Content: 
-${content}
-
-Can you provide more insight, theological context, or a related meditation for this?`);
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -231,20 +233,14 @@ Can you provide more insight, theological context, or a related meditation for t
     return "Peace be with you this evening.";
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsMenuVisible(false);
-      } else {
-        setIsMenuVisible(true);
-      }
-      setLastScrollY(currentScrollY);
-    };
+  const handleStudyResource = (title: string, content: string) => {
+    setAiContext(`I am studying the sacred material titled "${title}". 
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+Summary Content: 
+${content}
+
+Can you provide more insight, theological context, or a related prayer meditation for this resource?`);
+  };
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -680,14 +676,14 @@ Can you provide more insight, theological context, or a related meditation for t
         isSidebarOpen ? 'translate-x-0 w-72 md:w-80' : '-translate-x-full w-72 md:w-80'
       }`}>
         <div className="h-full flex flex-col p-6">
-          <div className="mb-8 flex items-center gap-4 px-4 group cursor-pointer" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-            <div className="w-11 h-11 bg-brand-600 shrink-0 rounded-[15px] flex items-center justify-center shadow-lg shadow-brand-500/10 group-hover:rotate-6 transition-all duration-500 border border-white/5">
-              <Church className="w-6 h-6 text-white" />
+          <div className="mb-8 flex items-center gap-4 px-2 group cursor-pointer" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            <div className="w-12 h-12 bg-indigo-600 shrink-0 rounded-[18px] flex items-center justify-center shadow-2xl shadow-indigo-500/30 group-hover:rotate-3 transition-all duration-500 border border-white/10 overflow-hidden">
+               <Church className="w-6 h-6 text-white" />
             </div>
             {isSidebarOpen && (
-              <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="whitespace-nowrap flex flex-col pl-1">
-                <h1 className="text-xl font-black tracking-tight text-stone-900 dark:text-white leading-none uppercase">ZUCA</h1>
-                <p className="text-[10px] font-black text-brand-600 dark:text-brand-400 tracking-widest uppercase">Sacred Hub</p>
+              <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col">
+                <h1 className="text-xl font-black tracking-tight text-stone-900 dark:text-white leading-none">ZUCA</h1>
+                <p className="text-[10px] font-black text-indigo-600 dark:text-brand-400 tracking-wider uppercase opacity-80">Sacred Hub</p>
               </motion.div>
             )}
           </div>
@@ -751,7 +747,7 @@ Can you provide more insight, theological context, or a related meditation for t
                 </div>
 
                 <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4" />} label="Daily Trivia" isOpen={isSidebarOpen} />
-                <NavItem active={activeTab === 'resources'} onClick={() => handleTabChange('resources')} icon={<Library className="w-4 h-4" />} label="Divine Library" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'materials'} onClick={() => handleTabChange('materials')} icon={<BookOpen className="w-4 h-4" />} label="Sacred Materials" isOpen={isSidebarOpen} />
                 <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
               </div>
             </div>
@@ -764,40 +760,30 @@ Can you provide more insight, theological context, or a related meditation for t
             )}
           </nav>
 
-          {/* Bottom Sidebar */}
-          <div className="pt-6 border-t border-stone-100 dark:border-stone-800 space-y-4">
-            <button 
-              onClick={() => setDarkMode(!darkMode)}
-              className={`w-full flex items-center gap-4 px-4 py-2 rounded-xl transition-all ${darkMode ? 'text-amber-400 hover:bg-white/5' : 'text-stone-500 hover:bg-stone-50'}`}
-            >
-              <div className="w-6 h-6 flex items-center justify-center">
-                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </div>
-              {isSidebarOpen && <span className="text-[9px] font-bold">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>}
-            </button>
-
-            <div className={`flex items-center gap-3 p-2.5 ${isSidebarOpen ? 'bg-white dark:bg-white/5 rounded-[22px] border border-stone-100 dark:border-white/5 shadow-xl shadow-stone-200/40 dark:shadow-none transition-all hover:border-brand-500/20 group' : ''}`}>
-              <div 
-                className="w-9 h-9 md:w-11 md:h-11 rounded-[16px] bg-gradient-to-tr from-brand-600 to-brand-400 p-[1.5px] shadow-lg shrink-0 cursor-pointer overflow-hidden transition-all group-hover:scale-105 active:scale-95"
-                onClick={() => setIsProfileModalOpen(true)}
-              >
-                <div className="w-full h-full rounded-[14.5px] bg-gradient-to-br from-white to-stone-50 dark:from-stone-900 dark:to-stone-950 flex items-center justify-center overflow-hidden">
+          {/* Bottom Sidebar - Profile Card Refinement */}
+          <div className="pt-6 border-t border-stone-100 dark:border-white/5">
+            <div className={`p-4 ${isSidebarOpen ? 'bg-white dark:bg-white/5 rounded-[32px] border border-stone-100 dark:border-white/5 shadow-2xl shadow-stone-200/50 dark:shadow-none mb-4 group' : 'mb-2'}`}>
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-11 h-11 rounded-[18px] bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer shadow-inner"
+                  onClick={() => setIsProfileModalOpen(true)}
+                >
                   {profile?.photoURL ? (
                     <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-brand-600 dark:text-brand-400 font-black text-[12px] md:text-[15px] tracking-tight">{profile?.displayName?.charAt(0)}</span>
+                    <span className="text-brand-600 dark:text-brand-400 font-extrabold text-sm">{profile?.displayName?.charAt(0)}</span>
                   )}
                 </div>
+                {isSidebarOpen && (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-black text-stone-900 dark:text-white truncate tracking-tight">{profile?.displayName || 'Faithful'}</p>
+                    <button onClick={() => setIsProfileModalOpen(true)} className="text-[9px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest text-left opacity-70 hover:opacity-100 transition-opacity">Sanctify Profile</button>
+                  </div>
+                )}
+                <button onClick={handleLogout} className="p-2 text-stone-300 dark:text-stone-700 hover:text-red-500 transition-all hover:scale-110">
+                   <LogOut className="w-4.5 h-4.5" />
+                </button>
               </div>
-              {isSidebarOpen && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-stone-900 dark:text-white truncate tracking-tight mb-0.5">{profile?.displayName}</p>
-                  <button onClick={() => setIsProfileModalOpen(true)} className="text-[8px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest text-left block opacity-60 hover:opacity-100 transition-opacity">Sanctify Profile</button>
-                </div>
-              )}
-              <button onClick={handleLogout} className="p-1.5 text-stone-300 dark:text-stone-600 hover:text-red-500 transition-all hover:scale-110">
-                 <LogOut className="w-4 h-4" />
-              </button>
             </div>
           </div>
         </div>
@@ -818,70 +804,66 @@ Can you provide more insight, theological context, or a related meditation for t
             <motion.button 
               initial={{ opacity: 0, scale: 0.8, x: -20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               exit={{ opacity: 0, scale: 0.8, x: -20 }}
               onClick={() => setIsSidebarOpen(true)}
-              className="fixed top-4 left-4 z-[70] w-10 h-10 md:w-12 md:h-12 flex items-center justify-center glass shadow-2xl border border-white/20 dark:border-white/10 group hover:bg-brand-600 transition-all active:scale-90 rounded-[14px]"
+              className="fixed top-5 left-5 z-[70] w-10 h-10 flex items-center justify-center bg-stone-900 text-white shadow-2xl transition-all active:scale-90 rounded-xl group"
             >
-              <Menu className="w-5 h-5 md:w-6 md:h-6 text-stone-900 dark:text-white group-hover:scale-110 group-hover:text-white transition-all" />
+              <Menu className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </motion.button>
           </>
         )}
       </AnimatePresence>
 
-      {/* Top Header Widgets - Fixed Top Right */}
+      {/* Navigation & User Actions - Circular Floating Gems */}
       <AnimatePresence>
-        {isMenuVisible && user && (
-          <div className="fixed top-2 right-2 md:top-4 md:right-4 z-40 flex items-center gap-2 md:gap-3">
-             {/* Notifications */}
-             <div className="relative">
-               <motion.button
-                 initial={{ opacity: 0, scale: 0.8 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 whileHover={{ scale: 1.05, y: -2 }}
-                 whileTap={{ scale: 0.95 }}
-                 onClick={() => setIsNotificationOpen(true)}
-                 className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center glass shadow-xl border border-white/20 dark:border-white/10 text-stone-900 dark:text-white rounded-2xl group transition-all relative"
-               >
-                 <Bell className="w-4 h-4 md:w-5 md:h-5" />
-                 {notifications.some(n => !n.isRead) && (
-                   <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-stone-900 shadow-sm" />
-                 )}
-               </motion.button>
-             </div>
+        {isMenuVisible && user && !isSidebarOpen && (
+          <div className="fixed top-5 right-5 z-50 flex items-center gap-2">
+            {/* Mode Gem */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setDarkMode(!darkMode)}
+              className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-white dark:bg-stone-900 text-amber-500 rounded-full shadow-md border border-stone-100 dark:border-white/10"
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </motion.button>
 
-             {/* Dark Mode Toggle */}
-             <motion.button
-               initial={{ opacity: 0, scale: 0.8 }}
-               animate={{ opacity: 1, scale: 1 }}
-               whileHover={{ scale: 1.05, y: -2 }}
-               whileTap={{ scale: 0.95 }}
-               onClick={() => setDarkMode(!darkMode)}
-               className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center glass shadow-xl border border-white/20 dark:border-white/10 text-stone-900 dark:text-amber-400 rounded-2xl transition-all"
-               title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-             >
-               {darkMode ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
-             </motion.button>
+            {/* Notification Gem */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsNotificationOpen(true)}
+              className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-white dark:bg-stone-900 text-stone-900 dark:text-white rounded-full shadow-md border border-stone-100 dark:border-white/10 relative"
+            >
+              <Bell className="w-4 h-4" />
+              {notifications.some(n => !n.isRead) && (
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white dark:border-stone-900" />
+              )}
+            </motion.button>
 
-             {/* Profile Button */}
-             <motion.button 
-               initial={{ opacity: 0, scale: 0.8 }}
-               animate={{ opacity: 1, scale: 1 }}
-               whileHover={{ scale: 1.05, y: -2 }}
-               whileTap={{ scale: 0.95 }}
-               onClick={() => setIsProfileModalOpen(true)}
-               className="h-9 md:h-11 pl-1 pr-3 md:pl-1.5 md:pr-4 flex items-center gap-2 glass shadow-xl border border-white/20 dark:border-white/10 rounded-2xl group transition-all"
-             >
-               <div className="w-7 h-7 md:w-8 md:h-8 rounded-[12px] overflow-hidden bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center border border-brand-200 dark:border-brand-500/20">
-                 {profile?.photoURL ? (
-                   <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                 ) : (
-                   <UserIcon className="w-4 h-4 text-brand-600 dark:text-brand-400" />
-                 )}
-               </div>
-               <span className="text-[10px] md:text-[11px] font-black text-stone-900 dark:text-white uppercase tracking-wider hidden sm:block">
-                 {profile?.displayName?.split(' ')[0] || 'Menu'}
-               </span>
-             </motion.button>
+            {/* Profile Gem */}
+            <motion.button 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsProfileModalOpen(true)}
+              className="w-8 h-8 md:w-9 md:h-9 bg-white dark:bg-stone-900 rounded-full shadow-md flex items-center justify-center border border-stone-100 dark:border-white/10 overflow-hidden"
+            >
+              {profile?.photoURL ? (
+                <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-brand-600 to-brand-400 text-white font-black text-[9px] md:text-[10px]">
+                  {profile?.displayName?.charAt(0) || 'K'}
+                </div>
+              )}
+            </motion.button>
           </div>
         )}
       </AnimatePresence>
@@ -941,7 +923,7 @@ Can you provide more insight, theological context, or a related meditation for t
                              <div className="flex items-center justify-between mb-1">
                                <p className="font-black text-[15px] text-stone-900 dark:text-white tracking-tight">{n.title}</p>
                                <span className="text-[10px] font-mono text-stone-400 uppercase tracking-widest">
-                                 {n.timestamp?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                 {n.timestamp?.toDate()?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'Recent'}
                                </span>
                              </div>
                              <p className="text-[13px] text-stone-500 dark:text-stone-400 leading-relaxed text-left">{n.message}</p>
@@ -1019,9 +1001,9 @@ Can you provide more insight, theological context, or a related meditation for t
                 <Gallery profile={profile} />
               </motion.div>
             )}
-            {activeTab === 'resources' && (
-              <motion.div key="resources" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <Resources role={profile?.role || 'member'} onStudy={handleStudyResource} />
+            {activeTab === 'materials' && (
+              <motion.div key="materials" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <SacredMaterials user={profile} onStudy={handleStudyResource} />
               </motion.div>
             )}
              {activeTab === 'petitions' && (
@@ -1222,20 +1204,20 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 px-4 py-3 rounded-full transition-all duration-500 relative group ${
+      className={`w-full flex items-center gap-4 px-5 py-3 rounded-full transition-all duration-300 relative group ${
         active 
-          ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20' 
-          : 'text-stone-500 dark:text-stone-400 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
+          ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' 
+          : 'text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-100'
       }`}
     >
-      <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-700 ${active ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
+      <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-500 ${active ? 'scale-105' : 'group-hover:scale-105'}`}>
         {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-[18px] h-[18px]' })}
       </div>
       {isOpen && (
         <motion.span 
           initial={{ opacity: 0, x: -5 }}
           animate={{ opacity: 1, x: 0 }}
-          className={`text-[13px] font-medium whitespace-nowrap leading-none transition-colors duration-500 ${active ? 'text-white' : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-white'}`}
+          className={`text-[13px] font-bold whitespace-nowrap leading-none transition-colors duration-500`}
         >
           {label}
         </motion.span>
@@ -1245,8 +1227,8 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
         <motion.div 
           layoutId="active-indicator" 
           initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute right-4 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_white]"
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute right-5 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]"
         />
       )}
     </button>
