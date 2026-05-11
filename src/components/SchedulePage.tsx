@@ -145,7 +145,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
   const shareActivity = (act: any) => {
     const dateStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleDateString() : new Date(act.date).toLocaleDateString();
     const timeStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    const message = `📢 *ZUCA Event Alert* 📢\n\n🗓 *Event:* ${act.title}\n📅 *Date:* ${dateStr}\n⏰ *Time:* ${timeStr}\n📍 *Location:* ${act.location}\n\n📝 *Description:* ${act.description}\n\nSee you there! 🙌\nJoin us: ${window.location.origin}`;
+    const message = `*Event Notification | ZUCA Official*\n\n*Event:* ${act.title}\n*Date:* ${dateStr}\n*Time:* ${timeStr}\n*Location:* ${act.location}\n\n*Description:* ${act.description}\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };

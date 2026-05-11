@@ -82,14 +82,14 @@ export default function AdminPanel() {
   };
 
   const broadcastDaily = () => {
-    const message = `✨ *Daily Oracle - ZUCA* ✨\n\n📖 *Scripture:* ${dailyForm.verse}\n📍 *Reference:* ${dailyForm.reference}\n\n🙏 *Saint of the Day:* ${dailyForm.saintName}\n📜 *About:* ${dailyForm.saintInfo}\n\nJoin our community: ${window.location.origin}`;
+    const message = `*Daily Bread | ZUCA Official*\n\n*Scripture:* ${dailyForm.verse}\n*Reference:* ${dailyForm.reference}\n\n*Saint of the Day:* ${dailyForm.saintName}\n*Reflections:* ${dailyForm.saintInfo}\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`;
     shareToWhatsApp(message);
   };
 
   const broadcastEvent = (event: any) => {
     const dateStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleDateString() : new Date(event.date).toLocaleDateString();
     const timeStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    const message = `📢 *Upcoming Event Alert* 📢\n\n🗓 *Event:* ${event.title}\n📅 *Date:* ${dateStr}\n⏰ *Time:* ${timeStr}\n📍 *Location:* ${event.location}\n\n📝 *Description:* ${event.description}\n\nSee you there! 🙌`;
+    const message = `*Event Notification | ZUCA Official*\n\n*Event:* ${event.title}\n*Date:* ${dateStr}\n*Time:* ${timeStr}\n*Location:* ${event.location}\n\n*Description:* ${event.description}\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`;
     shareToWhatsApp(message);
   };
 

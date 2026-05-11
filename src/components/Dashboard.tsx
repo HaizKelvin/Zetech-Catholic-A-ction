@@ -39,7 +39,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
 
   const shareDaily = () => {
     if (!daily) return;
-    const message = `✨ *Daily Oracle - ZUCA* ✨\n\n📖 *Scripture:* ${daily.verse}\n📍 *Reference:* ${daily.reference}\n\n🙏 *Saint of the Day:* ${daily.saintName}\n📜 *About:* ${daily.saintInfo}\n\nJoin our community: ${window.location.origin}`;
+    const message = `*Daily Bread | ZUCA Official*\n\n*Scripture:* ${daily.verse}\n*Reference:* ${daily.reference}\n\n*Saint of the Day:* ${daily.saintName}\n*Reflections:* ${daily.saintInfo}\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };
