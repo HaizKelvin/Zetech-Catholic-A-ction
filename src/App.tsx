@@ -30,7 +30,7 @@ import { NotificationManager } from './lib/notifications';
 // Components
 import AboutPage from './components/AboutPage';
 import Chatbot from './components/Chatbot';
-import SacredMaterials from './components/SacredMaterials';
+import GroupLibrary from './components/GroupLibrary';
 import Dashboard from './components/Dashboard';
 import Petitions from './components/Petitions';
 import Events from './components/Events';
@@ -749,7 +749,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 </div>
 
                 <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4" />} label="Daily Trivia" isOpen={isSidebarOpen} />
-                <NavItem active={activeTab === 'materials'} onClick={() => handleTabChange('materials')} icon={<BookOpen className="w-4 h-4" />} label="Sacred Materials" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'materials'} onClick={() => handleTabChange('materials')} icon={<BookOpen className="w-4 h-4" />} label="Group Library" isOpen={isSidebarOpen} />
                 <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
               </div>
             </div>
@@ -976,7 +976,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
           if (isSidebarOpen) setIsSidebarOpen(false);
           if (isNotificationOpen) setIsNotificationOpen(false);
         }}
-        className={`flex-1 transition-all duration-500 ease-in-out pt-16 md:pt-12 px-1 md:px-12 relative z-10 ${isSidebarOpen ? 'ml-0 md:ml-80' : 'ml-0'}`}
+        className={`flex-1 transition-all duration-500 ease-in-out pt-16 md:pt-12 px-3 md:px-12 relative z-10 ${isSidebarOpen ? 'ml-0 md:ml-80' : 'ml-0'}`}
       >
         {/* Scroll Progress Bar */}
         <motion.div 
@@ -1005,7 +1005,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
             )}
             {activeTab === 'materials' && (
               <motion.div key="materials" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <SacredMaterials user={profile} onStudy={handleStudyResource} />
+                <GroupLibrary user={profile} onStudy={handleStudyResource} />
               </motion.div>
             )}
             {activeTab === 'schedule' && (

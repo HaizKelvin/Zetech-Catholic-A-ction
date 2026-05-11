@@ -173,9 +173,9 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
             )}
           </div>
           
-          <div className="space-y-4 md:space-y-8 mb-10 md:mb-32">
-            <div className="h-[2px] w-12 md:w-32 bg-gradient-to-r from-brand-600 to-transparent" />
-            <h2 className="text-2xl md:text-8xl font-bold text-stone-900 dark:text-white leading-tight tracking-tighter serif-display">
+          <div className="space-y-3 md:space-y-6 mb-10 md:mb-20">
+            <div className="h-[2px] w-12 md:w-24 bg-gradient-to-r from-brand-600 to-transparent" />
+            <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold text-stone-900 dark:text-white leading-tight tracking-tighter serif-display">
               {questions[currentIndex].question}
             </h2>
           </div>
@@ -242,11 +242,11 @@ export default function TriviaComponent({ isAdmin }: { isAdmin: boolean }) {
               </div>
             </div>
             
-            <div className="space-y-3 md:space-y-6 mb-10 md:mb-16">
-              <h2 className="text-3xl md:text-9xl font-bold text-stone-950 dark:text-white tracking-tighter serif-display italic">
-                Sacred <span className="text-brand-500 not-italic uppercase font-black text-lg md:text-5xl tracking-[0.2em] md:tracking-[0.4em] block mt-2 md:mt-4">Wisdom</span>
+            <div className="space-y-2 md:space-y-4 mb-8 md:mb-16">
+              <h2 className="text-2xl md:text-7xl lg:text-8xl font-bold text-stone-950 dark:text-white tracking-tighter serif-display italic">
+                Sacred <span className="text-brand-500 not-italic uppercase font-black text-xs md:text-5xl tracking-[0.2em] md:tracking-[0.4em] block mt-1 md:mt-4">Wisdom</span>
               </h2>
-              <div className="h-0.5 w-12 md:w-24 bg-brand-500/20 mx-auto rounded-full" />
+              <div className="h-0.5 w-10 md:w-24 bg-brand-500/20 mx-auto rounded-full" />
             </div>
 
             <div className="flex items-center justify-center gap-4 md:gap-6 mb-12 md:mb-24">

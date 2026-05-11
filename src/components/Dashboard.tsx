@@ -47,7 +47,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
       {/* Immersive Header - More compact and clean */}
       <motion.header 
         variants={item}
-        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group h-auto flex items-center mb-6 md:mb-8"
+        className="relative py-6 md:py-24 px-4 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group h-auto flex items-center mb-4 md:mb-8"
       >
         <div className="absolute inset-0 z-0">
           <img 
@@ -59,25 +59,25 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[120px] rounded-full -mr-48 -mt-48" />
         </div>
 
-        <div className="relative z-10 flex flex-col gap-8 md:gap-12 max-w-6xl">
+        <div className="relative z-10 flex flex-col gap-6 md:gap-12 max-w-6xl">
           <motion.div
             variants={item}
-            className="inline-flex items-center gap-2 px-4 py-1.5 md:px-6 md:py-2 rounded-full glass-dark border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
+            className="inline-flex items-center gap-2 px-3 py-1 md:px-6 md:py-2 rounded-full glass-dark border border-white/10 text-[7px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
           >
             <div className="w-1.5 h-1.5 rounded-full bg-brand-400 shadow-[0_0_8px_rgba(92,133,255,1)]" />
             Cathedral of Connections
           </motion.div>
           
-          <div className="space-y-4 md:space-y-6">
+          <div className="space-y-2 md:space-y-6">
             <motion.h1 
               variants={item}
-              className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white"
+              className="text-2xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-none text-white text-left"
             >
               Welcome Home, <br />
               <span className="serif-display italic font-light text-brand-400 lowercase drop-shadow-3xl">{userName}</span>
             </motion.h1>
             
-            <motion.p variants={item} className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
+            <motion.p variants={item} className="text-stone-400 text-xs md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80 text-left">
               Your digital sanctuary for community, devotion, and divine exploration.
             </motion.p>
           </div>

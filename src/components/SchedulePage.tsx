@@ -42,6 +42,7 @@ interface Activity {
 export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user: any }) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newActivity, setNewActivity] = useState({
     title: '',
@@ -53,6 +54,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
   });
 
   useEffect(() => {
+    NotificationManager.requestPermission();
     const q = query(collection(db, 'schedule'), orderBy('date', 'asc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
@@ -121,13 +123,26 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     });
   };
 
+  const handleDayClick = (day: Date) => {
+    const isSelectedMonth = isSameMonth(day, monthStart);
+    if (!isSelectedMonth) return;
+
+    setSelectedDate(day);
+
+    if (isAdmin) {
+      const formattedDate = format(day, "yyyy-MM-dd'T'12:00");
+      setNewActivity(prev => ({ ...prev, date: formattedDate }));
+      setIsAddModalOpen(true);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100">
-      {/* Header */}
+      {/* Header - Compacted */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-12 mx-2 md:mx-0"
+        className="relative py-6 md:py-24 px-4 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-xl group mb-4 md:mb-12 mx-1 md:mx-0 border border-white/5"
       >
         <div className="absolute inset-0 z-0">
           <img 
@@ -135,109 +150,132 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
             className="w-full h-full object-cover opacity-20 transform group-hover:scale-110 transition-transform duration-[3s]" 
             alt="Schedule"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[120px] rounded-full -mr-48 -mt-48" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/60 to-transparent" />
         </div>
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-12 max-w-full">
-          <div className="space-y-4 md:space-y-6">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12 max-w-full">
+          <div className="space-y-2 md:space-y-6">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-dark border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-dark border border-white/10 text-[7px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,1)]" />
-              Community Timeline
+              <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,1)]" />
+              Timeline
             </motion.div>
             
-            <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white serif-display">
-              Sacred <br />
-              <span className="serif-display italic font-light text-emerald-400 lowercase">Schedule</span>
+            <h1 className="text-2xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-none text-white serif-display">
+              Sacred <span className="serif-display italic font-light text-emerald-400 lowercase">Schedule</span>
             </h1>
-            
-            <p className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
-              Align your spirit with the rhythms of our community. Semester plans and daily liturgy.
-            </p>
           </div>
 
           {isAdmin && (
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setIsAddModalOpen(true)}
-              className="w-full md:w-auto flex items-center justify-center gap-3 bg-emerald-600 text-white px-6 py-4 md:px-8 md:py-5 rounded-2xl md:rounded-3xl hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/30 text-[9px] md:text-[10px]"
+              onClick={() => {
+                setNewActivity(prev => ({ ...prev, date: format(new Date(), "yyyy-MM-dd'T'12:00") }));
+                setIsAddModalOpen(true);
+              }}
+              className="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-[32px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/30 text-[8px] md:text-[10px]"
             >
-              <Plus className="w-4 h-4" />
-              Schedule Event
+              <Plus className="w-3.5 h-3.5" />
+              Add Event
             </motion.button>
           )}
         </div>
       </motion.header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 md:px-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-1 md:px-0">
         {/* Calendar Side */}
-        <div className="lg:col-span-8 space-y-8">
-          <div className="glass rounded-[32px] md:rounded-[48px] p-6 md:p-10 border border-brand-500/10 shadow-xl">
+        <div className="lg:col-span-8 space-y-6">
+          <div className="glass rounded-[24px] md:rounded-[48px] p-4 md:p-10 border border-brand-500/10 shadow-2xl bg-white/40 dark:bg-stone-900/40 backdrop-blur-3xl">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl md:text-3xl font-black uppercase tracking-tight serif-display">{format(currentMonth, 'MMMM yyyy')}</h2>
+              <h2 className="text-xl md:text-4xl font-black uppercase tracking-tight serif-display">{format(currentMonth, 'MMMM')} <span className="text-emerald-500 font-light">{format(currentMonth, 'yyyy')}</span></h2>
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                  className="p-3 bg-stone-100 dark:bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-stone-200 dark:border-white/5"
+                  className="p-2 md:p-3 bg-stone-100 dark:bg-white/5 rounded-xl hover:bg-emerald-500/10 transition-all border border-stone-200 dark:border-white/5 group"
                 >
-                  <ChevronLeft className="w-5 h-5 text-stone-500" />
+                  <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-stone-500 group-hover:text-emerald-500" />
                 </button>
                 <button 
                   onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                  className="p-3 bg-stone-100 dark:bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-stone-200 dark:border-white/5"
+                  className="p-2 md:p-3 bg-stone-100 dark:bg-white/5 rounded-xl hover:bg-emerald-500/10 transition-all border border-stone-200 dark:border-white/5 group"
                 >
-                  <ChevronRight className="w-5 h-5 text-stone-500" />
+                  <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-stone-500 group-hover:text-emerald-500" />
                 </button>
               </div>
             </div>
 
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-2 md:gap-4">
+            {/* Calendar Grid - Modern Optimized */}
+            <div className="grid grid-cols-7 gap-1.5 md:gap-4">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center text-[10px] font-black uppercase tracking-widest text-stone-400 py-2">
+                <div key={day} className="text-center text-[7px] md:text-[11px] font-black uppercase tracking-[0.2em] text-stone-400 py-3">
                   {day}
                 </div>
               ))}
               {calendarDays.map((day, idx) => {
                 const dayActivities = getActivitiesForDay(day);
+                const isSelectedMonth = isSameMonth(day, monthStart);
+                const isCurrentToday = isToday(day);
+                const isSelected = isSameDay(day, selectedDate);
+                
                 return (
                   <motion.div
                     key={day.toString()}
-                    whileHover={{ y: -2 }}
-                    className={`min-h-[100px] md:min-h-[140px] p-2 md:p-4 rounded-2xl md:rounded-3xl border transition-all relative group ${
-                      !isSameMonth(day, monthStart) 
-                        ? 'opacity-20 pointer-events-none' 
-                        : isToday(day)
-                          ? 'bg-emerald-500/10 border-emerald-500/50 shadow-lg shadow-emerald-500/10'
-                          : 'bg-white/40 dark:bg-white/5 border-stone-100 dark:border-white/5 hover:border-brand-500/30'
+                    layoutId={`day-${day.toString()}`}
+                    whileHover={isSelectedMonth ? { y: -4, scale: 1.02, zIndex: 10 } : {}}
+                    whileTap={isSelectedMonth ? { scale: 0.98 } : {}}
+                    onClick={() => handleDayClick(day)}
+                    className={`min-h-[70px] md:min-h-[140px] p-2 md:p-4 rounded-2xl md:rounded-[32px] border transition-all relative group cursor-pointer overflow-hidden ${
+                      !isSelectedMonth 
+                        ? 'opacity-5 pointer-events-none' 
+                        : isSelected
+                          ? 'bg-emerald-500 shadow-2xl shadow-emerald-500/20 border-emerald-400 z-10'
+                          : isCurrentToday
+                            ? 'bg-emerald-500/10 border-emerald-500/30 ring-1 ring-emerald-500/10'
+                            : 'bg-white/90 dark:bg-stone-900/60 border-stone-200/50 dark:border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10'
                     }`}
                   >
-                    <span className={`text-xs font-black ${isToday(day) ? 'text-emerald-500' : 'text-stone-500'}`}>
-                      {format(day, 'd')}
-                    </span>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-[10px] md:text-sm font-black transition-colors ${
+                        isSelected 
+                          ? 'text-white' 
+                          : isCurrentToday ? 'text-emerald-500' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-900 dark:group-hover:text-white'
+                      }`}>
+                        {format(day, 'd')}
+                      </span>
+                      {isAdmin && isSelectedMonth && !isSelected && (
+                        <Plus className="w-3 h-3 text-emerald-500 opacity-0 group-hover:opacity-100 transition-all transform scale-50 group-hover:scale-100" />
+                      )}
+                    </div>
                     
-                    <div className="mt-2 space-y-1.5 overflow-y-auto max-h-[80px] custom-scrollbar">
-                      {dayActivities.map(act => (
+                    <div className="space-y-1 md:space-y-1.5 overflow-hidden">
+                      {dayActivities.slice(0, 3).map(act => (
                         <div 
                           key={act.id} 
-                          className="px-2 py-1 bg-stone-900 dark:bg-emerald-500 text-white dark:text-black rounded-lg text-[8px] font-bold truncate tracking-wide"
-                          title={act.title}
+                          className={`px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg text-[6px] md:text-[9px] font-bold truncate tracking-wide border shadow-sm ${
+                            isSelected
+                              ? 'bg-white/20 text-white border-white/30'
+                              : act.type === 'Mass' ? 'bg-amber-500/10 text-amber-500 border-amber-600/10' :
+                                act.type === 'Meeting' ? 'bg-blue-500/10 text-blue-500 border-blue-600/10' :
+                                act.type === 'Social' ? 'bg-indigo-500/10 text-indigo-500 border-indigo-600/10' :
+                                'bg-emerald-500/10 text-emerald-500 border-emerald-600/10'
+                          }`}
                         >
                           {act.title}
                         </div>
                       ))}
+                      {dayActivities.length > 3 && (
+                         <div className={`text-[6px] md:text-[8px] font-black ml-1.5 uppercase tracking-widest opacity-60 ${isSelected ? 'text-white' : 'text-stone-400'}`}>
+                           + {dayActivities.length - 3} More
+                         </div>
+                      )}
                     </div>
-
-                    {dayActivities.length > 0 && (
-                      <div className="absolute inset-x-0 bottom-2 flex justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      </div>
+                    
+                    {isCurrentToday && !isSelected && (
+                      <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,1)]" />
                     )}
                   </motion.div>
                 );
@@ -248,6 +286,72 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
 
         {/* Info Side */}
         <div className="lg:col-span-4 space-y-8">
+          {/* Day Agenda View */}
+          <div className="glass rounded-[32px] p-6 md:p-8 border border-emerald-500/20 shadow-2xl relative overflow-hidden group bg-white dark:bg-stone-900">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl -mr-16 -mt-16" />
+            <div className="relative z-10 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-1">Agenda for</p>
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight serif-display">{format(selectedDate, 'MMMM d')}</h3>
+                </div>
+                <CalendarIcon className="w-6 h-6 text-emerald-500 opacity-20" />
+              </div>
+              
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                {getActivitiesForDay(selectedDate).length === 0 && (
+                   <div className="text-center py-10 opacity-30 italic">
+                      <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                      <p className="text-xs">No events for this day.</p>
+                      {isAdmin && (
+                        <button 
+                          onClick={() => handleDayClick(selectedDate)}
+                          className="mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:underline"
+                        >
+                          Add one now?
+                        </button>
+                      )}
+                   </div>
+                )}
+                {getActivitiesForDay(selectedDate).map(act => (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    key={act.id} 
+                    className="p-4 bg-stone-50 dark:bg-white/5 rounded-[20px] border border-stone-100 dark:border-white/5 relative group"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                           <span className={`w-1.5 h-1.5 rounded-full ${
+                             act.type === 'Mass' ? 'bg-amber-500' :
+                             act.type === 'Meeting' ? 'bg-blue-500' :
+                             act.type === 'Social' ? 'bg-indigo-500' :
+                             'bg-emerald-500'
+                           }`} />
+                           <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{act.type}</span>
+                        </div>
+                        <h4 className="font-bold text-stone-900 dark:text-white leading-tight">{act.title}</h4>
+                      </div>
+                      {isAdmin && (
+                        <button 
+                          onClick={() => handleDelete(act.id)}
+                          className="p-1.5 text-stone-300 hover:text-red-500 transition-colors bg-white dark:bg-stone-800 rounded-lg shadow-sm opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="mt-3 flex items-center gap-3 text-[10px] text-stone-500">
+                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {format(act.date instanceof Timestamp ? act.date.toDate() : new Date(act.date), 'HH:mm')}</span>
+                       <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {act.location}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Upcoming Card */}
           <div className="glass rounded-[32px] p-8 border border-white/10 shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl -mr-16 -mt-16" />
@@ -328,9 +432,9 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-stone-900 border border-white/10 w-full max-w-xl rounded-[40px] shadow-3xl overflow-hidden p-8 md:p-12 relative"
+              className="bg-stone-900 border border-white/10 w-full max-w-xl max-h-[90vh] rounded-[40px] shadow-3xl overflow-y-auto p-5 md:p-8 relative custom-scrollbar"
             >
-              <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-3xl font-black text-white uppercase tracking-tight italic serif-display">Prophetic <span className="text-emerald-500 not-italic">Timing</span></h2>
                   <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-2">New Schedule Entry</p>

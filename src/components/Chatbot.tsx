@@ -45,6 +45,14 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
+        if (event.error === 'not-allowed') {
+          alert("Microphone access is blocked. Please enable permissions in your browser settings. If you are using the AI Studio preview, try opening the app in a new browser tab.");
+        } else if (event.error === 'network') {
+          alert("Check your internet connection.");
+        } else if (event.error === 'no-speech') {
+          // Silent or subtle feedback for no speech detected
+          console.log("No speech detected.");
+        }
       };
 
       recognitionRef.current.onend = () => {
@@ -195,7 +203,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="mb-4 w-[calc(100vw-3rem)] md:w-[360px] h-[65vh] md:h-[500px] bg-[#F4F5F7] dark:bg-stone-950 rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.4)] border border-stone-200 dark:border-white/5 overflow-hidden flex flex-col"
+            className="mb-4 w-[calc(100vw-3rem)] md:w-[360px] h-[60vh] md:h-[500px] bg-[#F4F5F7] dark:bg-stone-950 rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.4)] border border-stone-200 dark:border-white/5 overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="p-6 bg-stone-900 dark:bg-stone-800 text-white relative overflow-hidden shrink-0 border-b border-white/5">
