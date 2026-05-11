@@ -683,9 +683,33 @@ Can you provide more insight, theological context, or a related prayer meditatio
     <div className={`min-h-screen transition-colors duration-700 flex relative overflow-hidden ${darkMode ? 'dark text-indigo-50 bg-[#09090b]' : 'text-stone-900 bg-[#fdfcfb]'}`}>
       {/* Divine Background Elements */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="bloom-soft w-[600px] h-[600px] bg-brand-200/20 dark:bg-brand-500/5 -top-40 -left-60 animate-float" />
-        <div className="bloom-soft w-[400px] h-[400px] bg-sky-200/20 dark:bg-sky-500/5 top-1/2 -right-20 animate-pulse-gentle" />
-        <div className="bloom-soft w-[500px] h-[500px] bg-indigo-200/10 dark:bg-indigo-500/5 -bottom-40 left-1/4 animate-float" style={{ animationDelay: '-2s' }} />
+        <motion.div 
+          animate={{ 
+            x: [0, 100, 0], 
+            y: [0, -50, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="blur-[120px] w-[600px] h-[600px] bg-brand-200/20 dark:bg-brand-500/5 -top-40 -left-60" 
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, -80, 0], 
+            y: [0, 100, 0],
+            scale: [1, 1.3, 1]
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          className="blur-[120px] w-[500px] h-[500px] bg-emerald-200/10 dark:bg-emerald-500/5 top-1/4 -right-20" 
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, 50, 0], 
+            y: [0, 150, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="blur-[120px] w-[700px] h-[700px] bg-amber-200/5 dark:bg-amber-500/5 -bottom-60 left-1/3" 
+        />
         <div className="absolute inset-0 divine-pattern opacity-10 dark:opacity-5" />
       </div>
 

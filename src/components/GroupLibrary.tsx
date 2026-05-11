@@ -49,11 +49,12 @@ interface Material {
   id: string;
   title: string;
   description: string;
-  category: 'Prayers' | 'Scriptures' | 'Liturgy' | 'Choir' | 'Formation' | 'Other';
+  category: 'Prayers' | 'Scriptures' | 'Liturgy' | 'Choir' | 'Formation' | 'Videos' | 'Other';
   link?: string;
   addedBy: string;
   timestamp: any;
   contentSnippet?: string;
+  type?: 'text' | 'video';
 }
 
 interface GroupLibraryProps {
@@ -68,6 +69,7 @@ const CATEGORIES = [
   { id: 'Liturgy', icon: <Church className="w-3.5 h-3.5" />, color: 'rose' },
   { id: 'Choir', icon: <Music className="w-3.5 h-3.5" />, color: 'indigo' },
   { id: 'Formation', icon: <ScrollText className="w-3.5 h-3.5" />, color: 'emerald' },
+  { id: 'Videos', icon: <Youtube className="w-3.5 h-3.5" />, color: 'red' },
 ];
 
 export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryProps) {
@@ -80,7 +82,8 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
     description: '',
     category: 'Prayers' as const,
     link: '',
-    contentSnippet: ''
+    contentSnippet: '',
+    type: 'text' as 'text' | 'video'
   });
 
   useEffect(() => {
@@ -104,7 +107,7 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
         timestamp: serverTimestamp()
       });
       setIsAddModalOpen(false);
-      setNewMaterial({ title: '', description: '', category: 'Prayers', link: '', contentSnippet: '' });
+      setNewMaterial({ title: '', description: '', category: 'Prayers', link: '', contentSnippet: '', type: 'text' });
     } catch (error) {
       console.error("Error adding material:", error);
     }
@@ -129,16 +132,16 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
   });
 
   const shareResource = (item: Material) => {
-    const message = `*KNOWLEDGE: ${item.title.toUpperCase()}*
-
+    const message = `*${item.type === 'video' ? 'DIVINE VISION' : 'KNOWLEDGE'}: ${item.title.toUpperCase()}*
+    
 *Category:* ${item.category}
-
+    
 *Description:*
 ${item.description}
-
+    
 *Access Details:*
 ${item.link || 'Available via ZUCA Portal'}
-
+    
 ━━━━━━━━━━━━━━━━━━
 *ZUCA PORTAL:* ${window.location.origin}
 ✧────────────────✧`;
@@ -148,8 +151,48 @@ ${item.link || 'Available via ZUCA Portal'}
 
   const featuredMaterial = filteredMaterials[0];
 
+  const getYoutubeId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url?.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100">
+      {/* Video Modal Overlay */}
+      <AnimatePresence>
+        {playingVideo && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="relative w-full max-w-5xl aspect-video rounded-3xl overflow-hidden shadow-3xl bg-black"
+            >
+              <button 
+                onClick={() => setPlayingVideo(null)}
+                className="absolute top-6 right-6 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all border border-white/10"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <iframe 
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${getYoutubeId(playingVideo)}?autoplay=1`}
+                title="Sacred Video Player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Sacred Header - Enhanced with subtle texture */}
       <motion.header 
         initial={{ opacity: 0, scale: 0.98 }}
@@ -361,9 +404,16 @@ ${item.link || 'Available via ZUCA Portal'}
                     </div>
 
                     <div className="flex-1 space-y-6">
-                      <h3 className="text-3xl md:text-4xl font-black text-stone-900 dark:text-white serif-display tracking-tight leading-[1.1] transition-colors group-hover:text-emerald-500">
-                        {item.title}
-                      </h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-3xl md:text-4xl font-black text-stone-900 dark:text-white serif-display tracking-tight leading-[1.1] transition-colors group-hover:text-emerald-500">
+                          {item.title}
+                        </h3>
+                        {item.type === 'video' && (
+                          <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                            <Youtube className="w-5 h-5 text-red-500" />
+                          </div>
+                        )}
+                      </div>
                       <div className="h-[1px] w-12 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] group-hover:w-24 transition-all duration-700" />
                       <p className="text-base md:text-lg text-stone-500 dark:text-stone-400 leading-relaxed italic opacity-80 serif-display line-clamp-5">
                         "{item.description}"
@@ -382,26 +432,32 @@ ${item.link || 'Available via ZUCA Portal'}
                        </div>
                        
                        <div className="flex gap-3">
-                        <motion.button 
-                          whileHover={{ scale: 1.1, rotate: 5 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
-                          className="w-14 h-14 bg-stone-900 dark:bg-white text-white dark:text-black rounded-2xl shadow-xl flex items-center justify-center hover:shadow-brand-500/20 transition-all border border-white/10"
-                        >
-                          <Bot className="w-6 h-6" />
-                        </motion.button>
-                        
-                        {item.link && (
-                          <motion.button 
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => window.open(item.link, '_blank')}
-                            className="w-14 h-14 bg-stone-50 dark:bg-stone-950/40 text-stone-400 dark:text-stone-400 rounded-2xl border border-stone-200 dark:border-white/5 hover:border-emerald-500/50 hover:text-emerald-500 transition-all shadow-sm flex items-center justify-center"
-                          >
-                            <Globe className="w-6 h-6" />
-                          </motion.button>
-                        )}
-                       </div>
+                         <motion.button 
+                           whileHover={{ scale: 1.1, rotate: 5 }}
+                           whileTap={{ scale: 0.9 }}
+                           onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
+                           className="w-14 h-14 bg-stone-900 dark:bg-white text-white dark:text-black rounded-2xl shadow-xl flex items-center justify-center hover:shadow-brand-500/20 transition-all border border-white/10"
+                         >
+                           <Bot className="w-6 h-6" />
+                         </motion.button>
+                         
+                         {item.link && (
+                           <motion.button 
+                             whileHover={{ scale: 1.1 }}
+                             whileTap={{ scale: 0.9 }}
+                             onClick={() => {
+                               if (item.type === 'video' && getYoutubeId(item.link || '')) {
+                                 setPlayingVideo(item.link || '');
+                               } else {
+                                 window.open(item.link, '_blank');
+                               }
+                             }}
+                             className="w-14 h-14 bg-stone-50 dark:bg-stone-950/40 text-stone-400 dark:text-stone-400 rounded-2xl border border-stone-200 dark:border-white/5 hover:border-emerald-500/50 hover:text-emerald-500 transition-all shadow-sm flex items-center justify-center"
+                           >
+                             {item.type === 'video' ? <Youtube className="w-6 h-6" /> : <Globe className="w-6 h-6" />}
+                           </motion.button>
+                         )}
+                        </div>
                     </div>
                   </div>
                 </motion.div>
@@ -456,7 +512,7 @@ ${item.link || 'Available via ZUCA Portal'}
               <form onSubmit={handleAddMaterial} className="space-y-6 md:space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                   <div className="space-y-3">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 ml-1">Sacred Title</label>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 ml-1 text-left">Sacred Title</label>
                     <input
                       required
                       type="text"
@@ -467,10 +523,17 @@ ${item.link || 'Available via ZUCA Portal'}
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 ml-1">Wisdom Category</label>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 ml-1 text-left">Wisdom Category</label>
                     <select
                       value={newMaterial.category}
-                      onChange={(e) => setNewMaterial({ ...newMaterial, category: e.target.value as any })}
+                      onChange={(e) => {
+                        const cat = e.target.value as any;
+                        setNewMaterial({ 
+                          ...newMaterial, 
+                          category: cat,
+                          type: cat === 'Videos' ? 'video' : 'text'
+                        });
+                      }}
                       className="w-full px-6 py-4 md:py-5 rounded-2xl md:rounded-[32px] bg-stone-950 border-2 border-white/5 text-sm text-white outline-none focus:border-emerald-500/50 transition-all font-medium appearance-none cursor-pointer"
                     >
                       <option value="Prayers">Prayers & Devotions</option>
@@ -478,20 +541,42 @@ ${item.link || 'Available via ZUCA Portal'}
                       <option value="Liturgy">Order of Liturgy</option>
                       <option value="Choir">Sacred Music & Choir</option>
                       <option value="Formation">Spiritual Formation</option>
+                      <option value="Videos">Divine Visuals (Videos)</option>
                       <option value="Other">Miscellaneous Grace</option>
                     </select>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 ml-1">Path of Access (URL)</label>
-                  <input
-                    type="url"
-                    value={newMaterial.link}
-                    onChange={(e) => setNewMaterial({ ...newMaterial, link: e.target.value })}
-                    className="w-full px-6 py-4 md:py-5 rounded-2xl md:rounded-[32px] bg-white/5 border-2 border-white/5 text-sm text-white outline-none focus:border-emerald-500/50 transition-all font-medium placeholder:text-stone-700"
-                    placeholder="https://divine-resource.org/scripture"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 ml-1 text-left">Resource Type</label>
+                    <div className="flex gap-2 p-1 bg-stone-950 rounded-2xl border border-white/5">
+                      <button
+                        type="button"
+                        onClick={() => setNewMaterial({ ...newMaterial, type: 'text' })}
+                        className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newMaterial.type === 'text' ? 'bg-emerald-500 text-black' : 'text-stone-500 hover:text-white'}`}
+                      >
+                        Scripture/Text
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewMaterial({ ...newMaterial, type: 'video' })}
+                        className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newMaterial.type === 'video' ? 'bg-emerald-500 text-black' : 'text-stone-500 hover:text-white'}`}
+                      >
+                        Visual/Video
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 ml-1 text-left">Path of Access (URL)</label>
+                    <input
+                      type="url"
+                      value={newMaterial.link}
+                      onChange={(e) => setNewMaterial({ ...newMaterial, link: e.target.value })}
+                      className="w-full px-6 py-4 md:py-5 rounded-2xl md:rounded-[32px] bg-white/5 border-2 border-white/5 text-sm text-white outline-none focus:border-emerald-500/50 transition-all font-medium placeholder:text-stone-700"
+                      placeholder={newMaterial.type === 'video' ? 'https://youtube.com/watch?v=...' : 'https://divine-resource.org/scripture'}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-3">
