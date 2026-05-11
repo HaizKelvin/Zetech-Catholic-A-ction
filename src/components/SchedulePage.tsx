@@ -104,7 +104,12 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Delete this activity from the schedule?')) {
-      await deleteDoc(doc(db, 'schedule', id));
+      try {
+        await deleteDoc(doc(db, 'schedule', id));
+      } catch (error) {
+        console.error("Error deleting activity:", error);
+        alert("Failed to delete activity. Please check your permissions or connection.");
+      }
     }
   };
 
@@ -329,25 +334,34 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                           <span className={`w-2 h-2 rounded-full ${
-                             act.type === 'Mass' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' :
-                             act.type === 'Meeting' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' :
-                             act.type === 'Social' ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' :
-                             'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
-                           }`} />
+                        <div className="flex items-center gap-3">
+                           <div className="relative flex items-center justify-center w-5 h-5 rounded-full overflow-hidden">
+                             {isAdmin && (
+                               <motion.button 
+                                 initial={{ opacity: 0, scale: 0.5 }}
+                                 whileHover={{ scale: 1.1 }}
+                                 animate={{ opacity: 0 }}
+                                 whileInView={{ opacity: 0 }} // Hidden by default, shown on group-hover via CSS-like logic or just group-hover:opacity-100
+                                 className="absolute inset-0 flex items-center justify-center bg-red-500 text-white z-20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleDelete(act.id);
+                                 }}
+                               >
+                                 <Trash2 className="w-3 h-3" />
+                               </motion.button>
+                             )}
+                             <span className={`w-2 h-2 rounded-full transition-opacity group-hover:opacity-0 ${
+                               act.type === 'Mass' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' :
+                               act.type === 'Meeting' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' :
+                               act.type === 'Social' ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' :
+                               'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                             }`} />
+                           </div>
                            <span className="text-[10px] font-black uppercase tracking-widest opacity-50">{act.type}</span>
                         </div>
                         <h4 className="font-bold text-stone-900 dark:text-white leading-tight pr-4">{act.title}</h4>
                       </div>
-                      {isAdmin && (
-                        <button 
-                          onClick={() => handleDelete(act.id)}
-                          className="p-2 text-stone-300 hover:text-red-500 transition-colors bg-white dark:bg-stone-800 rounded-xl shadow-md border border-stone-100 dark:border-white/5 shadow-stone-200/50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-4 text-[10px] text-stone-500 dark:text-stone-400 font-bold uppercase tracking-widest">
                        <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-emerald-500" /> {format(act.date instanceof Timestamp ? act.date.toDate() : new Date(act.date), 'HH:mm')}</span>

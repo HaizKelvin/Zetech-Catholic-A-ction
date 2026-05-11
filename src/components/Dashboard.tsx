@@ -175,7 +175,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
           className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8"
         >
           <CompactAction onClick={() => onTabChange('chat')} title="Chat" icon={<HelpCircle className="w-5 h-5 md:w-6 md:h-6" />} color="bg-indigo-500/10 text-indigo-500" />
-          <CompactAction onClick={() => onTabChange('materials')} title="Study" icon={<Library className="w-5 h-5 md:w-6 md:h-6" />} color="bg-brand-500/10 text-brand-500" />
+          <CompactAction onClick={() => onTabChange('materials')} title="Library" icon={<Library className="w-5 h-5 md:w-6 md:h-6" />} color="bg-brand-500/10 text-brand-500" />
           <CompactAction onClick={() => onTabChange('gallery')} title="Activities" icon={<Trophy className="w-5 h-5 md:w-6 md:h-6" />} color="bg-amber-500/10 text-amber-500" />
           <CompactAction onClick={() => onTabChange('petitions')} title="Altar" icon={<Heart className="w-5 h-5 md:w-6 md:h-6" />} color="bg-rose-500/10 text-rose-500" />
         </motion.div>

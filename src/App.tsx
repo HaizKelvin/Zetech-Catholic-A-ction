@@ -694,6 +694,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
               {isSidebarOpen && <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 ml-4 mb-2">Sanctuary</p>}
               <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4" />} label="Overview" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4" />} label="Community Hub" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'materials'} onClick={() => handleTabChange('materials')} icon={<BookOpen className="w-4 h-4" />} label="Divine Library" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'schedule'} onClick={() => handleTabChange('schedule')} icon={<Calendar className="w-4 h-4" />} label="Schedule & Events" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4" />} label="Activities" isOpen={isSidebarOpen} />
             </div>
@@ -747,7 +748,6 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 </div>
 
                 <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4" />} label="Daily Trivia" isOpen={isSidebarOpen} />
-                <NavItem active={activeTab === 'materials'} onClick={() => handleTabChange('materials')} icon={<BookOpen className="w-4 h-4" />} label="Group Library" isOpen={isSidebarOpen} />
                 <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
               </div>
             </div>

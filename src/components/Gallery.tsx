@@ -84,11 +84,11 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this post?')) return;
-    const path = `gallery/${id}`;
     try {
       await deleteDoc(doc(db, 'gallery', id));
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, path);
+      console.error("Error deleting post:", error);
+      handleFirestoreError(error, OperationType.DELETE, `gallery/${id}`);
     }
   };
 

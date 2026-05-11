@@ -112,7 +112,12 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Remove this resource?')) {
-      await deleteDoc(doc(db, 'sacred_materials', id));
+      try {
+        await deleteDoc(doc(db, 'sacred_materials', id));
+      } catch (error) {
+        console.error("Error removing resource:", error);
+        alert("Failed to remove resource. Please check your permissions or connection.");
+      }
     }
   };
 
