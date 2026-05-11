@@ -83,10 +83,7 @@ export default function AdminPanel() {
 
   const broadcastDaily = () => {
     const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-    const message = `*•┈ ZUCA SACRED DAILY ┈•*
-━━━━━━━━━━━━━━━━━━
-
-*DAILY BREAD | ${today.toUpperCase()}*
+    const message = `*DAILY BREAD | ${today.toUpperCase()}*
 
 *Scripture Reference:*
 ${dailyForm.reference}
@@ -111,10 +108,7 @@ ${dailyForm.saintInfo}
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
     const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const message = `*•┈ ZUCA SACRED INVITATION ┈•*
-━━━━━━━━━━━━━━━━━━
-
-*URGENT: ${event.title.toUpperCase()}*
+    const message = `*URGENT: ${event.title.toUpperCase()}*
 
 *Day:* ${dayName}
 *Date:* ${dateStr}
@@ -415,7 +409,7 @@ ${event.description}
                       <div className="flex items-center gap-2 md:gap-3 shrink-0">
                         {u.contactNumber && (
                           <button 
-                            onClick={() => shareToWhatsApp(`*•┈ ZUCA SACRED GREETING ┈•*
+                            onClick={() => shareToWhatsApp(`*SACRED GREETING*
 ━━━━━━━━━━━━━━━━━━
 
 *Dear Fellow Servant,*

@@ -129,10 +129,7 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
   });
 
   const shareResource = (item: Material) => {
-    const message = `*•┈ ZUCA SACRED RESOURCE ┈•*
-━━━━━━━━━━━━━━━━━━
-
-*KNOWLEDGE: ${item.title.toUpperCase()}*
+    const message = `*KNOWLEDGE: ${item.title.toUpperCase()}*
 
 *Category:* ${item.category}
 

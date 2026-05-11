@@ -378,8 +378,12 @@ Can you provide more insight, theological context, or a related prayer meditatio
       console.error('Login error:', error);
       if (error.code === 'auth/popup-blocked') {
         setAuthError('Popup blocked! Please allow popups or open this app in a new tab to sign in with Google.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        setAuthError('Unauthorized domain! Please add ' + window.location.hostname + ' to your Firebase Authorized Domains in the console.');
+      } else if (error.code === 'auth/operation-not-allowed') {
+        setAuthError('Google Sign-In is not enabled! Please enable it in your Firebase Console.');
       } else {
-        setAuthError(error.message || 'Login failed');
+        setAuthError(error.message || 'Login failed. Try opening the app in a new tab.');
       }
     } finally {
       setAuthLoading(false);
@@ -643,6 +647,20 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" className="w-5 h-5" />
                 Sign in with University Google
               </button>
+
+              {window.self !== window.top && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-2xl">
+                  <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 text-center uppercase tracking-widest leading-relaxed">
+                    Authentication may fail inside the preview. If you face issues, please open the app in a new tab.
+                  </p>
+                  <button 
+                    onClick={() => window.open(window.location.href, '_blank')}
+                    className="w-full mt-2 text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest hover:underline"
+                  >
+                    Open in New Tab
+                  </button>
+                </div>
+              )}
 
               <div className="mt-8 text-center">
                 <button 

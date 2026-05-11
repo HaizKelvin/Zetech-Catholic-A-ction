@@ -175,10 +175,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
     const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const message = `*•┈ ZUCA SACRED INVITATION ┈•*
-━━━━━━━━━━━━━━━━━━
-
-*URGENT: ${act.title.toUpperCase()}*
+    const message = `*URGENT: ${act.title.toUpperCase()}*
 
 *Day:* ${dayName}
 *Date:* ${dateStr}
