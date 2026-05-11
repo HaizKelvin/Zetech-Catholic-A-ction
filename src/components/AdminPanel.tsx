@@ -376,7 +376,7 @@ export default function AdminPanel() {
                       <div className="flex items-center gap-2 md:gap-3 shrink-0">
                         {u.contactNumber && (
                           <button 
-                            onClick={() => shareToWhatsApp("Blessings from ZUCA community!", u.contactNumber)}
+                            onClick={() => shareToWhatsApp(`Blessings from ZUCA community!\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`, u.contactNumber)}
                             className="p-2 text-[#25D366] opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
                             title="Send WhatsApp"
                           >
