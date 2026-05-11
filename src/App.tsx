@@ -14,6 +14,7 @@ import {
   getDoc, 
   setDoc, 
   updateDoc,
+  deleteDoc,
   onSnapshot,
   serverTimestamp,
   Timestamp,
@@ -73,6 +74,7 @@ import {
   User as UserIcon,
   Bell,
   BellOff,
+  Trash2,
   Youtube,
   Image as ImageIcon,
   Home,
@@ -959,87 +961,110 @@ Can you provide more insight, theological context, or a related prayer meditatio
 
               <AnimatePresence>
                 {isNotificationOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95, x: 20 }}
-                    animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95, x: 20 }}
-                    className="absolute top-12 right-0 w-[320px] md:w-[400px] glass rounded-[32px] shadow-3xl border border-white/10 overflow-hidden flex flex-col z-[120]"
-                  >
-                    <div className="p-5 border-b border-brand-500/10 flex items-center justify-between bg-stone-50/50 dark:bg-white/5">
-                       <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg">
-                           <Bell className="w-4 h-4 text-white" />
+                  <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-stone-950/40 backdrop-blur-sm">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                      className="relative w-full max-w-xl glass rounded-[40px] shadow-3xl border border-white/10 overflow-hidden flex flex-col"
+                    >
+                      <div className="p-6 md:p-8 border-b border-brand-500/10 flex items-center justify-between bg-stone-50/50 dark:bg-white/5">
+                         <div className="flex items-center gap-4">
+                           <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center shadow-lg">
+                             <Bell className="w-6 h-6 text-white" />
+                           </div>
+                           <div>
+                            <h3 className="font-black text-xl text-stone-900 dark:text-white tracking-tight">Divine Alerts</h3>
+                            <p className="text-[10px] text-brand-600/60 font-black uppercase tracking-widest">Sanctuary Notifications</p>
+                           </div>
                          </div>
-                         <h3 className="font-bold text-sm text-stone-900 dark:text-white tracking-tight">Divine Alerts</h3>
-                       </div>
-                       <button 
-                         onClick={() => setIsNotificationOpen(false)}
-                         className="p-1.5 rounded-full hover:bg-stone-200 dark:hover:bg-white/5 text-stone-400 transition-colors"
-                       >
-                         <X className="w-4 h-4" />
-                       </button>
-                    </div>
-                    
-                    <div className="max-h-[70vh] md:max-h-[400px] overflow-y-auto custom-scrollbar p-3 space-y-2">
-                       {notifications.length > 0 ? (
-                         notifications.map((n, idx) => (
-                           <motion.div
-                             key={n.id}
-                             initial={{ opacity: 0, x: 10 }}
-                             animate={{ opacity: 1, x: 0 }}
-                             transition={{ delay: idx * 0.03 }}
-                             className={`p-4 rounded-2xl border transition-all duration-300 relative group cursor-pointer ${
-                               !n.isRead 
-                                 ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-500/10 shadow-sm' 
-                                 : 'bg-transparent border-transparent opacity-60'
-                             }`}
-                             onClick={async () => {
-                               if (!n.isRead) {
-                                 const docRef = doc(db, 'notifications', n.id);
-                                 await updateDoc(docRef, { isRead: true });
-                               }
-                             }}
-                           >
-                             <div className="flex items-start gap-3">
-                               <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${!n.isRead ? 'bg-brand-500' : 'bg-stone-300 dark:bg-stone-700'}`} />
-                               <div className="flex-1 min-w-0">
-                                 <p className="font-bold text-[13px] text-stone-900 dark:text-white tracking-tight leading-snug">{n.title}</p>
-                                 <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 line-clamp-2 leading-relaxed">{n.message}</p>
-                                 <span className="text-[8px] font-black uppercase tracking-widest text-stone-400 block mt-2">
-                                   {n.timestamp?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Just now'}
-                                 </span>
+                         <button 
+                           onClick={() => setIsNotificationOpen(false)}
+                           className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors"
+                         >
+                           <X className="w-5 h-5" />
+                         </button>
+                      </div>
+                      
+                      <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-6 space-y-3">
+                         {notifications.length > 0 ? (
+                           notifications.map((n, idx) => (
+                             <motion.div
+                               key={n.id}
+                               initial={{ opacity: 0, x: 10 }}
+                               animate={{ opacity: 1, x: 0 }}
+                               transition={{ delay: idx * 0.03 }}
+                               className={`p-6 rounded-[28px] border transition-all duration-300 relative group ${
+                                 !n.isRead 
+                                   ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-500/10 shadow-sm' 
+                                   : 'bg-white/5 border-transparent opacity-60'
+                               }`}
+                               onClick={async () => {
+                                 if (!n.isRead) {
+                                   const docRef = doc(db, 'notifications', n.id);
+                                   await updateDoc(docRef, { isRead: true });
+                                 }
+                               }}
+                             >
+                               <div className="flex items-start gap-4">
+                                 <div className={`mt-2 w-2 h-2 rounded-full shrink-0 ${!n.isRead ? 'bg-brand-500' : 'bg-stone-300 dark:bg-stone-700'}`} />
+                                 <div className="flex-1 min-w-0">
+                                   <div className="flex items-center justify-between mb-1">
+                                     <p className="font-black text-[15px] text-stone-900 dark:text-white tracking-tight leading-snug">{n.title}</p>
+                                     <button 
+                                       onClick={async (e) => {
+                                         e.stopPropagation();
+                                         await deleteDoc(doc(db, 'notifications', n.id));
+                                       }}
+                                       className="opacity-0 group-hover:opacity-100 p-2 text-stone-400 hover:text-red-500 transition-all rounded-full hover:bg-red-500/10"
+                                     >
+                                       <Trash2 className="w-4 h-4" />
+                                     </button>
+                                   </div>
+                                   <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">{n.message}</p>
+                                   <div className="flex items-center gap-2 mt-3">
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-stone-400">
+                                        {n.timestamp?.toDate()?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'Just now'}
+                                      </span>
+                                   </div>
+                                 </div>
                                </div>
-                             </div>
-                           </motion.div>
-                         ))
-                       ) : (
-                         <div className="py-12 text-center space-y-3">
-                            <BellOff className="w-8 h-8 text-stone-200 mx-auto" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Divine silence</p>
-                         </div>
-                       )}
-                    </div>
-
-                    <div className="p-4 grid grid-cols-2 gap-3 border-t border-white/5 bg-stone-50/50 dark:bg-white/5">
-                      <button 
-                        onClick={async () => {
-                          const promises = notifications.filter(n => !n.isRead).map(n => 
-                            updateDoc(doc(db, 'notifications', n.id), { isRead: true })
-                          );
-                          await Promise.all(promises);
-                        }}
-                        className="py-3 rounded-xl bg-brand-600 text-white text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-opacity"
-                      >
-                        Sanctify All
-                      </button>
-                      <button 
-                        onClick={() => handleTabChange('home')}
-                        className="py-3 rounded-xl bg-white dark:bg-white/5 border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-white/10 transition-all"
-                      >
-                        View More
-                      </button>
-                    </div>
-                  </motion.div>
+                             </motion.div>
+                           ))
+                         ) : (
+                           <div className="py-20 text-center space-y-4">
+                              <BellOff className="w-12 h-12 text-stone-200 mx-auto" />
+                              <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Divine silence in the sanctuary</p>
+                           </div>
+                         )}
+                      </div>
+  
+                      <div className="p-6 md:p-8 grid grid-cols-2 gap-4 border-t border-white/5 bg-stone-50/50 dark:bg-white/5">
+                        <button 
+                          onClick={async () => {
+                            const promises = notifications.filter(n => !n.isRead).map(n => 
+                              updateDoc(doc(db, 'notifications', n.id), { isRead: true })
+                            );
+                            await Promise.all(promises);
+                          }}
+                          className="py-4 rounded-2xl bg-brand-600 text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 shadow-xl shadow-brand-600/20 transition-all"
+                        >
+                          Sanctify All
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to clear all notifications from your portal?')) {
+                              const promises = notifications.map(n => deleteDoc(doc(db, 'notifications', n.id)));
+                              await Promise.all(promises);
+                            }
+                          }}
+                          className="py-4 rounded-2xl bg-white dark:bg-white/10 border border-stone-200 dark:border-white/10 text-stone-600 dark:text-white text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-white/20 transition-all"
+                        >
+                          Clear Covenant
+                        </button>
+                      </div>
+                    </motion.div>
+                  </div>
                 )}
               </AnimatePresence>
             </div>
@@ -1278,7 +1303,6 @@ Can you provide more insight, theological context, or a related prayer meditatio
         aiContext={aiContext} 
         onClearContext={() => setAiContext(null)} 
       />
-      <NotificationTicker />
 
       {/* Policy Modal Overlay */}
       <AnimatePresence>

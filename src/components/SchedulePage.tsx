@@ -19,7 +19,9 @@ import {
   collection, 
   query, 
   orderBy, 
+  where,
   onSnapshot, 
+  getDocs,
   addDoc, 
   updateDoc,
   deleteDoc,
@@ -28,6 +30,8 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { handleFirestoreError } from '../utils';
+import { OperationType } from '../types';
 import { NotificationManager } from '../lib/notifications';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, parseISO } from 'date-fns';
 
@@ -102,7 +106,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
       if (editingActivityId) {
         await updateDoc(doc(db, 'schedule', editingActivityId), data);
       } else {
-        await addDoc(collection(db, 'schedule'), {
+        const actRef = await addDoc(collection(db, 'schedule'), {
           ...data,
           addedBy: user.displayName || 'Admin',
           createdAt: serverTimestamp()
@@ -114,6 +118,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
           title: `Divine Appointment: ${newActivity.title}`,
           message: `A new ${newActivity.type} has been scheduled at ${newActivity.location} for ${new Date(newActivity.date).toLocaleDateString()}.`,
           type: 'announcement',
+          sourceId: actRef.id,
           isRead: false,
           timestamp: serverTimestamp()
         });
@@ -142,12 +147,18 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Delete this activity from the schedule?')) {
+    if (confirm('Are you sure you want to delete this activity? This will also remove associated alerts from the sanctuary.')) {
       try {
         await deleteDoc(doc(db, 'schedule', id));
+        
+        // Remove associated notifications
+        const q = query(collection(db, 'notifications'), where('sourceId', '==', id));
+        const snapshots = await getDocs(q);
+        const deletePromises = snapshots.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+        
       } catch (error) {
-        console.error("Error deleting activity:", error);
-        alert("Failed to delete activity. Please check your permissions or connection.");
+        handleFirestoreError(error, OperationType.DELETE, `schedule/${id}`);
       }
     }
   };

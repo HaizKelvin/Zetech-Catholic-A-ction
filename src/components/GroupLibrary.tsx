@@ -37,13 +37,17 @@ import {
   addDoc, 
   query, 
   orderBy, 
+  where,
   onSnapshot, 
+  getDocs,
   deleteDoc, 
   doc, 
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { handleFirestoreError } from '../utils';
+import { OperationType } from '../types';
 
 interface Material {
   id: string;
@@ -101,7 +105,7 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
     if (!newMaterial.title) return;
 
     try {
-      await addDoc(collection(db, 'sacred_materials'), {
+      const matRef = await addDoc(collection(db, 'sacred_materials'), {
         ...newMaterial,
         addedBy: user.displayName || 'Member',
         timestamp: serverTimestamp()
@@ -113,6 +117,7 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
         title: 'New Sacred Resource',
         message: `${user.displayName || 'A member'} added "${newMaterial.title}" to the divine library.`,
         type: 'announcement',
+        sourceId: matRef.id,
         isRead: false,
         timestamp: serverTimestamp()
       });
@@ -125,12 +130,17 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Remove this resource?')) {
+    if (confirm('Remove this resource? Associated notifications will also be cleared.')) {
       try {
         await deleteDoc(doc(db, 'sacred_materials', id));
+        
+        // Remove associated notifications
+        const q = query(collection(db, 'notifications'), where('sourceId', '==', id));
+        const snapshots = await getDocs(q);
+        const promises = snapshots.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(promises);
       } catch (error) {
-        console.error("Error removing resource:", error);
-        alert("Failed to remove resource. Please check your permissions or connection.");
+        handleFirestoreError(error, OperationType.DELETE, `sacred_materials/${id}`);
       }
     }
   };

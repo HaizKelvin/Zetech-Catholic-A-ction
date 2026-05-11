@@ -4,6 +4,7 @@ import {
   query, 
   onSnapshot, 
   getDocs,
+  addDoc,
   setDoc,
   doc,
   serverTimestamp,
@@ -133,6 +134,16 @@ ${event.description}
       await setDoc(doc(db, 'control', 'daily_bread'), {
         ...dailyForm,
         updatedAt: serverTimestamp()
+      });
+
+      // Notification for daily update
+      await addDoc(collection(db, 'notifications'), {
+        userId: 'all',
+        title: 'Daily Bread Refreshed',
+        message: 'The daily scripture and saintly wisdom have been updated. Come and be nourished.',
+        type: 'announcement',
+        isRead: false,
+        timestamp: serverTimestamp()
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, 'control/daily_bread');
