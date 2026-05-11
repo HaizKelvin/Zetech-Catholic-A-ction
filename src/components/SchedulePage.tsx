@@ -143,8 +143,10 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
   };
 
   const shareActivity = (act: any) => {
-    const dateStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : new Date(act.date).toLocaleDateString();
-    const timeStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const d = act.date instanceof Timestamp ? act.date.toDate() : new Date(act.date);
+    const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
+    const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const message = `━━━━━━━━━━━━━━━━━━
 *ZUCA OFFICIAL BROADCAST*
 ━━━━━━━━━━━━━━━━━━
@@ -152,6 +154,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
 *EVENT NOTIFICATION*
 
 *Event:* ${act.title}
+*Day:* ${dayName}
 *Date:* ${dateStr}
 *Time:* ${timeStr}
 *Location:* ${act.location}
@@ -161,8 +164,10 @@ ${act.description}
 
 Your presence will be a blessing to the community. We look forward to gathering together in faith and fellowship.
 
+Join us and be part of this divine experience. We encourage all members to attend.
+
 ━━━━━━━━━━━━━━━━━━
-*ZUCA HOLY PORTAL*
+*ZUCA PORTAL*
 ${window.location.origin}
 ━━━━━━━━━━━━━━━━━━`;
     const encodedText = encodeURIComponent(message);

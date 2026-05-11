@@ -103,15 +103,17 @@ ${dailyForm.saintName}
 ${dailyForm.saintInfo}
 
 ━━━━━━━━━━━━━━━━━━
-*ZUCA HOLY PORTAL*
+*ZUCA PORTAL*
 ${window.location.origin}
 ━━━━━━━━━━━━━━━━━━`;
     shareToWhatsApp(message);
   };
 
   const broadcastEvent = (event: any) => {
-    const dateStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : new Date(event.date).toLocaleDateString();
-    const timeStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const d = event.date instanceof Timestamp ? event.date.toDate() : new Date(event.date);
+    const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
+    const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const message = `━━━━━━━━━━━━━━━━━━
 *ZUCA OFFICIAL BROADCAST*
 ━━━━━━━━━━━━━━━━━━
@@ -119,6 +121,7 @@ ${window.location.origin}
 *EVENT NOTIFICATION*
 
 *Event:* ${event.title}
+*Day:* ${dayName}
 *Date:* ${dateStr}
 *Time:* ${timeStr}
 *Location:* ${event.location}
@@ -128,8 +131,10 @@ ${event.description}
 
 Your presence will be a blessing to the community. We look forward to gathering together in faith and fellowship.
 
+Join us and be part of this divine experience. We encourage all members to attend.
+
 ━━━━━━━━━━━━━━━━━━
-*ZUCA HOLY PORTAL*
+*ZUCA PORTAL*
 ${window.location.origin}
 ━━━━━━━━━━━━━━━━━━`;
     shareToWhatsApp(message);
@@ -427,7 +432,7 @@ Blessings from the ZUCA community!
 We celebrate your presence in our fellowship and wish you peace and spiritual growth.
 
 ━━━━━━━━━━━━━━━━━━
-*ZUCA HOLY PORTAL*
+*ZUCA PORTAL*
 ${window.location.origin}
 ━━━━━━━━━━━━━━━━━━`, u.contactNumber)}
                             className="p-2 text-[#25D366] opacity-0 group-hover:opacity-100 transition-all hover:scale-110"

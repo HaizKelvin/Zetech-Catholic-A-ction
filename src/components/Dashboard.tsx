@@ -60,7 +60,7 @@ ${daily.saintName}
 ${daily.saintInfo}
 
 ━━━━━━━━━━━━━━━━━━
-*ZUCA HOLY PORTAL*
+*ZUCA PORTAL*
 ${window.location.origin}
 ━━━━━━━━━━━━━━━━━━`;
     const encodedText = encodeURIComponent(message);
