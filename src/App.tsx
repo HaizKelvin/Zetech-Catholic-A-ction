@@ -198,7 +198,7 @@ export default function App() {
     return false;
   });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ displayName: '', photoURL: '', contactNumber: '', bio: '' });
+  const [editForm, setEditForm] = useState({ displayName: '', photoURL: '', contactNumber: '', admissionNumber: '', bio: '' });
   const [isMenuVisible, setIsMenuVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [aiContext, setAiContext] = useState<string | null>(null);
@@ -298,6 +298,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
               displayName: data.displayName || firebaseUser.displayName || '', 
               photoURL: data.photoURL || firebaseUser.photoURL || '', 
               contactNumber: data.contactNumber || '', 
+              admissionNumber: data.admissionNumber || '',
               bio: data.bio || '' 
             });
           }
@@ -323,21 +324,45 @@ Can you provide more insight, theological context, or a related prayer meditatio
     const userDocRef = doc(db, 'users', firebaseUser.uid);
     try {
       const userDoc = await getDoc(userDocRef);
-      if (!userDoc.exists()) {
-        const newProfile: UserProfile = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          displayName: firebaseUser.displayName || 'Faithful Member',
-          photoURL: firebaseUser.photoURL || '',
-          bio: '',
-          role: firebaseUser.email === 'wachirakevin65@gmail.com' ? 'admin' : 'member',
-          createdAt: Timestamp.now()
-        };
-        await setDoc(userDocRef, {
-          ...newProfile,
-          createdAt: serverTimestamp()
+      const isNewUser = !userDoc.exists();
+      
+      const profileData: any = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        lastSeen: serverTimestamp(),
+        online: true
+      };
+
+      if (isNewUser) {
+        profileData.displayName = firebaseUser.displayName || authForm.name || 'Faithful Member';
+        profileData.photoURL = firebaseUser.photoURL || '';
+        profileData.role = firebaseUser.email === 'wachirakevin65@gmail.com' ? 'admin' : 'member';
+        profileData.createdAt = serverTimestamp();
+        profileData.bio = '';
+      } else {
+        // If user already exists but has no photo, and we have one from Google now, sync it
+        const existingData = userDoc.data();
+        if (!existingData.photoURL && firebaseUser.photoURL) {
+          profileData.photoURL = firebaseUser.photoURL;
+        }
+        if (!existingData.displayName && firebaseUser.displayName) {
+          profileData.displayName = firebaseUser.displayName;
+        }
+      }
+
+      await setDoc(userDocRef, profileData, { merge: true });
+      
+      if (isNewUser) {
+        // Create initial notification for new user
+        const welcomeDocRef = doc(collection(db, 'notifications'));
+        await setDoc(welcomeDocRef, {
+          userId: firebaseUser.uid,
+          title: 'Welcome to ZUCA!',
+          message: `Peace be with you, ${profileData.displayName}. Welcome to our digital sanctuary. Start by exploring the Divine Library and Sanctuary Overview.`,
+          type: 'announcement',
+          isRead: false,
+          timestamp: serverTimestamp()
         });
-        setProfile(newProfile);
       }
     } catch (error) {
        handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);
@@ -353,6 +378,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
         displayName: editForm.displayName,
         photoURL: editForm.photoURL,
         contactNumber: editForm.contactNumber,
+        admissionNumber: editForm.admissionNumber,
         bio: editForm.bio
       });
       
@@ -361,6 +387,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
         displayName: editForm.displayName,
         photoURL: editForm.photoURL,
         contactNumber: editForm.contactNumber,
+        admissionNumber: editForm.admissionNumber,
         bio: editForm.bio
       } : null);
       setIsProfileModalOpen(false);
@@ -692,20 +719,6 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 Sign in with University Google
               </button>
 
-              {window.self !== window.top && (
-                <div className="p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-2xl">
-                  <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 text-center uppercase tracking-widest leading-relaxed">
-                    Authentication may fail inside the preview. If you face issues, please open the app in a new tab.
-                  </p>
-                  <button 
-                    onClick={() => window.open(window.location.href, '_blank')}
-                    className="w-full mt-2 text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest hover:underline"
-                  >
-                    Open in New Tab
-                  </button>
-                </div>
-              )}
-
               <div className="mt-8 text-center">
                 <button 
                   onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
@@ -905,7 +918,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
       {/* Navigation & User Actions - Circular Floating Gems */}
       <AnimatePresence>
         {isMenuVisible && user && !isSidebarOpen && (
-          <div className="fixed top-5 right-5 z-50 flex items-center gap-2">
+          <div className="fixed top-5 right-5 z-[110] flex items-center gap-2">
             {/* Mode Gem */}
             <motion.button
               initial={{ opacity: 0, scale: 0.8 }}
@@ -913,25 +926,123 @@ Can you provide more insight, theological context, or a related prayer meditatio
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setDarkMode(!darkMode)}
-              className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-white dark:bg-stone-900 text-amber-500 rounded-full shadow-md border border-stone-100 dark:border-white/10"
+              className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white dark:bg-stone-900 text-amber-500 rounded-full shadow-md border border-stone-100 dark:border-white/10"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </motion.button>
 
             {/* Notification Gem */}
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsNotificationOpen(true)}
-              className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-white dark:bg-stone-900 text-stone-900 dark:text-white rounded-full shadow-md border border-stone-100 dark:border-white/10 relative"
-            >
-              <Bell className="w-4 h-4" />
-              {notifications.some(n => !n.isRead) && (
-                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white dark:border-stone-900" />
-              )}
-            </motion.button>
+            <div className="relative">
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white dark:bg-stone-900 text-stone-900 dark:text-white rounded-full shadow-md border border-stone-100 dark:border-white/10 relative"
+              >
+                <Bell className="w-4 h-4 md:w-5 md:h-5" />
+                {notifications.length > 0 && (
+                  <motion.span 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center rounded-full text-[9px] font-black leading-none text-white shadow-lg border-2 border-white dark:border-stone-900 transition-colors duration-500 ${
+                      notifications.some(n => !n.isRead) ? 'bg-red-500' : 'bg-emerald-500'
+                    }`}
+                  >
+                    {notifications.some(n => !n.isRead) 
+                      ? notifications.filter(n => !n.isRead).length 
+                      : notifications.length}
+                  </motion.span>
+                )}
+              </motion.button>
+
+              <AnimatePresence>
+                {isNotificationOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95, x: 20 }}
+                    animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95, x: 20 }}
+                    className="absolute top-12 right-0 w-[320px] md:w-[400px] glass rounded-[32px] shadow-3xl border border-white/10 overflow-hidden flex flex-col z-[120]"
+                  >
+                    <div className="p-5 border-b border-brand-500/10 flex items-center justify-between bg-stone-50/50 dark:bg-white/5">
+                       <div className="flex items-center gap-3">
+                         <div className="w-8 h-8 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg">
+                           <Bell className="w-4 h-4 text-white" />
+                         </div>
+                         <h3 className="font-bold text-sm text-stone-900 dark:text-white tracking-tight">Divine Alerts</h3>
+                       </div>
+                       <button 
+                         onClick={() => setIsNotificationOpen(false)}
+                         className="p-1.5 rounded-full hover:bg-stone-200 dark:hover:bg-white/5 text-stone-400 transition-colors"
+                       >
+                         <X className="w-4 h-4" />
+                       </button>
+                    </div>
+                    
+                    <div className="max-h-[70vh] md:max-h-[400px] overflow-y-auto custom-scrollbar p-3 space-y-2">
+                       {notifications.length > 0 ? (
+                         notifications.map((n, idx) => (
+                           <motion.div
+                             key={n.id}
+                             initial={{ opacity: 0, x: 10 }}
+                             animate={{ opacity: 1, x: 0 }}
+                             transition={{ delay: idx * 0.03 }}
+                             className={`p-4 rounded-2xl border transition-all duration-300 relative group cursor-pointer ${
+                               !n.isRead 
+                                 ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-500/10 shadow-sm' 
+                                 : 'bg-transparent border-transparent opacity-60'
+                             }`}
+                             onClick={async () => {
+                               if (!n.isRead) {
+                                 const docRef = doc(db, 'notifications', n.id);
+                                 await updateDoc(docRef, { isRead: true });
+                               }
+                             }}
+                           >
+                             <div className="flex items-start gap-3">
+                               <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${!n.isRead ? 'bg-brand-500' : 'bg-stone-300 dark:bg-stone-700'}`} />
+                               <div className="flex-1 min-w-0">
+                                 <p className="font-bold text-[13px] text-stone-900 dark:text-white tracking-tight leading-snug">{n.title}</p>
+                                 <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 line-clamp-2 leading-relaxed">{n.message}</p>
+                                 <span className="text-[8px] font-black uppercase tracking-widest text-stone-400 block mt-2">
+                                   {n.timestamp?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Just now'}
+                                 </span>
+                               </div>
+                             </div>
+                           </motion.div>
+                         ))
+                       ) : (
+                         <div className="py-12 text-center space-y-3">
+                            <BellOff className="w-8 h-8 text-stone-200 mx-auto" />
+                            <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Divine silence</p>
+                         </div>
+                       )}
+                    </div>
+
+                    <div className="p-4 grid grid-cols-2 gap-3 border-t border-white/5 bg-stone-50/50 dark:bg-white/5">
+                      <button 
+                        onClick={async () => {
+                          const promises = notifications.filter(n => !n.isRead).map(n => 
+                            updateDoc(doc(db, 'notifications', n.id), { isRead: true })
+                          );
+                          await Promise.all(promises);
+                        }}
+                        className="py-3 rounded-xl bg-brand-600 text-white text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-opacity"
+                      >
+                        Sanctify All
+                      </button>
+                      <button 
+                        onClick={() => handleTabChange('home')}
+                        className="py-3 rounded-xl bg-white dark:bg-white/5 border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-white/10 transition-all"
+                      >
+                        View More
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Profile Gem */}
             <motion.button 
@@ -940,7 +1051,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsProfileModalOpen(true)}
-              className="w-8 h-8 md:w-9 md:h-9 bg-white dark:bg-stone-900 rounded-full shadow-md flex items-center justify-center border border-stone-100 dark:border-white/10 overflow-hidden"
+              className="w-8 h-8 md:w-10 md:h-10 bg-white dark:bg-stone-900 rounded-full shadow-md flex items-center justify-center border border-stone-100 dark:border-white/10 overflow-hidden"
             >
               {profile?.photoURL ? (
                 <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
@@ -950,106 +1061,6 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 </div>
               )}
             </motion.button>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Center Notification Modal */}
-      <AnimatePresence>
-        {isNotificationOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 backdrop-blur-sm bg-stone-950/20">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-xl glass rounded-[40px] shadow-3xl border border-white/10 overflow-hidden relative"
-            >
-              <div className="p-6 md:p-10 border-b border-brand-500/10 flex items-center justify-between bg-white/5">
-                 <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center shadow-lg">
-                     <Bell className="w-6 h-6 text-white" />
-                   </div>
-                   <div>
-                     <h3 className="font-black text-xl md:text-2xl text-stone-900 dark:text-white tracking-tight">Divine Alerts</h3>
-                     <p className="text-[10px] text-brand-600/60 font-black uppercase tracking-widest">Sanctuary Notifications</p>
-                   </div>
-                 </div>
-                 <button 
-                   onClick={() => setIsNotificationOpen(false)}
-                   className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors"
-                 >
-                   <X className="w-5 h-5" />
-                 </button>
-              </div>
-              
-              <div className="p-6 md:p-8 max-h-[60vh] overflow-y-auto custom-scrollbar text-left">
-                 {notifications.length > 0 ? (
-                   <div className="space-y-4">
-                     {notifications.map((n, idx) => (
-                       <motion.div
-                         key={n.id}
-                         initial={{ opacity: 0, y: 10 }}
-                         animate={{ opacity: 1, y: 0 }}
-                         transition={{ delay: idx * 0.05 }}
-                         className={`p-6 rounded-[28px] border transition-all duration-300 relative group cursor-pointer ${
-                           !n.isRead 
-                             ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-500/20 shadow-sm' 
-                             : 'bg-stone-50/50 dark:bg-white/5 border-stone-100 dark:border-white/5 opacity-80'
-                         }`}
-                         onClick={async () => {
-                           if (!n.isRead) {
-                             const docRef = doc(db, 'notifications', n.id);
-                             await updateDoc(docRef, { isRead: true });
-                           }
-                         }}
-                       >
-                         <div className="flex items-start gap-4">
-                           <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${!n.isRead ? 'bg-brand-500' : 'bg-stone-300 dark:bg-stone-700'}`} />
-                           <div className="flex-1 text-left">
-                             <div className="flex items-center justify-between mb-1">
-                               <p className="font-black text-[15px] text-stone-900 dark:text-white tracking-tight">{n.title}</p>
-                               <span className="text-[10px] font-mono text-stone-400 uppercase tracking-widest">
-                                 {n.timestamp?.toDate()?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'Recent'}
-                               </span>
-                             </div>
-                             <p className="text-[13px] text-stone-500 dark:text-stone-400 leading-relaxed text-left">{n.message}</p>
-                           </div>
-                         </div>
-                       </motion.div>
-                     ))}
-                   </div>
-                 ) : (
-                   <div className="py-20 text-center space-y-4">
-                      <div className="w-16 h-16 bg-stone-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto">
-                        <BellOff className="w-8 h-8 text-stone-300" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-bold text-stone-400 dark:text-stone-500">Divine silence...</p>
-                        <p className="text-[11px] text-stone-300 dark:text-stone-600 uppercase tracking-[0.2em]">No alerts in your portal yet.</p>
-                      </div>
-                   </div>
-                 )}
-              </div>
-              <div className="p-6 md:p-8 border-t border-brand-500/10 bg-stone-50/50 dark:bg-white/5 flex gap-4">
-                 <button 
-                   onClick={async () => {
-                     const promises = notifications.filter(n => !n.isRead).map(n => 
-                       updateDoc(doc(db, 'notifications', n.id), { isRead: true })
-                     );
-                     await Promise.all(promises);
-                   }}
-                   className="flex-1 py-4 rounded-2xl bg-brand-600 text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                 >
-                   Mark All Sanctified
-                 </button>
-                 <button 
-                   onClick={() => setIsNotificationOpen(false)}
-                   className="flex-1 py-4 rounded-2xl bg-white dark:bg-white/10 border border-stone-200 dark:border-white/10 text-stone-600 dark:text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-stone-50 dark:hover:bg-white/20 transition-all"
-                 >
-                   Close Portal
-                 </button>
-              </div>
-            </motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -1198,7 +1209,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       type="text" 
                       value={editForm.displayName} 
                       onChange={e => setEditForm({...editForm, displayName: e.target.value})} 
-                      className="w-full px-6 py-4 rounded-2xl" 
+                      className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
                     />
                   </div>
                   <div>
@@ -1208,7 +1219,17 @@ Can you provide more insight, theological context, or a related prayer meditatio
                         value={editForm.contactNumber} 
                         onChange={e => setEditForm({...editForm, contactNumber: e.target.value})} 
                         placeholder="+254..." 
-                        className="w-full px-6 py-4 rounded-2xl" 
+                        className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Admission Number</label>
+                    <input 
+                        type="text" 
+                        value={editForm.admissionNumber} 
+                        onChange={e => setEditForm({...editForm, admissionNumber: e.target.value})} 
+                        placeholder="e.g. BSCIT..." 
+                        className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
                     />
                   </div>
                   <div>
@@ -1217,7 +1238,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       value={editForm.bio} 
                       onChange={e => setEditForm({...editForm, bio: e.target.value})} 
                       placeholder="My journey in faith..." 
-                      className="w-full px-6 py-4 rounded-3xl h-24 resize-none" 
+                      className="w-full px-6 py-4 rounded-3xl h-24 resize-none bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
                     />
                   </div>
                 </div>

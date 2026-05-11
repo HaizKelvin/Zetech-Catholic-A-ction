@@ -47,6 +47,19 @@ export default function Petitions() {
         isPublic,
         timestamp: serverTimestamp()
       });
+
+      if (isPublic) {
+        // Broad notification for community
+        await addDoc(collection(db, 'notifications'), {
+          userId: 'all',
+          title: 'A Heart’s Whisper',
+          message: `${auth.currentUser.displayName || 'A member'} shared a prayer petition. Join in intercession.`,
+          type: 'announcement',
+          isRead: false,
+          timestamp: serverTimestamp()
+        });
+      }
+
       setText('');
       setLoading(false);
     } catch (error) {

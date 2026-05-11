@@ -106,6 +106,17 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
         addedBy: user.displayName || 'Member',
         timestamp: serverTimestamp()
       });
+
+      // Add notification for all users
+      await addDoc(collection(db, 'notifications'), {
+        userId: 'all',
+        title: 'New Sacred Resource',
+        message: `${user.displayName || 'A member'} added "${newMaterial.title}" to the divine library.`,
+        type: 'announcement',
+        isRead: false,
+        timestamp: serverTimestamp()
+      });
+
       setIsAddModalOpen(false);
       setNewMaterial({ title: '', description: '', category: 'Prayers', link: '', contentSnippet: '', type: 'text' });
     } catch (error) {
@@ -380,6 +391,31 @@ ${item.link || 'Available via ZUCA Portal'}
                   transition={{ delay: idx * 0.05 }}
                   className="group bg-white dark:bg-stone-900/60 border border-stone-100 dark:border-white/5 rounded-[40px] md:rounded-[56px] overflow-hidden shadow-xl hover:shadow-emerald-500/5 transition-all duration-700 flex flex-col h-full relative"
                 >
+                  {/* Video Thumbnail for Video Type */}
+                  {item.type === 'video' && getYoutubeId(item.link || '') && (
+                    <div 
+                      className="h-48 md:h-64 relative cursor-pointer group/vid overflow-hidden"
+                      onClick={() => setPlayingVideo(item.link || '')}
+                    >
+                      <img 
+                        src={`https://img.youtube.com/vi/${getYoutubeId(item.link || '')}/maxresdefault.jpg`} 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${getYoutubeId(item.link || '')}/mqdefault.jpg`;
+                        }}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover/vid:scale-110"
+                        alt={item.title}
+                      />
+                      <div className="absolute inset-0 bg-black/40 group-hover/vid:bg-black/20 transition-all flex items-center justify-center">
+                         <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 scale-90 group-hover/vid:scale-100 transition-all shadow-2xl">
+                           <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+                         </div>
+                      </div>
+                      <div className="absolute top-4 right-4 px-3 py-1 bg-red-600/90 backdrop-blur-md rounded-full text-[8px] font-black uppercase tracking-widest text-white border border-white/20">
+                        Sacred Video
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-8 md:p-12 flex flex-col h-full min-h-[350px]">
                     <div className="flex items-start justify-between mb-10">
                       <div className="px-5 py-2 rounded-full glass-dark text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-white/5 shadow-inner">

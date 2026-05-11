@@ -107,6 +107,16 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
           addedBy: user.displayName || 'Admin',
           createdAt: serverTimestamp()
         });
+
+        // Notify everyone of the new event
+        await addDoc(collection(db, 'notifications'), {
+          userId: 'all',
+          title: `Divine Appointment: ${newActivity.title}`,
+          message: `A new ${newActivity.type} has been scheduled at ${newActivity.location} for ${new Date(newActivity.date).toLocaleDateString()}.`,
+          type: 'announcement',
+          isRead: false,
+          timestamp: serverTimestamp()
+        });
       }
       
       setIsAddModalOpen(false);

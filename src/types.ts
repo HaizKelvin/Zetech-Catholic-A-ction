@@ -8,6 +8,7 @@ export interface UserProfile {
   displayName: string | null;
   photoURL?: string;
   contactNumber?: string;
+  admissionNumber?: string;
   bio?: string;
   role: UserRole;
   createdAt: Timestamp;
