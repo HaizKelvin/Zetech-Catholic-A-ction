@@ -141,6 +141,14 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     }
   };
 
+  const shareActivity = (act: any) => {
+    const dateStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleDateString() : new Date(act.date).toLocaleDateString();
+    const timeStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const message = `📢 *ZUCA Event Alert* 📢\n\n🗓 *Event:* ${act.title}\n📅 *Date:* ${dateStr}\n⏰ *Time:* ${timeStr}\n📍 *Location:* ${act.location}\n\n📝 *Description:* ${act.description}\n\nSee you there! 🙌\nJoin us: ${window.location.origin}`;
+    const encodedText = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100">
       {/* Header - Compacted */}
@@ -362,6 +370,13 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
                         </div>
                         <h4 className="font-bold text-stone-900 dark:text-white leading-tight pr-4">{act.title}</h4>
                       </div>
+                      <button 
+                        onClick={() => shareActivity(act)}
+                        className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-full transition-all"
+                        title="Share Activity"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </button>
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-4 text-[10px] text-stone-500 dark:text-stone-400 font-bold uppercase tracking-widest">
                        <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-emerald-500" /> {format(act.date instanceof Timestamp ? act.date.toDate() : new Date(act.date), 'HH:mm')}</span>

@@ -14,7 +14,7 @@ import {
 import { db, auth } from '../firebase';
 import { UserProfile, DailyControl, OperationType, MembershipRegistration } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX, UserPlus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX, UserPlus, ChevronDown, ChevronUp, MessageCircle, Share2, Calendar, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function AdminPanel() {
@@ -24,6 +24,8 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showAllUsers, setShowAllUsers] = useState(false);
+  const [broadcastTarget, setBroadcastTarget] = useState<'group' | 'members'>('group');
+  const [events, setEvents] = useState<any[]>([]);
 
   const displayedUsers = showAllUsers ? users : users.slice(0, 3);
 
@@ -33,6 +35,11 @@ export default function AdminPanel() {
       setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as (UserProfile & { id: string })[]);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'users');
+    });
+
+    const qEvents = query(collection(db, 'schedule'), limit(10), orderBy('date', 'asc'));
+    const subEvents = onSnapshot(qEvents, (s) => {
+      setEvents(s.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
     const subControl = onSnapshot(doc(db, 'control', 'daily_bread'), (d) => {
@@ -61,8 +68,28 @@ export default function AdminPanel() {
     };
     fetchCount();
     
-    return () => { unsubscribe(); subControl(); };
+    return () => { unsubscribe(); subControl(); subEvents(); };
   }, []);
+
+  const shareToWhatsApp = (text: string, phone?: string) => {
+    const encodedText = encodeURIComponent(text);
+    const url = phone 
+      ? `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedText}`
+      : `https://wa.me/?text=${encodedText}`;
+    window.open(url, '_blank');
+  };
+
+  const broadcastDaily = () => {
+    const message = `✨ *Daily Oracle - ZUCA* ✨\n\n📖 *Scripture:* ${dailyForm.verse}\n📍 *Reference:* ${dailyForm.reference}\n\n🙏 *Saint of the Day:* ${dailyForm.saintName}\n📜 *About:* ${dailyForm.saintInfo}\n\nJoin our community: ${window.location.origin}`;
+    shareToWhatsApp(message);
+  };
+
+  const broadcastEvent = (event: any) => {
+    const dateStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleDateString() : new Date(event.date).toLocaleDateString();
+    const timeStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const message = `📢 *Upcoming Event Alert* 📢\n\n🗓 *Event:* ${event.title}\n📅 *Date:* ${dateStr}\n⏰ *Time:* ${timeStr}\n📍 *Location:* ${event.location}\n\n📝 *Description:* ${event.description}\n\nSee you there! 🙌`;
+    shareToWhatsApp(message);
+  };
 
   const updateDaily = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,7 +263,52 @@ export default function AdminPanel() {
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Calibrate Dashboard <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 opacity-50" /></>}
               </button>
+
+              <motion.button 
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                onClick={broadcastDaily}
+                className="w-full py-5 md:py-6 bg-[#25D366] text-white rounded-[24px] md:rounded-[32px] font-black uppercase tracking-[0.3em] text-[10px] md:text-xs shadow-xl flex items-center justify-center gap-4 mt-4"
+              >
+                Broadcast to WhatsApp <MessageCircle className="w-5 h-5" />
+              </motion.button>
             </form>
+
+            {/* Event Broadcast Section */}
+            <div className="pt-12 border-t border-stone-200 dark:border-white/5 space-y-8">
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[24px] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-900/20 text-white shrink-0">
+                  <Calendar className="w-6 h-6 md:w-8 md:h-8" />
+                </div>
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">Event Dispatcher</h2>
+                  <p className="text-stone-400 text-[10px] font-black uppercase tracking-widest mt-1">Manual Community Broadcast</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {events.length === 0 ? (
+                  <p className="text-stone-500 text-sm italic">No upcoming events scheduled.</p>
+                ) : (
+                  events.map((event) => (
+                    <div key={event.id} className="glass-card p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-stone-900 dark:text-white uppercase tracking-tight">{event.title}</h4>
+                        <p className="text-xs text-stone-500">{event.location} • {event.date instanceof Timestamp ? event.date.toDate().toLocaleDateString() : new Date(event.date).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => broadcastEvent(event)}
+                          className="px-6 py-3 bg-[#25D366] text-white rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-transform"
+                        >
+                          Broadcast <MessageCircle className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
         </section>
 
         {/* Community Overview */}
@@ -265,7 +337,7 @@ export default function AdminPanel() {
               </div>
               
               <div className="space-y-3 md:space-y-4">
-                <AnimatePresence mode="popLayout">
+                 <AnimatePresence mode="popLayout">
                   {displayedUsers.map((u, i) => (
                     <motion.div 
                       key={u.uid || `user-${i}`}
@@ -291,10 +363,24 @@ export default function AdminPanel() {
                          <div className="overflow-hidden min-w-0">
                            <p className="font-bold text-[11px] md:text-sm text-stone-900 dark:text-stone-100 tracking-tight group-hover:text-brand-600 transition-colors truncate">{u.displayName || 'Anonymous Candidate'}</p>
                            <p className="text-[8px] md:text-[10px] text-stone-400 dark:text-stone-500 font-medium tracking-tight truncate leading-none mt-0.5">{u.email}</p>
+                           {u.contactNumber && (
+                             <p className="text-[8px] md:text-[9px] text-indigo-500 dark:text-indigo-400 font-black tracking-widest mt-1 flex items-center gap-1 uppercase">
+                               <Phone className="w-2 h-2" /> {u.contactNumber}
+                             </p>
+                           )}
                          </div>
                       </div>
                       
                       <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                        {u.contactNumber && (
+                          <button 
+                            onClick={() => shareToWhatsApp("Blessings from ZUCA community!", u.contactNumber)}
+                            className="p-2 text-[#25D366] opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                            title="Send WhatsApp"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </button>
+                        )}
                         <div className="px-2 py-0.5 md:px-3 md:py-1 bg-white dark:bg-white/5 rounded-lg border border-stone-100 dark:border-white/5 shadow-sm">
                           <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-stone-500 dark:text-stone-400">{u.role}</span>
                         </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { DailyControl } from '../types';
-import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Heart, Library, Trophy, ArrowUpRight, HelpCircle } from 'lucide-react';
+import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Heart, Library, Trophy, ArrowUpRight, HelpCircle, MessageCircle } from 'lucide-react';
 import { motion, Variants } from 'motion/react';
 
 export default function Dashboard({ userName, onTabChange }: { userName: string, onTabChange: (tab: any) => void }) {
@@ -35,6 +35,13 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
   const item: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
+  };
+
+  const shareDaily = () => {
+    if (!daily) return;
+    const message = `✨ *Daily Oracle - ZUCA* ✨\n\n📖 *Scripture:* ${daily.verse}\n📍 *Reference:* ${daily.reference}\n\n🙏 *Saint of the Day:* ${daily.saintName}\n📜 *About:* ${daily.saintInfo}\n\nJoin our community: ${window.location.origin}`;
+    const encodedText = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };
 
   return (
@@ -110,11 +117,21 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
                 <p className="text-2xl md:text-4xl lg:text-5xl font-serif italic font-light text-stone-950 dark:text-white leading-[1.1] tracking-tight group-hover:-translate-x-1 transition-transform duration-1000">
                   "{daily.verse}"
                 </p>
-                <div className="flex items-center gap-3 md:gap-6">
-                  <div className="h-[1px] w-10 md:w-16 bg-brand-500/20 rounded-full group-hover:w-24 transition-all duration-1000" />
-                  <p className="text-[10px] md:text-base font-black uppercase tracking-[0.4em] text-brand-500 italic">
-                    {daily.reference}
-                  </p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-3 md:gap-6">
+                    <div className="h-[1px] w-10 md:w-16 bg-brand-500/20 rounded-full group-hover:w-24 transition-all duration-1000" />
+                    <p className="text-[10px] md:text-base font-black uppercase tracking-[0.4em] text-brand-500 italic">
+                      {daily.reference}
+                    </p>
+                  </div>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={shareDaily}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#25D366]/10 text-[#25D366] rounded-full text-[10px] font-black uppercase tracking-widest border border-[#25D366]/20 transition-all hover:bg-[#25D366] hover:text-white"
+                  >
+                    Share <MessageCircle className="w-4 h-4" />
+                  </motion.button>
                 </div>
               </div>
             ) : null}
