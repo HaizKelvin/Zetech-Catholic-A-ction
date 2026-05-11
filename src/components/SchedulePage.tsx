@@ -10,7 +10,8 @@ import {
   Bell, 
   Trash2, 
   AlertCircle,
-  FileText
+  FileText,
+  MessageCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
