@@ -40,29 +40,26 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
   const shareDaily = () => {
     if (!daily) return;
     const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-    const message = `━━━━━━━━━━━━━━━━━━
-*ZUCA OFFICIAL BROADCAST*
+    const message = `*•┈ ZUCA SACRED DAILY ┈•*
 ━━━━━━━━━━━━━━━━━━
 
-*DAILY BREAD*
-_${today}_
+*DAILY BREAD | ${today.toUpperCase()}*
 
-*Scripture Reference*
+*Scripture Reference:*
 ${daily.reference}
 
-*Verse*
+*The Holy Word:*
 "${daily.verse}"
 
-*Saint of the Day*
+*Saint of the Day:*
 ${daily.saintName}
 
-*Reflections*
+*Reflections:*
 ${daily.saintInfo}
 
 ━━━━━━━━━━━━━━━━━━
-*ZUCA PORTAL*
-${window.location.origin}
-━━━━━━━━━━━━━━━━━━`;
+*ZUCA PORTAL:* ${window.location.origin}
+✧────────────────✧`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };

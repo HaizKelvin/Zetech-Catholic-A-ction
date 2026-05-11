@@ -83,29 +83,26 @@ export default function AdminPanel() {
 
   const broadcastDaily = () => {
     const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-    const message = `━━━━━━━━━━━━━━━━━━
-*ZUCA OFFICIAL BROADCAST*
+    const message = `*•┈ ZUCA SACRED DAILY ┈•*
 ━━━━━━━━━━━━━━━━━━
 
-*DAILY BREAD*
-_${today}_
+*DAILY BREAD | ${today.toUpperCase()}*
 
-*Scripture Reference*
+*Scripture Reference:*
 ${dailyForm.reference}
 
-*Verse*
+*The Holy Word:*
 "${dailyForm.verse}"
 
-*Saint of the Day*
+*Saint of the Day:*
 ${dailyForm.saintName}
 
-*Reflections*
+*Reflections:*
 ${dailyForm.saintInfo}
 
 ━━━━━━━━━━━━━━━━━━
-*ZUCA PORTAL*
-${window.location.origin}
-━━━━━━━━━━━━━━━━━━`;
+*ZUCA PORTAL:* ${window.location.origin}
+✧────────────────✧`;
     shareToWhatsApp(message);
   };
 
@@ -114,29 +111,24 @@ ${window.location.origin}
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
     const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const message = `━━━━━━━━━━━━━━━━━━
-*ZUCA OFFICIAL BROADCAST*
+    const message = `*•┈ ZUCA SACRED INVITATION ┈•*
 ━━━━━━━━━━━━━━━━━━
 
-*EVENT NOTIFICATION*
+*URGENT: ${event.title.toUpperCase()}*
 
-*Event:* ${event.title}
 *Day:* ${dayName}
 *Date:* ${dateStr}
 *Time:* ${timeStr}
-*Location:* ${event.location}
+*Venue:* ${event.location}
 
 *Details:*
 ${event.description}
 
-Your presence will be a blessing to the community. We look forward to gathering together in faith and fellowship.
-
-Join us and be part of this divine experience. We encourage all members to attend.
+*Your presence is highly anticipated.* Join us as we gather in faith and fellowship. Do not miss this divine experience.
 
 ━━━━━━━━━━━━━━━━━━
-*ZUCA PORTAL*
-${window.location.origin}
-━━━━━━━━━━━━━━━━━━`;
+*ZUCA PORTAL:* ${window.location.origin}
+✧────────────────✧`;
     shareToWhatsApp(message);
   };
 
@@ -423,18 +415,16 @@ ${window.location.origin}
                       <div className="flex items-center gap-2 md:gap-3 shrink-0">
                         {u.contactNumber && (
                           <button 
-                            onClick={() => shareToWhatsApp(`━━━━━━━━━━━━━━━━━━
-*ZUCA OFFICIAL GREETING*
+                            onClick={() => shareToWhatsApp(`*•┈ ZUCA SACRED GREETING ┈•*
 ━━━━━━━━━━━━━━━━━━
 
-Blessings from the ZUCA community! 
+*Dear Fellow Servant,*
 
-We celebrate your presence in our fellowship and wish you peace and spiritual growth.
+Blessings from the ZUCA community! We celebrate your presence in our fellowship and wish you peace, grace, and spiritual growth on this day.
 
 ━━━━━━━━━━━━━━━━━━
-*ZUCA PORTAL*
-${window.location.origin}
-━━━━━━━━━━━━━━━━━━`, u.contactNumber)}
+*ZUCA PORTAL:* ${window.location.origin}
+✧────────────────✧`, u.contactNumber)}
                             className="p-2 text-[#25D366] opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
                             title="Send WhatsApp"
                           >

@@ -175,29 +175,24 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
     const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const message = `━━━━━━━━━━━━━━━━━━
-*ZUCA OFFICIAL BROADCAST*
+    const message = `*•┈ ZUCA SACRED INVITATION ┈•*
 ━━━━━━━━━━━━━━━━━━
 
-*EVENT NOTIFICATION*
+*URGENT: ${act.title.toUpperCase()}*
 
-*Event:* ${act.title}
 *Day:* ${dayName}
 *Date:* ${dateStr}
 *Time:* ${timeStr}
-*Location:* ${act.location}
+*Venue:* ${act.location}
 
 *Details:*
 ${act.description}
 
-Your presence will be a blessing to the community. We look forward to gathering together in faith and fellowship.
-
-Join us and be part of this divine experience. We encourage all members to attend.
+*Your presence is highly anticipated.* Join us as we gather in faith and fellowship. Do not miss this divine experience.
 
 ━━━━━━━━━━━━━━━━━━
-*ZUCA PORTAL*
-${window.location.origin}
-━━━━━━━━━━━━━━━━━━`;
+*ZUCA PORTAL:* ${window.location.origin}
+✧────────────────✧`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };

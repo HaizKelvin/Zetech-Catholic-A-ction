@@ -128,52 +128,77 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
     return matchesCategory && matchesSearch;
   });
 
+  const shareResource = (item: Material) => {
+    const message = `*•┈ ZUCA SACRED RESOURCE ┈•*
+━━━━━━━━━━━━━━━━━━
+
+*KNOWLEDGE: ${item.title.toUpperCase()}*
+
+*Category:* ${item.category}
+
+*Description:*
+${item.description}
+
+*Access Details:*
+${item.link || 'Available via ZUCA Portal'}
+
+━━━━━━━━━━━━━━━━━━
+*ZUCA PORTAL:* ${window.location.origin}
+✧────────────────✧`;
+    const encodedText = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+  };
+
+  const featuredMaterial = filteredMaterials[0];
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100">
-      {/* Sacred Header - Elegant & Liturgical */}
+      {/* Sacred Header - Enhanced with subtle texture */}
       <motion.header 
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative py-8 md:py-24 px-6 md:px-16 rounded-[32px] md:rounded-[64px] overflow-hidden bg-brand-950 text-white shadow-3xl group mx-2 md:mx-0 border border-emerald-500/10"
+        className="relative py-12 md:py-32 px-6 md:px-16 rounded-[32px] md:rounded-[64px] overflow-hidden bg-brand-950 text-white shadow-3xl group mx-2 md:mx-0 border border-emerald-500/20"
       >
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1548625361-92e105e4539a?q=80&w=2670&auto=format&fit=crop" 
-            className="w-full h-full object-cover opacity-20 transform group-hover:scale-110 transition-transform duration-[10s]" 
+            className="w-full h-full object-cover opacity-30 transform group-hover:scale-105 transition-transform duration-[20s]" 
             alt="Cathedral"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/80 to-transparent" />
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 blur-[150px] rounded-full -mr-48 -mt-48" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/90 to-transparent" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/10 blur-[180px] rounded-full -mr-64 -mt-64" />
+          <div className="absolute inset-0 divine-pattern opacity-5" />
         </div>
         
-        <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-12 max-w-full">
-          <div className="space-y-4 md:space-y-8">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-10 md:gap-16">
+          <div className="space-y-6 md:space-y-10">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-3 px-5 py-2 rounded-full glass-dark border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-emerald-400 shadow-2xl backdrop-blur-3xl"
+              className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full glass-dark border border-white/10 text-[10px] font-black uppercase tracking-[0.5em] text-emerald-400 shadow-2xl backdrop-blur-3xl"
             >
-               <Flame className="w-3 h-3 animate-pulse text-amber-500" />
-               Archive of Grace
+               <Flame className="w-3.5 h-3.5 animate-pulse text-amber-500" />
+               Eternal Repository
             </motion.div>
             
-            <h1 className="text-4xl md:text-8xl font-black tracking-tighter leading-none text-white serif-display">
-              Divine <br />
-              <span className="serif-display italic font-light text-emerald-400 lowercase italic">Library</span>
-            </h1>
-
-            <p className="max-w-xl text-stone-400 text-sm md:text-xl font-light italic serif-display leading-relaxed">
-              "The fruit of the spirit is love, joy, peace, patience, kindness, goodness, faithfulness..."
-            </p>
+            <div className="space-y-4">
+              <h1 className="text-5xl md:text-9xl font-black tracking-tighter leading-[0.85] text-white serif-display">
+                Sacred <br />
+                <span className="serif-display italic font-light text-emerald-400 lowercase drop-shadow-3xl">Archive</span>
+              </h1>
+              <p className="max-w-xl text-stone-400 text-base md:text-2xl font-light italic serif-display leading-relaxed opacity-90">
+                "Where wisdom is stored, grace flourishes. Seek and you shall find the path to enlightenment."
+              </p>
+            </div>
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.05, y: -2 }}
+            whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsAddModalOpen(true)}
-            className="w-full md:w-auto flex items-center justify-center gap-3 bg-emerald-600 text-white px-8 py-5 rounded-[24px] md:rounded-[32px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.2em] shadow-2xl shadow-emerald-600/30 text-[9px] md:text-[10px]"
+            className="w-full md:w-auto flex items-center justify-center gap-4 bg-emerald-600 text-white px-10 py-6 rounded-[28px] md:rounded-[40px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.3em] shadow-3xl shadow-emerald-500/30 text-[11px] border border-white/10"
           >
             <Plus className="w-5 h-5" />
             Endow Resource
@@ -181,123 +206,212 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
         </div>
       </motion.header>
 
-      {/* Navigation - Ornate & Minimal */}
-      <div className="px-2 md:px-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-3 md:p-6 bg-white dark:bg-stone-900 border border-stone-200/50 dark:border-white/5 rounded-[32px] md:rounded-[48px] shadow-2xl backdrop-blur-2xl">
-          <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto overflow-x-auto no-scrollbar py-2">
-            <button
-              onClick={() => setActiveCategory('All')}
-              className={`px-4 md:px-7 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all shrink-0 ${
-                activeCategory === 'All' 
-                  ? 'bg-stone-900 text-white dark:bg-emerald-500 dark:text-black shadow-xl ring-2 ring-emerald-500/20' 
-                  : 'text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-white/5'
-              }`}
-            >
-              Universal
-            </button>
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all shrink-0 border-2 ${
-                  activeCategory === cat.id 
-                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-lg' 
-                    : 'text-stone-400 border-stone-100 dark:border-white/5 hover:border-emerald-500/30 hover:bg-stone-50 dark:hover:bg-white/5'
-                }`}
-              >
-                {cat.icon}
-                <span>{cat.id}</span>
-              </button>
-            ))}
-          </div>
-          <div className="relative w-full md:w-80 group">
-             <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-emerald-500 transition-colors" />
-             <input 
-                type="text"
-                placeholder="Seek wisdom..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-14 pr-6 py-3 md:py-4 bg-stone-50 dark:bg-black/20 border-2 border-transparent focus:border-emerald-500/20 rounded-2xl md:rounded-3xl text-sm font-medium text-stone-900 dark:text-white outline-none transition-all placeholder:text-stone-400"
-             />
+      {/* Main Library Navigation & Feature Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 px-2 md:px-0">
+        {/* Navigation Sidebar (Desktop Only) */}
+        <div className="lg:col-span-3 space-y-8 order-2 lg:order-1">
+          <div className="glass rounded-[32px] md:rounded-[48px] p-8 border border-stone-100 dark:border-white/5 shadow-2xl space-y-10 bg-white/50 dark:bg-stone-900/40 backdrop-blur-3xl">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/5 pb-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Categories</h3>
+                <Filter className="w-3 h-3 text-emerald-500" />
+              </div>
+              
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setActiveCategory('All')}
+                  className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all group ${
+                    activeCategory === 'All' 
+                      ? 'bg-emerald-500 text-black shadow-xl' 
+                      : 'text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-white/5'
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <Globe className="w-4 h-4" /> Universal
+                  </span>
+                  <ChevronRight className={`w-3 h-3 transition-transform ${activeCategory === 'All' ? 'translate-x-1' : 'opacity-0'}`} />
+                </button>
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all group border ${
+                      activeCategory === cat.id 
+                        ? 'bg-stone-900 text-white dark:bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-lg' 
+                        : 'text-stone-400 border-transparent hover:border-emerald-500/30 hover:bg-stone-50 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      {cat.icon} {cat.id}
+                    </span>
+                    <span className="text-[9px] opacity-40">{materials.filter(m => m.category === cat.id).length}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <div className="p-6 rounded-[24px] bg-emerald-500/5 border border-emerald-500/10 text-center space-y-3">
+                <Sparkles className="w-6 h-6 text-emerald-500 mx-auto" />
+                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Archive Seekers</p>
+                <p className="text-[11px] text-stone-500 leading-relaxed font-serif italic">Use the Divine AI for complex questions.</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Library Grid - Manuscript / Sacred Book Style */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 px-4 md:px-4">
-        <AnimatePresence mode="popLayout">
-          {filteredMaterials.map((item, idx) => (
+        {/* Content Area */}
+        <div className="lg:col-span-9 space-y-8 md:space-y-12 order-1 lg:order-2">
+          {/* Featured Wisdom - Only shows if there's at least one item */}
+          {featuredMaterial && activeCategory === 'All' && !searchTerm && (
             <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ delay: idx * 0.05 }}
-              whileHover={{ y: -8 }}
-              className="group bg-white dark:bg-stone-900/60 border-2 border-stone-100 dark:border-white/5 rounded-[32px] md:rounded-[48px] overflow-hidden shadow-xl hover:shadow-3xl transition-all duration-700 flex flex-col h-full relative"
+              className="relative rounded-[40px] md:rounded-[64px] overflow-hidden border-2 border-stone-100 dark:border-white/5 bg-white dark:bg-stone-900/40 shadow-3xl group"
             >
-              {/* Decorative Corner */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-emerald-500/5 to-transparent pointer-events-none" />
-              
-              <div className="p-8 md:p-12 flex flex-col h-full min-h-[300px]">
-                <div className="flex items-start justify-between mb-8">
-                  <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-stone-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] border border-stone-200 dark:border-emerald-500/20 shadow-sm">
-                    {CATEGORIES.find(c => c.id === item.category)?.icon || <Feather className="w-3 h-3" />}
-                    {item.category}
-                  </div>
-                  {isAdmin && (
-                    <button 
-                      onClick={() => handleDelete(item.id)} 
-                      className="p-3 text-stone-300 hover:text-red-500 hover:bg-stone-50 dark:hover:bg-red-500/10 rounded-2xl transition-all"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex-1 space-y-4">
-                  <h3 className="text-2xl md:text-3xl font-black text-stone-900 dark:text-white serif-display tracking-tight leading-tight group-hover:text-emerald-500 transition-colors">
-                    {item.title}
-                  </h3>
-                  <div className="h-0.5 w-12 bg-emerald-500/20 group-hover:w-20 transition-all duration-500" />
-                  <p className="text-sm md:text-base text-stone-500 dark:text-stone-400 leading-relaxed italic opacity-80 serif-display line-clamp-4">
-                    {item.description}
-                  </p>
-                </div>
-
-                <div className="mt-10 pt-8 border-t border-stone-100 dark:border-white/5 flex items-center justify-between gap-4">
-                   <div className="flex flex-col">
-                      <span className="text-[8px] font-black uppercase tracking-widest text-stone-400">Archivist</span>
-                      <span className="text-xs font-bold text-stone-600 dark:text-stone-300">{item.addedBy}</span>
-                   </div>
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                <div className="p-8 md:p-16 flex flex-col justify-center space-y-8 relative overflow-hidden">
+                   <div className="absolute top-0 left-0 w-full h-full divine-pattern opacity-[0.03] pointer-events-none" />
                    
-                   <div className="flex gap-2">
-                    <motion.button 
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
-                      className="p-3.5 bg-stone-900 dark:bg-emerald-500 text-white dark:text-black rounded-2xl shadow-xl hover:shadow-emerald-500/20 transition-all"
-                      title="Seek Enlightenment"
-                    >
-                      <Bot className="w-5 h-5" />
-                    </motion.button>
-                    
-                    <motion.button 
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => item.link && window.open(item.link, '_blank')}
-                      disabled={!item.link}
-                      className="p-3.5 bg-stone-50 dark:bg-white/5 text-stone-400 dark:text-stone-300 rounded-2xl border border-stone-200 dark:border-white/10 hover:border-emerald-500/30 hover:text-emerald-500 transition-all disabled:opacity-20"
-                      title="Open Resource"
-                    >
-                      <Globe className="w-5 h-5" />
-                    </motion.button>
+                   <div className="space-y-4">
+                     <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
+                       Featured Guidance
+                     </span>
+                     <h2 className="text-3xl md:text-6xl font-black serif-display text-stone-900 dark:text-white leading-[0.95] tracking-tighter italic">
+                       {featuredMaterial.title}
+                     </h2>
+                     <p className="text-stone-500 dark:text-stone-400 text-base md:text-xl font-serif italic leading-relaxed line-clamp-3">
+                       {featuredMaterial.description}
+                     </p>
                    </div>
+
+                   <div className="flex flex-wrap items-center gap-4">
+                     <motion.button
+                       whileHover={{ scale: 1.05 }}
+                       whileTap={{ scale: 0.95 }}
+                       onClick={() => onStudy(featuredMaterial.title, featuredMaterial.contentSnippet || featuredMaterial.description)}
+                       className="px-8 py-4 bg-stone-900 dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl flex items-center gap-3"
+                     >
+                       <Bot className="w-4 h-4" /> Consult Advisor
+                     </motion.button>
+                     <motion.button
+                       whileHover={{ scale: 1.05 }}
+                       whileTap={{ scale: 0.95 }}
+                       onClick={() => shareResource(featuredMaterial)}
+                       className="p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20"
+                     >
+                       <MessageSquare className="w-5 h-5 text-emerald-500" />
+                     </motion.button>
+                   </div>
+                </div>
+                <div className="h-64 md:h-auto relative overflow-hidden bg-brand-900">
+                  <img 
+                    src="https://images.unsplash.com/photo-1473186578172-c141e6798cf4?q=80&w=2546&auto=format&fit=crop" 
+                    className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[5s] opacity-60"
+                    alt="Manuscript"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-stone-900/40 to-transparent md:to-transparent" />
                 </div>
               </div>
             </motion.div>
-          ))}
-        </AnimatePresence>
+          )}
+
+          {/* Search Bar Refined */}
+          <div className="relative group">
+             <Search className="absolute left-8 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-emerald-500 transition-colors" />
+             <input 
+                type="text"
+                placeholder="Search the Sacred Archive..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-16 pr-8 py-6 md:py-8 bg-stone-100/50 dark:bg-stone-900/40 border border-transparent focus:border-emerald-500/30 rounded-[32px] md:rounded-[48px] text-lg font-medium text-stone-900 dark:text-white outline-none transition-all placeholder:text-stone-400 shadow-xl"
+             />
+          </div>
+
+          {/* Library Grid - Manuscripts Style */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-10">
+            <AnimatePresence mode="popLayout">
+              {filteredMaterials.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="group bg-white dark:bg-stone-900/60 border border-stone-100 dark:border-white/5 rounded-[40px] md:rounded-[56px] overflow-hidden shadow-xl hover:shadow-emerald-500/5 transition-all duration-700 flex flex-col h-full relative"
+                >
+                  <div className="p-8 md:p-12 flex flex-col h-full min-h-[350px]">
+                    <div className="flex items-start justify-between mb-10">
+                      <div className="px-5 py-2 rounded-full glass-dark text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-white/5 shadow-inner">
+                        {item.category}
+                      </div>
+                      <div className="flex gap-2">
+                        {isAdmin && (
+                          <button 
+                            onClick={() => handleDelete(item.id)} 
+                            className="p-3 text-stone-300 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => shareResource(item)}
+                          className="p-3 text-stone-300 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-2xl transition-all"
+                        >
+                          <MessageSquare className="w-5 h-5 text-emerald-500" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 space-y-6">
+                      <h3 className="text-3xl md:text-4xl font-black text-stone-900 dark:text-white serif-display tracking-tight leading-[1.1] transition-colors group-hover:text-emerald-500">
+                        {item.title}
+                      </h3>
+                      <div className="h-[1px] w-12 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] group-hover:w-24 transition-all duration-700" />
+                      <p className="text-base md:text-lg text-stone-500 dark:text-stone-400 leading-relaxed italic opacity-80 serif-display line-clamp-5">
+                        "{item.description}"
+                      </p>
+                    </div>
+
+                    <div className="mt-12 pt-8 border-t border-stone-100 dark:border-white/5 flex items-center justify-between">
+                       <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center border border-stone-200 dark:border-white/5">
+                            <Feather className="w-4 h-4 text-stone-400" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-stone-400">Custodied By</span>
+                            <span className="text-xs font-bold text-stone-600 dark:text-stone-300">{item.addedBy}</span>
+                          </div>
+                       </div>
+                       
+                       <div className="flex gap-3">
+                        <motion.button 
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
+                          className="w-14 h-14 bg-stone-900 dark:bg-white text-white dark:text-black rounded-2xl shadow-xl flex items-center justify-center hover:shadow-brand-500/20 transition-all border border-white/10"
+                        >
+                          <Bot className="w-6 h-6" />
+                        </motion.button>
+                        
+                        {item.link && (
+                          <motion.button 
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => window.open(item.link, '_blank')}
+                            className="w-14 h-14 bg-stone-50 dark:bg-stone-950/40 text-stone-400 dark:text-stone-400 rounded-2xl border border-stone-200 dark:border-white/5 hover:border-emerald-500/50 hover:text-emerald-500 transition-all shadow-sm flex items-center justify-center"
+                          >
+                            <Globe className="w-6 h-6" />
+                          </motion.button>
+                        )}
+                       </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
       {/* Empty State */}
@@ -330,8 +444,8 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
                     <Library className="w-6 h-6 md:w-10 md:h-10" />
                   </div>
                   <div>
-                    <h2 className="text-2xl md:text-5xl font-black text-white serif-display tracking-tight leading-tight italic">Devotional Repository</h2>
-                    <p className="text-[10px] md:text-[11px] text-emerald-500 uppercase tracking-[0.4em] font-black mt-2">Sacred archive of grace</p>
+                    <h2 className="text-2xl md:text-5xl font-black text-white serif-display tracking-tight leading-tight italic">Resource Endowment</h2>
+                    <p className="text-[10px] md:text-[11px] text-emerald-500 uppercase tracking-[0.4em] font-black mt-2">Contribution to the Sacred Archive</p>
                   </div>
                 </div>
                 <button 
