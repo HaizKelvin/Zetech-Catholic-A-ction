@@ -11,7 +11,8 @@ import {
   Trash2, 
   AlertCircle,
   FileText,
-  MessageCircle
+  MessageCircle,
+  Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -20,7 +21,8 @@ import {
   orderBy, 
   onSnapshot, 
   addDoc, 
-  deleteDoc, 
+  updateDoc,
+  deleteDoc,
   doc, 
   serverTimestamp,
   Timestamp 
@@ -45,12 +47,13 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const [newActivity, setNewActivity] = useState({
     title: '',
     description: '',
     date: '',
     location: '',
-    type: 'Meeting' as const,
+    type: 'Meeting' as 'Mass' | 'Meeting' | 'Social' | 'Other',
     downloadUrl: ''
   });
 
@@ -90,17 +93,42 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
   const handleAddActivity = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'schedule'), {
+      const data = {
         ...newActivity,
         date: Timestamp.fromDate(new Date(newActivity.date)),
-        addedBy: user.displayName || 'Admin',
-        createdAt: serverTimestamp()
-      });
+        updatedAt: serverTimestamp()
+      };
+
+      if (editingActivityId) {
+        await updateDoc(doc(db, 'schedule', editingActivityId), data);
+      } else {
+        await addDoc(collection(db, 'schedule'), {
+          ...data,
+          addedBy: user.displayName || 'Admin',
+          createdAt: serverTimestamp()
+        });
+      }
+      
       setIsAddModalOpen(false);
+      setEditingActivityId(null);
       setNewActivity({ title: '', description: '', date: '', location: '', type: 'Meeting', downloadUrl: '' });
     } catch (error) {
-      console.error("Error adding activity:", error);
+      console.error("Error saving activity:", error);
     }
+  };
+
+  const handleEdit = (act: Activity) => {
+    const d = act.date instanceof Timestamp ? act.date.toDate() : new Date(act.date);
+    setNewActivity({
+      title: act.title,
+      description: act.description || '',
+      date: format(d, "yyyy-MM-dd'T'HH:mm"),
+      location: act.location,
+      type: act.type,
+      downloadUrl: act.downloadUrl || ''
+    });
+    setEditingActivityId(act.id);
+    setIsAddModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -368,29 +396,40 @@ ${window.location.origin}
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1.5 flex-1 min-w-0">
                         <div className="flex items-center gap-3">
-                           <div className="relative flex items-center justify-center w-5 h-5 rounded-full overflow-hidden">
-                             {isAdmin && (
-                               <motion.button 
-                                 initial={{ opacity: 0, scale: 0.5 }}
-                                 whileHover={{ scale: 1.1 }}
-                                 animate={{ opacity: 0 }}
-                                 whileInView={{ opacity: 0 }} // Hidden by default, shown on group-hover via CSS-like logic or just group-hover:opacity-100
-                                 className="absolute inset-0 flex items-center justify-center bg-red-500 text-white z-20 opacity-0 group-hover:opacity-100 transition-opacity"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   handleDelete(act.id);
-                                 }}
-                               >
-                                 <Trash2 className="w-3 h-3" />
-                               </motion.button>
-                             )}
-                             <span className={`w-2 h-2 rounded-full transition-opacity group-hover:opacity-0 ${
-                               act.type === 'Mass' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' :
-                               act.type === 'Meeting' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' :
-                               act.type === 'Social' ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' :
-                               'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
-                             }`} />
-                           </div>
+                          <div className="relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full">
+                            {isAdmin && (
+                              <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20 bg-stone-900/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-full">
+                                <motion.button 
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="w-6 h-6 flex items-center justify-center bg-brand-500 text-white rounded-full shadow-lg"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(act);
+                                  }}
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </motion.button>
+                                <motion.button 
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full shadow-lg"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(act.id);
+                                  }}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </motion.button>
+                              </div>
+                            )}
+                            <span className={`w-2.5 h-2.5 rounded-full shadow-md ${
+                              act.type === 'Mass' ? 'bg-amber-500 shadow-amber-500/20' :
+                              act.type === 'Meeting' ? 'bg-blue-500 shadow-blue-500/20' :
+                              act.type === 'Social' ? 'bg-indigo-500 shadow-indigo-500/20' :
+                              'bg-emerald-500 shadow-emerald-500/20'
+                            }`} />
+                          </div>
                            <span className="text-[10px] font-black uppercase tracking-widest opacity-50">{act.type}</span>
                         </div>
                         <h4 className="font-bold text-stone-900 dark:text-white leading-tight pr-4">{act.title}</h4>
@@ -503,9 +542,15 @@ ${window.location.origin}
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-3xl font-black text-white uppercase tracking-tight italic serif-display">Prophetic <span className="text-emerald-500 not-italic">Timing</span></h2>
-                  <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-2">New Schedule Entry</p>
+                  <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-2">{editingActivityId ? 'Modify Sacred Event' : 'New Schedule Entry'}</p>
                 </div>
-                <button onClick={() => setIsAddModalOpen(false)} className="p-3 bg-white/5 rounded-2xl text-stone-400 hover:text-red-500 transition-colors">
+                <button 
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    setEditingActivityId(null);
+                  }} 
+                  className="p-3 bg-white/5 rounded-2xl text-stone-400 hover:text-red-500 transition-colors"
+                >
                   <Trash2 className="w-6 h-6" />
                 </button>
               </div>
@@ -589,7 +634,7 @@ ${window.location.origin}
                   type="submit"
                   className="w-full py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl shadow-emerald-500/20 hover:bg-emerald-500 transition-all mt-4"
                 >
-                  Proclaim Appointment
+                  {editingActivityId ? 'Sanctify Changes' : 'Proclaim Appointment'}
                 </motion.button>
               </form>
             </motion.div>
