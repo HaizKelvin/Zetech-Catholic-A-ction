@@ -111,12 +111,12 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24">
+    <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pb-24">
       {/* Immersive Header - Matching Dashboard & Gallery */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-12 mx-2 md:mx-0"
+        className="relative py-10 md:py-24 px-5 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-4 md:mb-12 mx-2 md:mx-0"
       >
         <div className="absolute inset-0 z-0">
           <img 
@@ -163,12 +163,12 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
       </motion.header>
 
       {/* Optimized Navigation / Search */}
-      <div className="px-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-4 md:p-6 bg-white dark:bg-stone-900/40 border border-stone-200/60 dark:border-white/5 rounded-[32px] shadow-sm backdrop-blur-xl">
-          <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto overflow-x-auto no-scrollbar">
+      <div className="px-2 md:px-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-3 md:p-6 bg-white dark:bg-stone-900/40 border border-stone-200/60 dark:border-white/5 rounded-[28px] md:rounded-[32px] shadow-sm backdrop-blur-xl">
+          <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto overflow-x-auto no-scrollbar pb-2 md:pb-0">
             <button
               onClick={() => setActiveCategory('All')}
-              className={`px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shrink-0 ${
+              className={`px-4 md:px-6 py-2 md:py-2.5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all shrink-0 ${
                 activeCategory === 'All' 
                   ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10' 
                   : 'text-stone-400 hover:text-white'
@@ -181,26 +181,27 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shrink-0 ${
+                className={`flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all shrink-0 ${
                   activeCategory === cat.id 
                     ? 'bg-stone-900 dark:bg-white text-white dark:text-black shadow-lg' 
                     : 'text-stone-400 hover:text-white'
                 }`}
               >
                 {cat.icon}
-                {cat.id}
+                <span className="hidden sm:inline">{cat.id}</span>
+                <span className="sm:hidden">{cat.id}</span>
               </button>
             ))}
           </div>
 
           <div className="relative w-full md:w-80 group">
-             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 transition-colors group-focus-within:text-amber-500" />
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 transition-colors group-focus-within:text-amber-500" />
              <input 
                 type="text"
                 placeholder="Find in the archive..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-6 py-3.5 bg-stone-100 dark:bg-black/20 border border-transparent focus:border-amber-500/30 rounded-2xl text-[11px] font-bold text-white outline-none transition-all uppercase tracking-widest placeholder:text-stone-600"
+                className="w-full pl-10 pr-4 py-3 bg-stone-100 dark:bg-black/20 border border-transparent focus:border-amber-500/30 rounded-xl md:rounded-2xl text-[10px] font-bold text-stone-900 dark:text-white outline-none transition-all uppercase tracking-widest placeholder:text-stone-600"
              />
           </div>
         </div>
@@ -222,46 +223,46 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
               {/* Card Spine Decor */}
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500/20 group-hover:bg-amber-500 transition-all" />
               
-              <div className="p-6 md:p-8 flex flex-col h-full min-h-[220px]">
-                <div className="flex items-start justify-between mb-6">
+              <div className="p-5 md:p-8 flex flex-col h-full min-h-[200px] md:min-h-[220px]">
+                <div className="flex items-start justify-between mb-4 md:mb-6">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                       <div className="p-2 bg-amber-500/10 rounded-xl text-amber-500">
-                          {item.category === 'Choir' ? <Music className="w-5 h-5" /> : 
-                           item.category === 'Rosary' ? <Cross className="w-5 h-5" /> : 
-                           item.category === 'Liturgy' ? <FileText className="w-5 h-5" /> : 
-                           <BookOpen className="w-5 h-5" />}
+                       <div className="p-1.5 md:p-2 bg-amber-500/10 rounded-lg md:rounded-xl text-amber-500">
+                          {item.category === 'Choir' ? <Music className="w-4 h-4 md:w-5 md:h-5" /> : 
+                           item.category === 'Rosary' ? <Cross className="w-4 h-4 md:w-5 md:h-5" /> : 
+                           item.category === 'Liturgy' ? <FileText className="w-4 h-4 md:w-5 md:h-5" /> : 
+                           <BookOpen className="w-4 h-4 md:w-5 md:h-5" />}
                        </div>
-                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500">{item.category} Manuscript</span>
+                       <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-stone-500">{item.category} Manuscript</span>
                     </div>
                   </div>
                   {user?.role === 'admin' && (
-                    <button onClick={() => handleDelete(item.id)} className="p-2 text-stone-300 hover:text-red-500 transition-colors bg-stone-100 dark:bg-white/5 rounded-xl">
-                      <Trash2 className="w-4 h-4" />
+                    <button onClick={() => handleDelete(item.id)} className="p-1.5 md:p-2 text-stone-300 hover:text-red-500 transition-colors bg-stone-100 dark:bg-white/5 rounded-lg md:rounded-xl">
+                      <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     </button>
                   )}
                 </div>
 
-                <div className="flex-1 space-y-4">
-                  <h3 className="text-xl md:text-2xl font-black text-stone-900 dark:text-white serif-display tracking-tight leading-tight">
+                <div className="flex-1 space-y-3 md:space-y-4">
+                  <h3 className="text-lg md:text-xl lg:text-2xl font-black text-stone-900 dark:text-white serif-display tracking-tight leading-tight">
                     {item.title}
                   </h3>
-                  <div className="h-[2px] w-12 bg-amber-500/20 rounded-full group-hover:w-20 transition-all duration-700" />
-                  <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed italic opacity-80 serif-display line-clamp-4">
+                  <div className="h-[2px] w-10 md:w-12 bg-amber-500/20 rounded-full group-hover:w-16 md:group-hover:w-20 transition-all duration-700" />
+                  <p className="text-[12px] md:text-sm text-stone-500 dark:text-stone-400 leading-relaxed italic opacity-80 serif-display line-clamp-3 md:line-clamp-4">
                     {item.description}
                   </p>
                 </div>
 
               {/* Enhanced Action Bar */}
-              <div className="mt-8 pt-6 border-t border-stone-100 dark:border-white/5 flex items-center gap-4">
+              <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-stone-100 dark:border-white/5 flex items-center gap-3 md:gap-4">
                 <motion.button 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
-                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-brand-500/10 text-brand-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-brand-500/20 transition-all"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 md:py-3.5 bg-brand-500/10 text-brand-500 rounded-xl md:rounded-2xl text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:bg-brand-500/20 transition-all"
                 >
-                  <Bot className="w-4 h-4" />
-                  Guide Me
+                  <Bot className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  Guide
                 </motion.button>
 
                 <motion.button 
@@ -269,9 +270,9 @@ export default function SacredMaterials({ user, onStudy }: SacredMaterialsProps)
                   whileTap={{ scale: 0.98 }}
                   onClick={() => item.link && window.open(item.link, '_blank')}
                   disabled={!item.link}
-                  className="flex-1 flex items-center justify-center gap-2 bg-stone-900 dark:bg-white text-white dark:text-black py-3.5 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 bg-stone-900 dark:bg-white text-white dark:text-black py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[8px] md:text-[10px] hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   Access
                 </motion.button>
               </div>

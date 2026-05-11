@@ -15,7 +15,7 @@ import { db, auth } from '../firebase';
 import { ChatMessage, OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
 import Markdown from 'react-markdown';
-import { Send, Bot, User, Loader2, MessageCircle, X, Minus, Trash2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, MessageCircle, X, Minus, Trash2, Mic, MicOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Chatbot({ userName, aiContext, onClearContext }: { userName?: string, aiContext?: string | null, onClearContext?: () => void }) {
@@ -23,7 +23,49 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(prev => prev + (prev.trim() ? ' ' : '') + transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition is not supported in this browser. Try opening in a new tab.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      setIsListening(true);
+      recognitionRef.current.start();
+    }
+  };
 
   // Handle external AI Context from Divine Library
   useEffect(() => {
@@ -225,13 +267,26 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
             {/* Input */}
             <div className="p-4 bg-[#F4F5F7] dark:bg-stone-950 border-t border-stone-200 dark:border-white/5 shrink-0">
               <form onSubmit={handleSend} className="flex gap-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type a spiritual question..."
-                  className="flex-1 px-5 py-3 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/5 rounded-2xl outline-none text-sm transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50"
-                />
+                <div className="flex-1 relative flex items-center">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder={isListening ? "Listening..." : "Type a spiritual question..."}
+                    className="w-full px-5 py-3 pr-12 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/5 rounded-2xl outline-none text-sm transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50"
+                  />
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    className={`absolute right-2 p-2 rounded-xl transition-all ${
+                      isListening 
+                        ? 'bg-rose-500 text-white animate-pulse' 
+                        : 'text-stone-400 hover:text-brand-500'
+                    }`}
+                  >
+                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </button>
+                </div>
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}

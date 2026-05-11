@@ -38,6 +38,7 @@ import Payments from './components/Payments';
 import Gallery from './components/Gallery';
 import TriviaComponent from './components/Trivia';
 import AdminPanel from './components/AdminPanel';
+import SchedulePage from './components/SchedulePage';
 import ChatPage from './components/ChatPage';
 import ContactUs from './components/ContactUs';
 import NotificationTicker from './components/NotificationTicker';
@@ -86,7 +87,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'materials' | 'petitions' | 'events' | 'join' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
+type TabType = 'home' | 'materials' | 'schedule' | 'petitions' | 'events' | 'join' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -694,7 +695,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
               {isSidebarOpen && <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 ml-4 mb-2">Sanctuary</p>}
               <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4" />} label="Overview" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4" />} label="Community Hub" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-4 h-4" />} label="Events" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'schedule'} onClick={() => handleTabChange('schedule')} icon={<Calendar className="w-4 h-4" />} label="Schedule & Plans" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-4 h-4" />} label="Special Events" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4" />} label="Activities" isOpen={isSidebarOpen} />
             </div>
 
@@ -1004,6 +1006,11 @@ Can you provide more insight, theological context, or a related prayer meditatio
             {activeTab === 'materials' && (
               <motion.div key="materials" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <SacredMaterials user={profile} onStudy={handleStudyResource} />
+              </motion.div>
+            )}
+            {activeTab === 'schedule' && (
+              <motion.div key="schedule" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <SchedulePage user={profile} isAdmin={isAdmin} />
               </motion.div>
             )}
              {activeTab === 'petitions' && (

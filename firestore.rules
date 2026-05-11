@@ -106,5 +106,15 @@ service cloud.firestore {
                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
       allow delete: if isAdmin();
     }
+
+    match /schedule/{id} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && 
+                    request.resource.data.addedBy != null &&
+                    request.resource.data.createdAt == request.time;
+      allow update: if isAdmin() && 
+                    request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
   }
 }

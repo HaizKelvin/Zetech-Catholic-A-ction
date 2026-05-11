@@ -148,6 +148,22 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "title", "message", "type", "isRead", "timestamp"]
+    },
+    "ScheduleItem": {
+      "title": "Schedule Item",
+      "description": "Community semester plans and activity schedules.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "location": { "type": "string" },
+        "type": { "type": "string", "enum": ["Mass", "Meeting", "Social", "Other"] },
+        "downloadUrl": { "type": "string" },
+        "addedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "date", "type", "addedBy", "createdAt"]
     }
   },
   "firestore": {
@@ -161,6 +177,7 @@
     "/control/daily_bread": { "schema": "DailyControl", "description": "Daily content." },
     "/community_chat/{id}": { "schema": "CommunityMessage", "description": "Main community messages." },
     "/registrations/{id}": { "schema": "MembershipRegistration", "description": "Registration entries for new members." },
-    "/notifications/{id}": { "schema": "AppNotification", "description": "Real-time alerts and notices." }
+    "/notifications/{id}": { "schema": "AppNotification", "description": "Real-time alerts and notices." },
+    "/schedule/{id}": { "schema": "ScheduleItem", "description": "Semester schedules and activities." }
   }
 }
