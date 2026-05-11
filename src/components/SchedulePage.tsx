@@ -143,9 +143,28 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
   };
 
   const shareActivity = (act: any) => {
-    const dateStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleDateString() : new Date(act.date).toLocaleDateString();
+    const dateStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : new Date(act.date).toLocaleDateString();
     const timeStr = act.date instanceof Timestamp ? act.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    const message = `*Event Notification | ZUCA Official*\n\n*Event:* ${act.title}\n*Date:* ${dateStr}\n*Time:* ${timeStr}\n*Location:* ${act.location}\n\n*Description:* ${act.description}\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`;
+    const message = `━━━━━━━━━━━━━━━━━━
+*ZUCA OFFICIAL BROADCAST*
+━━━━━━━━━━━━━━━━━━
+
+*EVENT NOTIFICATION*
+
+*Event:* ${act.title}
+*Date:* ${dateStr}
+*Time:* ${timeStr}
+*Location:* ${act.location}
+
+*Details:*
+${act.description}
+
+Your presence will be a blessing to the community. We look forward to gathering together in faith and fellowship.
+
+━━━━━━━━━━━━━━━━━━
+*ZUCA HOLY PORTAL*
+${window.location.origin}
+━━━━━━━━━━━━━━━━━━`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };

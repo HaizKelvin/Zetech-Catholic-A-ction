@@ -82,14 +82,56 @@ export default function AdminPanel() {
   };
 
   const broadcastDaily = () => {
-    const message = `*Daily Bread | ZUCA Official*\n\n*Scripture:* ${dailyForm.verse}\n*Reference:* ${dailyForm.reference}\n\n*Saint of the Day:* ${dailyForm.saintName}\n*Reflections:* ${dailyForm.saintInfo}\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`;
+    const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    const message = `━━━━━━━━━━━━━━━━━━
+*ZUCA OFFICIAL BROADCAST*
+━━━━━━━━━━━━━━━━━━
+
+*DAILY BREAD*
+_${today}_
+
+*Scripture Reference*
+${dailyForm.reference}
+
+*Verse*
+"${dailyForm.verse}"
+
+*Saint of the Day*
+${dailyForm.saintName}
+
+*Reflections*
+${dailyForm.saintInfo}
+
+━━━━━━━━━━━━━━━━━━
+*ZUCA HOLY PORTAL*
+${window.location.origin}
+━━━━━━━━━━━━━━━━━━`;
     shareToWhatsApp(message);
   };
 
   const broadcastEvent = (event: any) => {
-    const dateStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleDateString() : new Date(event.date).toLocaleDateString();
+    const dateStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : new Date(event.date).toLocaleDateString();
     const timeStr = event.date instanceof Timestamp ? event.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    const message = `*Event Notification | ZUCA Official*\n\n*Event:* ${event.title}\n*Date:* ${dateStr}\n*Time:* ${timeStr}\n*Location:* ${event.location}\n\n*Description:* ${event.description}\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`;
+    const message = `━━━━━━━━━━━━━━━━━━
+*ZUCA OFFICIAL BROADCAST*
+━━━━━━━━━━━━━━━━━━
+
+*EVENT NOTIFICATION*
+
+*Event:* ${event.title}
+*Date:* ${dateStr}
+*Time:* ${timeStr}
+*Location:* ${event.location}
+
+*Details:*
+${event.description}
+
+Your presence will be a blessing to the community. We look forward to gathering together in faith and fellowship.
+
+━━━━━━━━━━━━━━━━━━
+*ZUCA HOLY PORTAL*
+${window.location.origin}
+━━━━━━━━━━━━━━━━━━`;
     shareToWhatsApp(message);
   };
 
@@ -376,7 +418,18 @@ export default function AdminPanel() {
                       <div className="flex items-center gap-2 md:gap-3 shrink-0">
                         {u.contactNumber && (
                           <button 
-                            onClick={() => shareToWhatsApp(`Blessings from ZUCA community!\n\n_Sent via ZUCA Holy Portal_\n${window.location.origin}`, u.contactNumber)}
+                            onClick={() => shareToWhatsApp(`━━━━━━━━━━━━━━━━━━
+*ZUCA OFFICIAL GREETING*
+━━━━━━━━━━━━━━━━━━
+
+Blessings from the ZUCA community! 
+
+We celebrate your presence in our fellowship and wish you peace and spiritual growth.
+
+━━━━━━━━━━━━━━━━━━
+*ZUCA HOLY PORTAL*
+${window.location.origin}
+━━━━━━━━━━━━━━━━━━`, u.contactNumber)}
                             className="p-2 text-[#25D366] opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
                             title="Send WhatsApp"
                           >
