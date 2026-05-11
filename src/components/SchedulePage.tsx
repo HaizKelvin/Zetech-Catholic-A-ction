@@ -165,7 +165,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
             </motion.div>
             
             <h1 className="text-2xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-none text-white serif-display">
-              Sacred <span className="serif-display italic font-light text-emerald-400 lowercase">Schedule</span>
+              Sacred <span className="serif-display italic font-light text-emerald-400 lowercase">Events & Plans</span>
             </h1>
           </div>
 
@@ -287,29 +287,36 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
         {/* Info Side */}
         <div className="lg:col-span-4 space-y-8">
           {/* Day Agenda View */}
-          <div className="glass rounded-[32px] p-6 md:p-8 border border-emerald-500/20 shadow-2xl relative overflow-hidden group bg-white dark:bg-stone-900">
+          <div className="glass rounded-[32px] p-6 md:p-8 border border-emerald-500/20 shadow-2xl relative overflow-hidden group bg-white dark:bg-stone-900 min-h-[300px]">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl -mr-16 -mt-16" />
             <div className="relative z-10 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-1">Agenda for</p>
-                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight serif-display">{format(selectedDate, 'MMMM d')}</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-1">Day's Agenda</p>
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight serif-display">
+                    {isToday(selectedDate) ? 'Today' : format(selectedDate, 'EEEE')} <span className="text-emerald-500 opacity-60 font-light">{format(selectedDate, 'MMM d')}</span>
+                  </h3>
                 </div>
                 <CalendarIcon className="w-6 h-6 text-emerald-500 opacity-20" />
               </div>
               
-              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {getActivitiesForDay(selectedDate).length === 0 && (
-                   <div className="text-center py-10 opacity-30 italic">
-                      <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                      <p className="text-xs">No events for this day.</p>
+                   <div className="text-center py-12 md:py-20 opacity-30 italic flex flex-col items-center">
+                      <div className="w-16 h-16 rounded-full bg-emerald-500/5 flex items-center justify-center mb-4">
+                        <Clock className="w-8 h-8 opacity-20" />
+                      </div>
+                      <p className="text-xs font-medium">The silence of reflection.</p>
+                      <p className="text-[10px] uppercase tracking-widest mt-1">No activities for this day</p>
                       {isAdmin && (
-                        <button 
+                        <motion.button 
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => handleDayClick(selectedDate)}
-                          className="mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:underline"
+                          className="mt-6 px-6 py-3 bg-emerald-500/10 text-emerald-500 rounded-xl text-[9px] font-black uppercase tracking-widest border border-emerald-500/20"
                         >
-                          Add one now?
-                        </button>
+                          Appoint Ritual
+                        </motion.button>
                       )}
                    </div>
                 )}
@@ -318,34 +325,39 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     key={act.id} 
-                    className="p-4 bg-stone-50 dark:bg-white/5 rounded-[20px] border border-stone-100 dark:border-white/5 relative group"
+                    className="p-4 bg-stone-50 dark:bg-white/5 rounded-[24px] border border-stone-100 dark:border-white/5 relative group hover:border-emerald-500/30 transition-all"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
+                      <div className="space-y-1.5 flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                           <span className={`w-1.5 h-1.5 rounded-full ${
-                             act.type === 'Mass' ? 'bg-amber-500' :
-                             act.type === 'Meeting' ? 'bg-blue-500' :
-                             act.type === 'Social' ? 'bg-indigo-500' :
-                             'bg-emerald-500'
+                           <span className={`w-2 h-2 rounded-full ${
+                             act.type === 'Mass' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' :
+                             act.type === 'Meeting' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' :
+                             act.type === 'Social' ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' :
+                             'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
                            }`} />
-                           <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{act.type}</span>
+                           <span className="text-[10px] font-black uppercase tracking-widest opacity-50">{act.type}</span>
                         </div>
-                        <h4 className="font-bold text-stone-900 dark:text-white leading-tight">{act.title}</h4>
+                        <h4 className="font-bold text-stone-900 dark:text-white leading-tight pr-4">{act.title}</h4>
                       </div>
                       {isAdmin && (
                         <button 
                           onClick={() => handleDelete(act.id)}
-                          className="p-1.5 text-stone-300 hover:text-red-500 transition-colors bg-white dark:bg-stone-800 rounded-lg shadow-sm opacity-0 group-hover:opacity-100"
+                          className="p-2 text-stone-300 hover:text-red-500 transition-colors bg-white dark:bg-stone-800 rounded-xl shadow-md border border-stone-100 dark:border-white/5 shadow-stone-200/50"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>
-                    <div className="mt-3 flex items-center gap-3 text-[10px] text-stone-500">
-                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {format(act.date instanceof Timestamp ? act.date.toDate() : new Date(act.date), 'HH:mm')}</span>
-                       <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {act.location}</span>
+                    <div className="mt-4 flex flex-wrap items-center gap-4 text-[10px] text-stone-500 dark:text-stone-400 font-bold uppercase tracking-widest">
+                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-emerald-500" /> {format(act.date instanceof Timestamp ? act.date.toDate() : new Date(act.date), 'HH:mm')}</span>
+                       <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-emerald-500" /> {act.location}</span>
                     </div>
+                    {act.description && (
+                       <p className="mt-3 text-[11px] text-stone-500 dark:text-stone-500 leading-relaxed line-clamp-2 italic font-serif">
+                         {act.description}
+                       </p>
+                    )}
                   </motion.div>
                 ))}
               </div>

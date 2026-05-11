@@ -33,7 +33,6 @@ import Chatbot from './components/Chatbot';
 import GroupLibrary from './components/GroupLibrary';
 import Dashboard from './components/Dashboard';
 import Petitions from './components/Petitions';
-import Events from './components/Events';
 import Payments from './components/Payments';
 import Gallery from './components/Gallery';
 import TriviaComponent from './components/Trivia';
@@ -87,7 +86,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'materials' | 'schedule' | 'petitions' | 'events' | 'join' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
+type TabType = 'home' | 'materials' | 'schedule' | 'petitions' | 'join' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -695,8 +694,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
               {isSidebarOpen && <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 ml-4 mb-2">Sanctuary</p>}
               <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4" />} label="Overview" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4" />} label="Community Hub" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'schedule'} onClick={() => handleTabChange('schedule')} icon={<Calendar className="w-4 h-4" />} label="Schedule & Plans" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'events'} onClick={() => handleTabChange('events')} icon={<Calendar className="w-4 h-4" />} label="Special Events" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'schedule'} onClick={() => handleTabChange('schedule')} icon={<Calendar className="w-4 h-4" />} label="Schedule & Events" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4" />} label="Activities" isOpen={isSidebarOpen} />
             </div>
 
@@ -1005,7 +1003,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
             )}
             {activeTab === 'materials' && (
               <motion.div key="materials" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <GroupLibrary user={profile} onStudy={handleStudyResource} />
+                <GroupLibrary user={profile} isAdmin={isAdmin} onStudy={handleStudyResource} />
               </motion.div>
             )}
             {activeTab === 'schedule' && (
@@ -1013,14 +1011,9 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 <SchedulePage user={profile} isAdmin={isAdmin} />
               </motion.div>
             )}
-             {activeTab === 'petitions' && (
+            {activeTab === 'petitions' && (
               <motion.div key="petitions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <Petitions />
-              </motion.div>
-            )}
-            {activeTab === 'events' && (
-              <motion.div key="events" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <Events isAdmin={isAdmin} />
               </motion.div>
             )}
             {activeTab === 'join' && (
