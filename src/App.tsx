@@ -106,6 +106,7 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsDetail, setShowTermsDetail] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Initial state from URL if present
     if (typeof window !== 'undefined') {
@@ -593,17 +594,60 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 </div>
 
                 {authMode === 'signup' && (
-                  <div className="flex items-start gap-3 px-4">
-                    <input 
-                      id="terms"
-                      type="checkbox" 
-                      checked={acceptedTerms}
-                      onChange={(e) => setAcceptedTerms(e.target.checked)}
-                      className="mt-1 w-4 h-4 rounded border-stone-200 dark:border-white/10 text-brand-600 focus:ring-brand-500/20"
-                    />
-                    <label htmlFor="terms" className="text-[10px] font-bold text-stone-500 dark:text-stone-400 leading-relaxed cursor-pointer">
-                      I accept the <button type="button" onClick={(e) => { e.stopPropagation(); setShowPolicyModal(true); }} className="text-brand-600 dark:text-brand-400 hover:underline">Terms of Service</button> and <button type="button" onClick={(e) => { e.stopPropagation(); setShowPolicyModal(true); }} className="text-brand-600 dark:text-brand-400 hover:underline">Community Covenant</button>.
-                    </label>
+                  <div className="space-y-4 px-2">
+                    <div className="bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-inner">
+                      <button 
+                        type="button"
+                        onClick={() => setShowTermsDetail(!showTermsDetail)}
+                        className="w-full flex items-center justify-between p-4 text-[10px] font-black uppercase tracking-widest text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-white/5 transition-all"
+                      >
+                        <span>Divine Covenant & Terms</span>
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-500 ${showTermsDetail ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      <AnimatePresence>
+                        {showTermsDetail && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="p-4 pt-0 text-[10px] space-y-3 font-medium text-stone-600 dark:text-stone-400 border-t border-stone-200 dark:border-white/5 leading-relaxed">
+                              <p>1. <span className="font-bold text-stone-900 dark:text-white">Fellowship Respect:</span> All members must treat each other with divine grace and respect.</p>
+                              <p>2. <span className="font-bold text-stone-900 dark:text-white">Sacred Content:</span> Only upliftive and church-related materials shall be shared in the community matrix.</p>
+                              <p>3. <span className="font-bold text-stone-900 dark:text-white">Data Privacy:</span> Your spiritual journey data is protected and used only within the ZUCA ecosystem.</p>
+                              <p>4. <span className="font-bold text-stone-900 dark:text-white">Community Conduct:</span> Any violation of the CA covenant may lead to divine exclusion from the portal.</p>
+                              
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  setAcceptedTerms(true);
+                                  setShowTermsDetail(false);
+                                }}
+                                className="w-full mt-4 py-3 bg-brand-600/10 text-brand-600 rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-brand-600 hover:text-white transition-all border border-brand-600/20"
+                              >
+                                I Understand & Accept
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    <div className="flex items-start gap-3 px-2">
+                      <input 
+                        id="terms"
+                        type="checkbox" 
+                        required
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        className="mt-1 w-4 h-4 rounded-lg border-stone-200 dark:border-white/10 text-brand-600 focus:ring-brand-500/20 bg-stone-100 dark:bg-white/5"
+                      />
+                      <label htmlFor="terms" className="text-[10px] font-bold text-stone-500 dark:text-stone-400 leading-relaxed cursor-pointer select-none">
+                        I have read the Covenant and I solemnly accept the responsibility of being a CA Member.
+                      </label>
+                    </div>
                   </div>
                 )}
 

@@ -34,7 +34,16 @@ export default function AdminPanel() {
   useEffect(() => {
     const q = query(collection(db, 'users'), limit(100));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as (UserProfile & { id: string })[]);
+      const usersData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+          id: doc.id, 
+          uid: data.uid || doc.id, // Ensure uid fallback
+          ...data 
+        };
+      }) as (UserProfile & { id: string })[];
+      setUsers(usersData);
+      setTotalCount(usersData.length); // Update count reactively from snapshot
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'users');
     });
@@ -58,17 +67,8 @@ export default function AdminPanel() {
       handleFirestoreError(error, OperationType.GET, 'control/daily_bread');
     });
 
-    const fetchCount = async () => {
-      const path = 'users';
-      try {
-        const coll = collection(db, path);
-        const snapshot = await getCountFromServer(coll);
-        setTotalCount(snapshot.data().count);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.GET, path);
-      }
-    };
-    fetchCount();
+    // The count is now handled by the users snapshot reactive update
+    // return () => { unsubscribe(); subControl(); subEvents(); };
     
     return () => { unsubscribe(); subControl(); subEvents(); };
   }, []);
