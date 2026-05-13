@@ -430,83 +430,94 @@ ${item.link || 'Available via ZUCA Portal'}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ delay: idx * 0.03 }}
-                  className="group relative bg-white dark:bg-stone-900/40 border border-stone-100 dark:border-white/5 rounded-[32px] p-5 md:p-6 hover:shadow-2xl transition-all duration-500 flex flex-col h-full border-b-4 border-b-transparent hover:border-b-emerald-500/30"
+                  onClick={() => {
+                    if ((item.type === 'video' || item.type === 'audio') && (getYoutubeId(item.link || '') || item.link)) {
+                      setPlayingResource(item);
+                    } else if (item.link) {
+                      window.open(item.link, '_blank');
+                    }
+                  }}
+                  className="group relative bg-white dark:bg-stone-900/40 border border-stone-100 dark:border-white/5 rounded-[32px] overflow-hidden hover:shadow-2xl transition-all duration-500 flex flex-col h-full border-b-4 border-b-transparent hover:border-b-emerald-500/30 cursor-pointer"
                 >
-                  {/* Small Type Icon */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-stone-50 dark:bg-white/5 flex items-center justify-center transition-colors group-hover:bg-emerald-500 group-hover:text-black">
-                      {item.type === 'video' ? (
-                        <Youtube className="w-5 h-5 text-red-500 group-hover:text-black transition-colors" />
-                      ) : item.type === 'audio' ? (
-                        <Music className="w-5 h-5 text-indigo-500 group-hover:text-black transition-colors" />
-                      ) : (
-                        getCategoryIcon(item.category)
-                      )}
+                  {/* Thumbnail for Video/Audio (YouTube) */}
+                  {getYoutubeId(item.link || '') && (
+                    <div className="h-32 md:h-40 relative overflow-hidden shrink-0">
+                      <img 
+                        src={`https://img.youtube.com/vi/${getYoutubeId(item.link || '')}/mqdefault.jpg`} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        alt={item.title}
+                      />
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                         <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 scale-90 group-hover:scale-100 transition-all shadow-2xl">
+                           <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[10px] border-l-white border-b-[5px] border-b-transparent ml-1" />
+                         </div>
+                      </div>
                     </div>
-                    {isAdmin && (
-                      <button 
-                        onClick={() => handleDelete(item.id)} 
-                        className="p-2 text-stone-300 hover:text-red-500 transition-colors"
+                  )}
+
+                  <div className="p-5 md:p-6 flex flex-col flex-1">
+                    {/* Small Type Icon */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-stone-50 dark:bg-white/5 flex items-center justify-center transition-colors group-hover:bg-emerald-500 group-hover:text-black">
+                        {item.type === 'video' ? (
+                          <Youtube className="w-5 h-5 text-red-500 group-hover:text-black transition-colors" />
+                        ) : item.type === 'audio' ? (
+                          <Music className="w-5 h-5 text-indigo-500 group-hover:text-black transition-colors" />
+                        ) : (
+                          getCategoryIcon(item.category)
+                        )}
+                      </div>
+                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        {isAdmin && (
+                          <button 
+                            onClick={() => handleDelete(item.id)} 
+                            className="p-2 text-stone-300 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* High Density Content */}
+                    <div className="flex-1 space-y-2">
+                      <h3 className="font-black text-sm md:text-base text-stone-900 dark:text-white serif-display tracking-tight leading-tight line-clamp-2 transition-colors group-hover:text-emerald-500">
+                        {item.title}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-stone-400 bg-stone-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                          {item.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Description Preview */}
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed font-serif italic mt-3 line-clamp-2">
+                      {item.description}
+                    </p>
+
+                    {/* Actions (Appears on Hover) */}
+                    <div className="mt-4 pt-4 border-t border-stone-100 dark:border-white/5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all" onClick={(e) => e.stopPropagation()}>
+                      <motion.button 
+                         whileHover={{ scale: 1.1 }}
+                         whileTap={{ scale: 0.9 }}
+                         onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
+                         title="Divine Advisor"
+                         className="p-2.5 bg-brand-600 text-white rounded-xl shadow-lg border border-white/10"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* High Density Content */}
-                  <div className="flex-1 space-y-2">
-                    <h3 className="font-black text-sm md:text-base text-stone-900 dark:text-white serif-display tracking-tight leading-tight line-clamp-2 transition-colors group-hover:text-emerald-500">
-                      {item.title}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[8px] font-black uppercase tracking-widest text-stone-400 bg-stone-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
-                        {item.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Description Preview (Only on hover for desktop, or subtle on mobile) */}
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed font-serif italic mt-3 line-clamp-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                    {item.description}
-                  </p>
-
-                  {/* Actions (Appears on Hover) */}
-                  <div className="mt-4 pt-4 border-t border-stone-100 dark:border-white/5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                    <motion.button 
-                       whileHover={{ scale: 1.1 }}
-                       whileTap={{ scale: 0.9 }}
-                       onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
-                       title="Divine Advisor"
-                       className="p-2.5 bg-brand-600 text-white rounded-xl shadow-lg border border-white/10"
-                    >
-                       <Bot className="w-4 h-4" />
-                    </motion.button>
-                    
-                    {item.link && (
+                         <Bot className="w-4 h-4" />
+                      </motion.button>
+                      
                       <motion.button 
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => {
-                          if ((item.type === 'video' || item.type === 'audio') && (getYoutubeId(item.link || '') || item.link)) {
-                            setPlayingResource(item);
-                          } else if (item.link) {
-                            window.open(item.link, '_blank');
-                          }
-                        }}
-                        className="p-2.5 bg-stone-950 text-emerald-500 rounded-xl border border-white/5"
+                        onClick={() => shareResource(item)}
+                        className="p-2.5 bg-stone-50 dark:bg-white/5 text-stone-400 rounded-xl"
                       >
-                        {item.type === 'video' ? <Youtube className="w-4 h-4" /> : item.type === 'audio' ? <Music className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                        <Share2 className="w-4 h-4" />
                       </motion.button>
-                    )}
-
-                    <motion.button 
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => shareResource(item)}
-                      className="p-2.5 bg-stone-50 dark:bg-white/5 text-stone-400 rounded-xl"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </motion.button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
