@@ -59,7 +59,7 @@ interface Material {
   addedBy: string;
   timestamp: any;
   contentSnippet?: string;
-  type?: 'text' | 'video';
+  type?: 'text' | 'video' | 'audio';
 }
 
 interface GroupLibraryProps {
@@ -88,7 +88,7 @@ export default function GroupLibrary({ user, isAdmin, onStudy }: GroupLibraryPro
     category: 'Prayers' as const,
     link: '',
     contentSnippet: '',
-    type: 'text' as 'text' | 'video'
+    type: 'text' as 'text' | 'video' | 'audio'
   });
 
   useEffect(() => {
@@ -229,12 +229,16 @@ ${item.link || 'Available via ZUCA Portal'}
               {/* Top Control Bar */}
               <div className="absolute top-0 left-0 right-0 p-4 md:p-8 flex items-center justify-between z-20 bg-gradient-to-b from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
-                    <Youtube className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center shadow-lg border border-white/20 ${playingResource.type === 'audio' ? 'bg-indigo-600' : 'bg-red-600'}`}>
+                    {playingResource.type === 'audio' ? (
+                      <Music className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                    ) : (
+                      <Youtube className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                    )}
                   </div>
                   <div className="text-left">
                     <h3 className="text-white font-black text-sm md:text-xl serif-display tracking-tight leading-tight">{playingResource.title}</h3>
-                    <p className="text-white/40 text-[9px] md:text-[10px] uppercase tracking-[0.3em] font-black">{playingResource.category} • Divine Vision</p>
+                    <p className="text-white/40 text-[9px] md:text-[10px] uppercase tracking-[0.3em] font-black">{playingResource.category} • {playingResource.type === 'audio' ? 'Divine Resonance' : 'Divine Vision'}</p>
                   </div>
                 </div>
                 <button 
@@ -245,14 +249,35 @@ ${item.link || 'Available via ZUCA Portal'}
                 </button>
               </div>
 
-              <iframe 
-                className="w-full h-full"
-                src={`https://www.youtube.com/embed/${getYoutubeId(playingResource.link || '')}?autoplay=1&rel=0&modestbranding=1`}
-                title={playingResource.title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {getYoutubeId(playingResource.link || '') ? (
+                <iframe 
+                  className="w-full h-full"
+                  src={`https://www.youtube.com/embed/${getYoutubeId(playingResource.link || '')}?autoplay=1&rel=0&modestbranding=1`}
+                  title={playingResource.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-stone-900 p-8 space-y-8">
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-32 h-32 md:w-48 md:h-48 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20"
+                  >
+                    <Music className="w-12 h-12 md:w-20 md:h-20 text-emerald-500" />
+                  </motion.div>
+                  <audio 
+                    controls 
+                    autoPlay 
+                    className="w-full max-w-xl custom-audio-player"
+                    src={playingResource.link}
+                  />
+                  <p className="text-stone-400 text-sm font-serif italic text-center max-w-md">
+                    "{playingResource.description}"
+                  </p>
+                </div>
+              )}
 
               {/* Bottom Subtle Vignette */}
               <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
@@ -274,7 +299,7 @@ ${item.link || 'Available via ZUCA Portal'}
             alt="Cathedral"
           />
           <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/90 to-transparent" />
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/10 blur-[180px] rounded-full -mr-64 -mt-64" />
+                   <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/10 blur-[180px] rounded-full -mr-64 -mt-64" />
           <div className="absolute inset-0 divine-pattern opacity-5" />
         </div>
         
@@ -302,15 +327,27 @@ ${item.link || 'Available via ZUCA Portal'}
             </div>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05, y: -5 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsAddModalOpen(true)}
-            className="w-full md:w-auto flex items-center justify-center gap-4 bg-emerald-600 text-white px-10 py-6 rounded-[28px] md:rounded-[40px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.3em] shadow-3xl shadow-emerald-500/30 text-[11px] border border-white/10"
-          >
-            <Plus className="w-5 h-5" />
-            Endow Resource
-          </motion.button>
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <motion.button
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onStudy("Divine Archive Guidance", "I am exploring the Sacred Archive. What spiritual treasures are available for me today?")}
+              className="flex-1 md:flex-none flex items-center justify-center gap-4 bg-stone-900 border border-white/10 text-white px-10 py-6 rounded-[28px] md:rounded-[40px] hover:bg-black transition-all font-black uppercase tracking-[0.3em] shadow-3xl text-[11px]"
+            >
+              <Bot className="w-5 h-5 text-brand-400" />
+              Seek Counsel
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex-1 md:flex-none flex items-center justify-center gap-4 bg-emerald-600 text-white px-10 py-6 rounded-[28px] md:rounded-[40px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.3em] shadow-3xl shadow-emerald-500/30 text-[11px] border border-white/10"
+            >
+              <Plus className="w-5 h-5" />
+              Endow Resource
+            </motion.button>
+          </div>
         </div>
       </motion.header>
 
@@ -400,6 +437,8 @@ ${item.link || 'Available via ZUCA Portal'}
                     <div className="w-10 h-10 rounded-xl bg-stone-50 dark:bg-white/5 flex items-center justify-center transition-colors group-hover:bg-emerald-500 group-hover:text-black">
                       {item.type === 'video' ? (
                         <Youtube className="w-5 h-5 text-red-500 group-hover:text-black transition-colors" />
+                      ) : item.type === 'audio' ? (
+                        <Music className="w-5 h-5 text-indigo-500 group-hover:text-black transition-colors" />
                       ) : (
                         getCategoryIcon(item.category)
                       )}
@@ -448,15 +487,15 @@ ${item.link || 'Available via ZUCA Portal'}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => {
-                          if (item.type === 'video' && getYoutubeId(item.link || '')) {
+                          if ((item.type === 'video' || item.type === 'audio') && (getYoutubeId(item.link || '') || item.link)) {
                             setPlayingResource(item);
-                          } else {
+                          } else if (item.link) {
                             window.open(item.link, '_blank');
                           }
                         }}
                         className="p-2.5 bg-stone-950 text-emerald-500 rounded-xl border border-white/5"
                       >
-                        {item.type === 'video' ? <Youtube className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                        {item.type === 'video' ? <Youtube className="w-4 h-4" /> : item.type === 'audio' ? <Music className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                       </motion.button>
                     )}
 
@@ -566,14 +605,21 @@ ${item.link || 'Available via ZUCA Portal'}
                         onClick={() => setNewMaterial({ ...newMaterial, type: 'text' })}
                         className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newMaterial.type === 'text' ? 'bg-emerald-500 text-black' : 'text-stone-500 hover:text-white'}`}
                       >
-                        Scripture/Text
+                        Text
                       </button>
                       <button
                         type="button"
                         onClick={() => setNewMaterial({ ...newMaterial, type: 'video' })}
                         className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newMaterial.type === 'video' ? 'bg-emerald-500 text-black' : 'text-stone-500 hover:text-white'}`}
                       >
-                        Visual/Video
+                        Video
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewMaterial({ ...newMaterial, type: 'audio' })}
+                        className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newMaterial.type === 'audio' ? 'bg-emerald-500 text-black' : 'text-stone-500 hover:text-white'}`}
+                      >
+                        Audio
                       </button>
                     </div>
                   </div>
@@ -584,7 +630,7 @@ ${item.link || 'Available via ZUCA Portal'}
                       value={newMaterial.link}
                       onChange={(e) => setNewMaterial({ ...newMaterial, link: e.target.value })}
                       className="w-full px-6 py-4 md:py-5 rounded-2xl md:rounded-[32px] bg-white/5 border-2 border-white/5 text-sm text-white outline-none focus:border-emerald-500/50 transition-all font-medium placeholder:text-stone-700"
-                      placeholder={newMaterial.type === 'video' ? 'https://youtube.com/watch?v=...' : 'https://divine-resource.org/scripture'}
+                      placeholder={newMaterial.type === 'video' ? 'https://youtube.com/watch?v=...' : newMaterial.type === 'audio' ? 'https://youtube.com/watch?v=... or audio URL' : 'https://divine-resource.org/scripture'}
                     />
                   </div>
                 </div>
