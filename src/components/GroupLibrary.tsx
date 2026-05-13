@@ -29,7 +29,8 @@ import {
   Globe,
   Feather,
   MapPin,
-  Clock
+  Clock,
+  Share2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -178,6 +179,11 @@ ${item.link || 'Available via ZUCA Portal'}
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
+  const getCategoryIcon = (catId: string) => {
+    const cat = CATEGORIES.find(c => c.id === catId);
+    return cat ? cat.icon : <Library className="w-4 h-4" />;
+  };
+
   const [playingResource, setPlayingResource] = useState<Material | null>(null);
 
   return (
@@ -254,6 +260,7 @@ ${item.link || 'Available via ZUCA Portal'}
           </motion.div>
         )}
       </AnimatePresence>
+
       {/* Sacred Header - Enhanced with subtle texture */}
       <motion.header 
         initial={{ opacity: 0, scale: 0.98 }}
@@ -363,60 +370,6 @@ ${item.link || 'Available via ZUCA Portal'}
 
         {/* Content Area */}
         <div className="lg:col-span-9 space-y-8 md:space-y-12 order-1 lg:order-2">
-          {/* Featured Wisdom - Only shows if there's at least one item */}
-          {featuredMaterial && activeCategory === 'All' && !searchTerm && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative rounded-[40px] md:rounded-[64px] overflow-hidden border-2 border-stone-100 dark:border-white/5 bg-white dark:bg-stone-900/40 shadow-3xl group"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2">
-                <div className="p-8 md:p-16 flex flex-col justify-center space-y-8 relative overflow-hidden">
-                   <div className="absolute top-0 left-0 w-full h-full divine-pattern opacity-[0.03] pointer-events-none" />
-                   
-                   <div className="space-y-4">
-                     <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
-                       Featured Guidance
-                     </span>
-                     <h2 className="text-3xl md:text-6xl font-black serif-display text-stone-900 dark:text-white leading-[0.95] tracking-tighter italic">
-                       {featuredMaterial.title}
-                     </h2>
-                     <p className="text-stone-500 dark:text-stone-400 text-base md:text-xl font-serif italic leading-relaxed line-clamp-3">
-                       {featuredMaterial.description}
-                     </p>
-                   </div>
-
-                   <div className="flex flex-wrap items-center gap-4">
-                     <motion.button
-                       whileHover={{ scale: 1.05 }}
-                       whileTap={{ scale: 0.95 }}
-                       onClick={() => onStudy(featuredMaterial.title, featuredMaterial.contentSnippet || featuredMaterial.description)}
-                       className="px-8 py-4 bg-stone-900 dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl flex items-center gap-3"
-                     >
-                       <Bot className="w-4 h-4" /> Consult Advisor
-                     </motion.button>
-                     <motion.button
-                       whileHover={{ scale: 1.05 }}
-                       whileTap={{ scale: 0.95 }}
-                       onClick={() => shareResource(featuredMaterial)}
-                       className="p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20"
-                     >
-                       <MessageSquare className="w-5 h-5 text-emerald-500" />
-                     </motion.button>
-                   </div>
-                </div>
-                <div className="h-64 md:h-auto relative overflow-hidden bg-brand-900">
-                  <img 
-                    src="https://images.unsplash.com/photo-1473186578172-c141e6798cf4?q=80&w=2546&auto=format&fit=crop" 
-                    className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[5s] opacity-60"
-                    alt="Manuscript"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-l from-stone-900/40 to-transparent md:to-transparent" />
-                </div>
-              </div>
-            </motion.div>
-          )}
-
           {/* Search Bar Refined */}
           <div className="relative group">
              <Search className="absolute left-8 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-emerald-500 transition-colors" />
@@ -429,122 +382,92 @@ ${item.link || 'Available via ZUCA Portal'}
              />
           </div>
 
-          {/* Library Grid - Manuscripts Style */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-10">
+          {/* Library Grid - Manuscripts Style (Denser) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             <AnimatePresence mode="popLayout">
               {filteredMaterials.map((item, idx) => (
                 <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="group bg-white dark:bg-stone-900/60 border border-stone-100 dark:border-white/5 rounded-[40px] md:rounded-[56px] overflow-hidden shadow-xl hover:shadow-emerald-500/5 transition-all duration-700 flex flex-col h-full relative"
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: idx * 0.03 }}
+                  className="group relative bg-white dark:bg-stone-900/40 border border-stone-100 dark:border-white/5 rounded-[32px] p-5 md:p-6 hover:shadow-2xl transition-all duration-500 flex flex-col h-full border-b-4 border-b-transparent hover:border-b-emerald-500/30"
                 >
-                  {/* Video Thumbnail for Video Type */}
-                  {item.type === 'video' && getYoutubeId(item.link || '') && (
-                    <div 
-                      className="h-48 md:h-64 relative cursor-pointer group/vid overflow-hidden"
-                      onClick={() => setPlayingResource(item)}
-                    >
-                      <img 
-                        src={`https://img.youtube.com/vi/${getYoutubeId(item.link || '')}/maxresdefault.jpg`} 
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${getYoutubeId(item.link || '')}/mqdefault.jpg`;
-                        }}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover/vid:scale-110"
-                        alt={item.title}
-                      />
-                      <div className="absolute inset-0 bg-black/40 group-hover/vid:bg-black/20 transition-all flex items-center justify-center">
-                         <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 scale-90 group-hover/vid:scale-100 transition-all shadow-2xl">
-                           <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1" />
-                         </div>
-                      </div>
-                      <div className="absolute top-4 right-4 px-3 py-1 bg-red-600/90 backdrop-blur-md rounded-full text-[8px] font-black uppercase tracking-widest text-white border border-white/20">
-                        Sacred Video
-                      </div>
+                  {/* Small Type Icon */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-stone-50 dark:bg-white/5 flex items-center justify-center transition-colors group-hover:bg-emerald-500 group-hover:text-black">
+                      {item.type === 'video' ? (
+                        <Youtube className="w-5 h-5 text-red-500 group-hover:text-black transition-colors" />
+                      ) : (
+                        getCategoryIcon(item.category)
+                      )}
                     </div>
-                  )}
+                    {isAdmin && (
+                      <button 
+                        onClick={() => handleDelete(item.id)} 
+                        className="p-2 text-stone-300 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
 
-                  <div className="p-8 md:p-12 flex flex-col h-full min-h-[350px]">
-                    <div className="flex items-start justify-between mb-10">
-                      <div className="px-5 py-2 rounded-full glass-dark text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-white/5 shadow-inner">
+                  {/* High Density Content */}
+                  <div className="flex-1 space-y-2">
+                    <h3 className="font-black text-sm md:text-base text-stone-900 dark:text-white serif-display tracking-tight leading-tight line-clamp-2 transition-colors group-hover:text-emerald-500">
+                      {item.title}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] font-black uppercase tracking-widest text-stone-400 bg-stone-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
                         {item.category}
-                      </div>
-                      <div className="flex gap-2">
-                        {isAdmin && (
-                          <button 
-                            onClick={() => handleDelete(item.id)} 
-                            className="p-3 text-stone-300 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        )}
-                        <button 
-                          onClick={() => shareResource(item)}
-                          className="p-3 text-stone-300 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-2xl transition-all"
-                        >
-                          <MessageSquare className="w-5 h-5 text-emerald-500" />
-                        </button>
-                      </div>
+                      </span>
                     </div>
+                  </div>
 
-                    <div className="flex-1 space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-3xl md:text-4xl font-black text-stone-900 dark:text-white serif-display tracking-tight leading-[1.1] transition-colors group-hover:text-emerald-500">
-                          {item.title}
-                        </h3>
-                        {item.type === 'video' && (
-                          <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
-                            <Youtube className="w-5 h-5 text-red-500" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="h-[1px] w-12 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] group-hover:w-24 transition-all duration-700" />
-                      <p className="text-base md:text-lg text-stone-500 dark:text-stone-400 leading-relaxed italic opacity-80 serif-display line-clamp-5">
-                        "{item.description}"
-                      </p>
-                    </div>
+                  {/* Description Preview (Only on hover for desktop, or subtle on mobile) */}
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed font-serif italic mt-3 line-clamp-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                    {item.description}
+                  </p>
 
-                    <div className="mt-12 pt-8 border-t border-stone-100 dark:border-white/5 flex items-center justify-between">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center border border-stone-200 dark:border-white/5">
-                            <Feather className="w-4 h-4 text-stone-400" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-stone-400">Custodied By</span>
-                            <span className="text-xs font-bold text-stone-600 dark:text-stone-300">{item.addedBy}</span>
-                          </div>
-                       </div>
-                       
-                       <div className="flex gap-3">
-                         <motion.button 
-                           whileHover={{ scale: 1.1, rotate: 5 }}
-                           whileTap={{ scale: 0.9 }}
-                           onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
-                           className="w-14 h-14 bg-stone-900 dark:bg-white text-white dark:text-black rounded-2xl shadow-xl flex items-center justify-center hover:shadow-brand-500/20 transition-all border border-white/10"
-                         >
-                           <Bot className="w-6 h-6" />
-                         </motion.button>
-                         
-                         {item.link && (
-                           <motion.button 
-                             whileHover={{ scale: 1.1 }}
-                             whileTap={{ scale: 0.9 }}
-                             onClick={() => {
-                               if (item.type === 'video' && getYoutubeId(item.link || '')) {
-                                 setPlayingResource(item);
-                               } else {
-                                 window.open(item.link, '_blank');
-                               }
-                             }}
-                             className="w-14 h-14 bg-stone-50 dark:bg-stone-950/40 text-stone-400 dark:text-stone-400 rounded-2xl border border-stone-200 dark:border-white/5 hover:border-emerald-500/50 hover:text-emerald-500 transition-all shadow-sm flex items-center justify-center"
-                           >
-                             {item.type === 'video' ? <Youtube className="w-6 h-6" /> : <Globe className="w-6 h-6" />}
-                           </motion.button>
-                         )}
-                        </div>
-                    </div>
+                  {/* Actions (Appears on Hover) */}
+                  <div className="mt-4 pt-4 border-t border-stone-100 dark:border-white/5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <motion.button 
+                       whileHover={{ scale: 1.1 }}
+                       whileTap={{ scale: 0.9 }}
+                       onClick={() => onStudy(item.title, item.contentSnippet || item.description)}
+                       title="Divine Advisor"
+                       className="p-2.5 bg-brand-600 text-white rounded-xl shadow-lg border border-white/10"
+                    >
+                       <Bot className="w-4 h-4" />
+                    </motion.button>
+                    
+                    {item.link && (
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => {
+                          if (item.type === 'video' && getYoutubeId(item.link || '')) {
+                            setPlayingResource(item);
+                          } else {
+                            window.open(item.link, '_blank');
+                          }
+                        }}
+                        className="p-2.5 bg-stone-950 text-emerald-500 rounded-xl border border-white/5"
+                      >
+                        {item.type === 'video' ? <Youtube className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                      </motion.button>
+                    )}
+
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => shareResource(item)}
+                      className="p-2.5 bg-stone-50 dark:bg-white/5 text-stone-400 rounded-xl"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </motion.button>
                   </div>
                 </motion.div>
               ))}
@@ -552,6 +475,7 @@ ${item.link || 'Available via ZUCA Portal'}
           </div>
         </div>
       </div>
+
 
       {/* Empty State */}
       {filteredMaterials.length === 0 && (

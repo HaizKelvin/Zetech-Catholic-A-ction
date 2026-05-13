@@ -170,7 +170,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
            { role: 'user', parts: [{ text: userText }] }
         ],
         config: {
-          systemInstruction: `You are a spiritual guide for the ZUCA (Zetech University Catholic Action) community. ${userName ? `You are speaking with ${userName}. ` : ""}Provide encouraging, biblically-sound, and Catholic-oriented guidance. Be compassionate and wise. ALWAYS provide summarized and concise replies unless explicitly asked for a detailed explanation. Use a warm, editorial tone. Refer to the user as a fellow seeker.`
+          systemInstruction: `You are a spiritual guide for the ZUCA (Zetech University Catholic Action) community. ${userName ? `You are speaking with ${userName}. ` : ""}Provide encouraging, biblically-sound, and Catholic-oriented guidance. ALWAYS provide concise, direct, and summarized results. Avoid long introductory phrases or preambles. If the user asks for a prayer, provide a short, profound one. If they ask for scripture, give the verse and a one-sentence reflection. Refer to the user as a fellow seeker or friend in Christ.`
         }
       });
       
@@ -199,59 +199,101 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
     <div className="fixed bottom-6 right-6 z-[110] flex flex-col items-end">
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+            <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="mb-4 w-[calc(100vw-3rem)] md:w-[360px] h-[60vh] md:h-[500px] bg-[#F4F5F7] dark:bg-stone-950 rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.4)] border border-stone-200 dark:border-white/5 overflow-hidden flex flex-col"
+            className="mb-4 w-[calc(100vw-3rem)] md:w-[400px] h-[75vh] md:h-[600px] bg-white dark:bg-stone-950 rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.3)] border border-stone-200 dark:border-white/10 overflow-hidden flex flex-col translate-x-0"
           >
             {/* Header */}
-            <div className="p-6 bg-stone-900 dark:bg-stone-800 text-white relative overflow-hidden shrink-0 border-b border-white/5">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 blur-3xl -mr-16 -mt-16 rounded-full" />
+            <div className="p-6 md:p-8 bg-stone-900 dark:bg-stone-900/80 text-white relative overflow-hidden shrink-0">
+               <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/20 blur-[80px] -mr-24 -mt-24 rounded-full pointer-events-none" />
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-[18px] bg-white/5 flex items-center justify-center border border-white/10 backdrop-blur-3xl shrink-0 shadow-inner group transition-all">
-                    <Bot className="w-6 h-6 text-brand-400 group-hover:scale-110 transition-transform" />
+                  <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-3xl shrink-0 group transition-all">
+                    <Bot className="w-7 h-7 text-brand-400 group-hover:rotate-12 transition-transform" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-base tracking-tight italic serif-display">Spiritual Guide</h3>
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                      <span className="text-[9px] text-stone-400 uppercase tracking-[0.2em] font-black">Divine Intelligence</span>
+                    <h3 className="font-black text-lg tracking-tight serif-display leading-tight">Divine Advisor</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                      <span className="text-[10px] text-stone-400 uppercase tracking-[0.2em] font-black">Spirit Enkindled</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button 
-                    onClick={() => setIsOpen(false)}
-                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all active:scale-90 border border-white/5"
+                    onClick={async () => {
+                       if (confirm('Clear our conversation to refresh the soul?')) {
+                         const path = `users/${auth.currentUser?.uid}/chatHistory`;
+                         for (const msg of messages) {
+                           await deleteDoc(doc(db, path, msg.id));
+                         }
+                       }
+                    }}
+                    className="p-3 hover:bg-white/5 rounded-2xl transition-all text-stone-500 hover:text-red-400"
+                    title="Refresh Conversation"
                   >
-                    <Minus className="w-4 h-4 text-stone-400" />
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => setIsOpen(false)}
+                    className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-all active:scale-95 border border-white/10"
+                  >
+                    <X className="w-4 h-4 text-white" />
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8 bg-[#F8FAFC] dark:bg-stone-950 custom-scrollbar relative">
-              <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
+            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-stone-50/50 dark:bg-stone-950/40 custom-scrollbar relative">
+              <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
               {messages.length === 0 && !isLoading && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40 relative z-10">
-                  <div className="w-20 h-20 rounded-[28px] bg-white dark:bg-white/5 flex items-center justify-center mb-8 shadow-sm border border-stone-100 dark:border-white/5">
-                    <Bot className="w-10 h-10 text-brand-600 dark:text-brand-400" />
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 relative z-10">
+                  <div className="w-24 h-24 rounded-[36px] bg-white dark:bg-stone-900 flex items-center justify-center mb-8 shadow-2xl border border-stone-100 dark:border-white/5">
+                    <motion.div
+                      animate={{ 
+                        scale: [1, 1.1, 1],
+                        rotate: [0, 5, -5, 0]
+                      }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Bot className="w-12 h-12 text-brand-600 dark:text-brand-400" />
+                    </motion.div>
                   </div>
-                  <p className="text-base font-serif italic text-stone-700 dark:text-stone-300 leading-[1.6]">"Peace be with you. <br /> How can I guide your spirit today?"</p>
+                  <h4 className="text-xl serif-display font-black text-stone-800 dark:text-stone-200 mb-2 italic">Peace be with you</h4>
+                  <p className="text-sm font-medium text-stone-500 dark:text-stone-400 leading-relaxed max-w-[200px] mx-auto">
+                    Ask me for a prayer, a scripture reflection, or guidance for your journey.
+                  </p>
+                  
+                  {/* Quick Suggestions */}
+                  <div className="mt-8 grid grid-cols-1 gap-2 w-full max-w-[240px]">
+                    {[
+                      "Short prayer for strength",
+                      "Bible verse for hope",
+                      "Today's reflection",
+                    ].map((hint) => (
+                      <button
+                        key={hint}
+                        onClick={() => setInput(hint)}
+                        className="px-4 py-2.5 bg-white dark:bg-stone-900 border border-stone-200 dark:border-white/5 rounded-xl text-[11px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 transition-all text-left shadow-sm"
+                      >
+                        {hint}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10`}>
-                  <div className={`flex gap-3 max-w-[92%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`p-5 rounded-[22px] md:rounded-[28px] text-[13px] leading-relaxed shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] ${
+                  <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`px-5 py-4 rounded-[24px] text-[14px] leading-relaxed shadow-sm transition-all ${
                       msg.role === 'user' 
-                        ? 'bg-stone-900 text-white dark:bg-brand-600 rounded-tr-none' 
-                        : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-100 dark:border-white/5 rounded-tl-none font-serif italic'
+                        ? 'bg-stone-900 text-white dark:bg-brand-600 rounded-tr-none font-medium' 
+                        : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-100 dark:border-white/10 rounded-tl-none font-serif italic selection:bg-brand-200 selection:text-brand-900'
                     }`}>
-                      <div className="markdown-body prose prose-stone dark:prose-invert max-w-none">
+                      <div className="markdown-body prose prose-stone dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-strong:text-brand-600">
                         <Markdown>{msg.text}</Markdown>
                       </div>
                     </div>
@@ -272,38 +314,42 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
               <div ref={scrollRef} />
             </div>
 
-            {/* Input */}
-            <div className="p-4 bg-[#F4F5F7] dark:bg-stone-950 border-t border-stone-200 dark:border-white/5 shrink-0">
-              <form onSubmit={handleSend} className="flex gap-2">
-                <div className="flex-1 relative flex items-center">
+            {/* Input Overlay */}
+            <div className="p-6 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-white/10 shrink-0">
+              <form onSubmit={handleSend} className="flex gap-3">
+                <div className="flex-1 relative flex items-center group">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder={isListening ? "Listening..." : "Type a spiritual question..."}
-                    className="w-full px-5 py-3 pr-12 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/5 rounded-2xl outline-none text-sm transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50"
+                    placeholder={isListening ? "I'm listening..." : "Ask the Spirit..."}
+                    className="w-full px-6 py-4 pr-14 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/5 rounded-[22px] outline-none text-[15px] transition-all focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 shadow-inner placeholder:text-stone-400"
                   />
                   <button
                     type="button"
                     onClick={toggleListening}
-                    className={`absolute right-2 p-2 rounded-xl transition-all ${
+                    className={`absolute right-3 p-2.5 rounded-xl transition-all ${
                       isListening 
-                        ? 'bg-rose-500 text-white animate-pulse' 
-                        : 'text-stone-400 hover:text-brand-500'
+                        ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' 
+                        : 'text-stone-400 hover:text-brand-500 hover:bg-brand-500/10'
                     }`}
                   >
-                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    {isListening ? <MicOff className="w-5 h-5 animate-pulse" /> : <Mic className="w-5 h-5" />}
                   </button>
                 </div>
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="bg-brand-900 text-white p-3 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-brand-900/20 flex items-center justify-center shrink-0"
+                  className="bg-brand-900 dark:bg-brand-600 text-white p-4 rounded-[22px] hover:translate-y-[-2px] active:translate-y-[0px] disabled:opacity-50 transition-all shadow-xl shadow-brand-900/20 flex items-center justify-center shrink-0 disabled:grayscale"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="w-6 h-6" />
                 </button>
               </form>
-              <p className="mt-2 text-[8px] text-center text-stone-600 dark:text-stone-400 font-bold uppercase tracking-widest">Powered by Sanctuary Spirit</p>
+              <div className="flex items-center justify-center gap-4 mt-4">
+                 <div className="h-[1px] flex-1 bg-stone-100 dark:bg-white/5" />
+                 <p className="text-[9px] text-stone-400 font-black uppercase tracking-[0.3em]">Grace Manifested</p>
+                 <div className="h-[1px] flex-1 bg-stone-100 dark:bg-white/5" />
+              </div>
             </div>
           </motion.div>
         )}
