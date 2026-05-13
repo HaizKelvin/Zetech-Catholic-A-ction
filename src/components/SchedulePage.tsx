@@ -12,7 +12,8 @@ import {
   AlertCircle,
   FileText,
   MessageCircle,
-  Pencil
+  Pencil,
+  Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -24,6 +25,7 @@ import {
   getDocs,
   addDoc, 
   updateDoc,
+  setDoc,
   deleteDoc,
   doc, 
   serverTimestamp,
@@ -60,6 +62,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     type: 'Meeting' as 'Mass' | 'Meeting' | 'Social' | 'Other',
     downloadUrl: ''
   });
+  const [isWhatsAppAutoSync, setIsWhatsAppAutoSync] = useState(false);
 
   useEffect(() => {
     NotificationManager.requestPermission();
@@ -71,7 +74,14 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
       // Check for notifications
       checkUpcomingActivities(docs);
     });
-    return unsubscribe;
+
+    const subSettings = onSnapshot(doc(db, 'control', 'settings'), (d) => {
+      if (d.exists()) {
+        setIsWhatsAppAutoSync(d.data().isWhatsAppAutoSync || false);
+      }
+    });
+
+    return () => { unsubscribe(); subSettings(); };
   }, []);
 
   const checkUpcomingActivities = (docs: Activity[]) => {
@@ -103,6 +113,8 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
         updatedAt: serverTimestamp()
       };
 
+      let currentId = editingActivityId;
+
       if (editingActivityId) {
         await updateDoc(doc(db, 'schedule', editingActivityId), data);
       } else {
@@ -111,6 +123,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
           addedBy: user.displayName || 'Admin',
           createdAt: serverTimestamp()
         });
+        currentId = actRef.id;
 
         // Notify everyone of the new event
         await addDoc(collection(db, 'notifications'), {
@@ -118,12 +131,19 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
           title: `Divine Appointment: ${newActivity.title}`,
           message: `A new ${newActivity.type} has been scheduled at ${newActivity.location} for ${new Date(newActivity.date).toLocaleDateString()}.`,
           type: 'announcement',
-          sourceId: actRef.id,
+          sourceId: currentId,
           isRead: false,
           timestamp: serverTimestamp()
         });
       }
       
+      // Auto-sync to WhatsApp if enabled
+      if (isWhatsAppAutoSync) {
+        setTimeout(() => {
+          shareActivity({ ...data, id: currentId });
+        }, 500);
+      }
+
       setIsAddModalOpen(false);
       setEditingActivityId(null);
       setNewActivity({ title: '', description: '', date: '', location: '', type: 'Meeting', downloadUrl: '' });
@@ -249,18 +269,40 @@ ${act.description}
           </div>
 
           {isAdmin && (
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setNewActivity(prev => ({ ...prev, date: format(new Date(), "yyyy-MM-dd'T'12:00") }));
-                setIsAddModalOpen(true);
-              }}
-              className="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-[32px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/30 text-[8px] md:text-[10px]"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Add Event
-            </motion.button>
+            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={async () => {
+                  try {
+                    await setDoc(doc(db, 'control', 'settings'), { isWhatsAppAutoSync: !isWhatsAppAutoSync }, { merge: true });
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 md:px-8 md:py-5 rounded-xl md:rounded-[32px] transition-all font-black uppercase tracking-[0.2em] shadow-xl text-[8px] md:text-[10px] ${
+                  isWhatsAppAutoSync 
+                    ? 'bg-brand-600 text-white shadow-brand-600/20' 
+                    : 'bg-white/10 text-white/40 border border-white/5'
+                }`}
+              >
+                <Zap className={`w-3.5 h-3.5 ${isWhatsAppAutoSync ? 'animate-pulse' : 'opacity-30'}`} />
+                {isWhatsAppAutoSync ? 'WhatsApp Sync Active' : 'WhatsApp Sync Off'}
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setNewActivity(prev => ({ ...prev, date: format(new Date(), "yyyy-MM-dd'T'12:00") }));
+                  setIsAddModalOpen(true);
+                }}
+                className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-[32px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/30 text-[8px] md:text-[10px]"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Event
+              </motion.button>
+            </div>
           )}
         </div>
       </motion.header>

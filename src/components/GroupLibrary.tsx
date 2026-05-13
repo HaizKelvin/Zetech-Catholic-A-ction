@@ -178,38 +178,78 @@ ${item.link || 'Available via ZUCA Portal'}
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [playingResource, setPlayingResource] = useState<Material | null>(null);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100">
-      {/* Video Modal Overlay */}
+      {/* Cinematic Video Modal Overlay */}
       <AnimatePresence>
-        {playingVideo && (
+        {playingResource && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-4"
+            className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-2 md:p-6"
           >
+            {/* Animated Ambient Glow */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.5, 0.3],
+                  rotate: [0, 90, 0]
+                }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                className="absolute -top-[20%] -left-[20%] w-[140%] h-[140%] bg-gradient-to-br from-emerald-500/20 via-brand-500/10 to-amber-500/20 blur-[120px] rounded-full"
+              />
+            </div>
+
+            {/* Blurred Visual Backdrop */}
+            <div className="absolute inset-0 z-0 opacity-40">
+              <img 
+                src={`https://img.youtube.com/vi/${getYoutubeId(playingResource.link || '')}/maxresdefault.jpg`}
+                className="w-full h-full object-cover blur-[80px]"
+                alt=""
+              />
+              <div className="absolute inset-0 bg-black/60" />
+            </div>
+
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="relative w-full max-w-5xl aspect-video rounded-3xl overflow-hidden shadow-3xl bg-black"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-6xl aspect-video rounded-3xl md:rounded-[48px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] bg-black border border-white/10 z-10 group"
             >
-              <button 
-                onClick={() => setPlayingVideo(null)}
-                className="absolute top-6 right-6 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all border border-white/10"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              {/* Top Control Bar */}
+              <div className="absolute top-0 left-0 right-0 p-4 md:p-8 flex items-center justify-between z-20 bg-gradient-to-b from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+                    <Youtube className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-white font-black text-sm md:text-xl serif-display tracking-tight leading-tight">{playingResource.title}</h3>
+                    <p className="text-white/40 text-[9px] md:text-[10px] uppercase tracking-[0.3em] font-black">{playingResource.category} • Divine Vision</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setPlayingResource(null)}
+                  className="w-10 h-10 md:w-14 md:h-14 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-xl transition-all border border-white/10"
+                >
+                  <X className="w-5 h-5 md:w-7 md:h-7" />
+                </button>
+              </div>
+
               <iframe 
                 className="w-full h-full"
-                src={`https://www.youtube.com/embed/${getYoutubeId(playingVideo)}?autoplay=1`}
-                title="Sacred Video Player"
+                src={`https://www.youtube.com/embed/${getYoutubeId(playingResource.link || '')}?autoplay=1&rel=0&modestbranding=1`}
+                title={playingResource.title}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
+
+              {/* Bottom Subtle Vignette */}
+              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
             </motion.div>
           </motion.div>
         )}
@@ -405,7 +445,7 @@ ${item.link || 'Available via ZUCA Portal'}
                   {item.type === 'video' && getYoutubeId(item.link || '') && (
                     <div 
                       className="h-48 md:h-64 relative cursor-pointer group/vid overflow-hidden"
-                      onClick={() => setPlayingVideo(item.link || '')}
+                      onClick={() => setPlayingResource(item)}
                     >
                       <img 
                         src={`https://img.youtube.com/vi/${getYoutubeId(item.link || '')}/maxresdefault.jpg`} 
@@ -493,7 +533,7 @@ ${item.link || 'Available via ZUCA Portal'}
                              whileTap={{ scale: 0.9 }}
                              onClick={() => {
                                if (item.type === 'video' && getYoutubeId(item.link || '')) {
-                                 setPlayingVideo(item.link || '');
+                                 setPlayingResource(item);
                                } else {
                                  window.open(item.link, '_blank');
                                }

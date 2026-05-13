@@ -431,7 +431,7 @@ export default function JoinUs() {
             </div>
             
             <motion.a
-              href="https://chat.whatsapp.com/your-group-link" 
+              href="https://chat.whatsapp.com/GxuvB559sZLIurYvXbxHmU" 
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05, y: -5 }}

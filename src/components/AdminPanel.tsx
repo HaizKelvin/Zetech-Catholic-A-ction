@@ -17,7 +17,7 @@ import {
 import { db, auth } from '../firebase';
 import { UserProfile, DailyControl, OperationType, MembershipRegistration } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX, UserPlus, ChevronDown, ChevronUp, MessageCircle, Share2, Calendar, Phone } from 'lucide-react';
+import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX, UserPlus, ChevronDown, ChevronUp, MessageCircle, Share2, Calendar, Phone, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function AdminPanel() {
@@ -29,6 +29,7 @@ export default function AdminPanel() {
   const [showAllUsers, setShowAllUsers] = useState(false);
   const [broadcastTarget, setBroadcastTarget] = useState<'group' | 'members'>('group');
   const [events, setEvents] = useState<any[]>([]);
+  const [isWhatsAppAutoSync, setIsWhatsAppAutoSync] = useState(false);
 
   const displayedUsers = showAllUsers ? users : users.slice(0, 3);
 
@@ -39,12 +40,12 @@ export default function AdminPanel() {
         const data = doc.data();
         return { 
           id: doc.id, 
-          uid: data.uid || doc.id, // Ensure uid fallback
+          uid: data.uid || doc.id, 
           ...data 
         };
       }) as (UserProfile & { id: string })[];
       setUsers(usersData);
-      setTotalCount(usersData.length); // Update count reactively from snapshot
+      setTotalCount(usersData.length);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'users');
     });
@@ -52,6 +53,12 @@ export default function AdminPanel() {
     const qEvents = query(collection(db, 'schedule'), limit(10), orderBy('date', 'asc'));
     const subEvents = onSnapshot(qEvents, (s) => {
       setEvents(s.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    const subSettings = onSnapshot(doc(db, 'control', 'settings'), (d) => {
+      if (d.exists()) {
+        setIsWhatsAppAutoSync(d.data().isWhatsAppAutoSync || false);
+      }
     });
 
     const subControl = onSnapshot(doc(db, 'control', 'daily_bread'), (d) => {
@@ -68,11 +75,18 @@ export default function AdminPanel() {
       handleFirestoreError(error, OperationType.GET, 'control/daily_bread');
     });
 
-    // The count is now handled by the users snapshot reactive update
-    // return () => { unsubscribe(); subControl(); subEvents(); };
-    
-    return () => { unsubscribe(); subControl(); subEvents(); };
+    return () => { unsubscribe(); subControl(); subEvents(); subSettings(); };
   }, []);
+
+  const toggleWhatsAppSync = async () => {
+    try {
+      const nextValue = !isWhatsAppAutoSync;
+      await setDoc(doc(db, 'control', 'settings'), { isWhatsAppAutoSync: nextValue }, { merge: true });
+      setIsWhatsAppAutoSync(nextValue);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'control/settings');
+    }
+  };
 
   const shareToWhatsApp = (text: string, phone?: string) => {
     const encodedText = encodeURIComponent(text);
@@ -149,6 +163,9 @@ ${event.description}
       handleFirestoreError(error, OperationType.UPDATE, 'control/daily_bread');
     } finally {
       setLoading(false);
+      if (isWhatsAppAutoSync) {
+        broadcastDaily();
+      }
     }
   };
 
@@ -240,6 +257,20 @@ ${event.description}
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-4 md:mt-0">
+          <motion.button 
+            whileHover={{ y: -5 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={toggleWhatsAppSync}
+            className={`flex-1 px-6 py-4 md:px-8 md:py-5 rounded-[20px] md:rounded-[28px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl transition-all text-[9px] md:text-[10px] ${
+              isWhatsAppAutoSync 
+                ? 'bg-emerald-600 text-white shadow-emerald-500/20' 
+                : 'bg-stone-200 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
+            }`}
+          >
+            <Zap className={`w-4 h-4 ${isWhatsAppAutoSync ? 'animate-pulse' : 'opacity-30'}`} />
+            {isWhatsAppAutoSync ? 'Sync Active' : 'Sync Inactive'}
+          </motion.button>
+          
           <motion.button 
             whileHover={{ y: -5 }}
             whileTap={{ scale: 0.98 }}
