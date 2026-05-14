@@ -98,30 +98,18 @@ export default function AdminPanel() {
 
   const broadcastDaily = () => {
     const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-    const message = `*🕊️ ZUCA DAILY BREAD | ${today.toUpperCase()}*
-
-*📖 SCRIPTURE REFERENCE*
-━━━━━━━━━━━━━━━
-${dailyForm.reference}
-
-*✨ THE HOLY WORD*
-━━━━━━━━━━━━━━━
+    const message = `*🕊️ ZUCA DAILY BREAD* ✨
+*──────────────────*
+📖 *${dailyForm.reference}*
 _"${dailyForm.verse}"_
 
-*🙏 SAINT OF THE DAY*
-━━━━━━━━━━━━━━━
-*${dailyForm.saintName.toUpperCase()}*
+🙏 *PATRON: ${dailyForm.saintName.toUpperCase()}*
+${dailyForm.saintInfo.slice(0, 80)}...
 
-*🕯️ REFLECTIONS*
-━━━━━━━━━━━━━━━
-${dailyForm.saintInfo}
-
-*🔗 JOIN THE SANCTUARY*
+✨ *JOIN OUR SANCTUARY*
 ${window.location.origin}
-
-━━━━━━━━━━━━━━━
-_Peace and Grace be with you._
-━━━━━━━━━━━━━━━`;
+*──────────────────*
+_Peace be with you._ 🤍`;
     shareToWhatsApp(message);
   };
 
@@ -130,29 +118,19 @@ _Peace and Grace be with you._
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
     const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const message = `*🔔 DIVINE APPOINTMENT: ${event.title.toUpperCase()}*
+    const message = `*🔔 ZUCA: ${event.title.toUpperCase()}* ✨
+*──────────────────*
+📅 *${dayName}, ${dateStr}*
+⏰ *${timeStr}*
+📍 *${event.location}*
 
-*📅 SCHEDULE DETAILS*
-━━━━━━━━━━━━━━━
-*Day:* ${dayName}
-*Date:* ${dateStr}
-*Time:* ${timeStr}
-*Venue:* ${event.location}
+📝 *INSIGHTS*
+${event.description.slice(0, 100)}...
 
-*📝 EVENT INSIGHTS*
-━━━━━━━━━━━━━━━
-${event.description}
-
-*🙌 CALL TO FELLOWSHIP*
-━━━━━━━━━━━━━━━
-Your presence is highly anticipated. Join us as we gather in faith and collective spirit. Do not miss this opportunity for communal growth.
-
-*🔗 SANCTUARY LINK*
+🌟 *JOIN OUR FELLOWSHIP*
 ${window.location.origin}
-
-━━━━━━━━━━━━━━━
-_Bound by Faith, United in Spirit._
-━━━━━━━━━━━━━━━`;
+*──────────────────*
+_United in Spirit and Faith._ 🫂`;
     shareToWhatsApp(message);
   };
 

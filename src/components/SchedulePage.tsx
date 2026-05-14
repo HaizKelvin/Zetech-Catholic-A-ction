@@ -216,29 +216,19 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
     const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const message = `*🔔 DIVINE APPOINTMENT: ${act.title.toUpperCase()}*
+    const message = `*🔔 ZUCA: ${act.title.toUpperCase()}* ✨
+*──────────────────*
+📅 *${dayName}, ${dateStr}*
+⏰ *${timeStr}*
+📍 *${act.location}*
 
-*📅 SCHEDULE DETAILS*
-━━━━━━━━━━━━━━━
-*Day:* ${dayName}
-*Date:* ${dateStr}
-*Time:* ${timeStr}
-*Venue:* ${act.location}
+📝 *INSIGHTS*
+${act.description.slice(0, 100)}...
 
-*📝 EVENT INSIGHTS*
-━━━━━━━━━━━━━━━
-${act.description}
-
-*🙌 CALL TO FELLOWSHIP*
-━━━━━━━━━━━━━━━
-Your presence is highly anticipated. Join us as we gather in faith and collective spirit. Do not miss this opportunity for communal growth.
-
-*🔗 SANCTUARY LINK*
+🌟 *JOIN OUR FELLOWSHIP*
 ${window.location.origin}
-
-━━━━━━━━━━━━━━━
-_Bound by Faith, United in Spirit._
-━━━━━━━━━━━━━━━`;
+*──────────────────*
+_United in Spirit and Faith._ 🫂`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };

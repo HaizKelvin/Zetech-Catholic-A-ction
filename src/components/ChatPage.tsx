@@ -8,7 +8,11 @@ import {
   onSnapshot, 
   serverTimestamp,
   getDocs,
-  limit
+  limit,
+  updateDoc,
+  doc,
+  deleteDoc,
+  where
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, DailyControl, OperationType } from '../types';
@@ -30,10 +34,13 @@ import {
   MessageCircle,
   CornerUpLeft,
   X as CloseIcon,
-  MoreHorizontal
+  MoreHorizontal,
+  Pin,
+  Heart,
+  ThumbsUp,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { deleteDoc, doc } from 'firebase/firestore';
 
 interface Message {
   id: string;
@@ -44,6 +51,10 @@ interface Message {
   senderName: string;
   senderPhoto?: string;
   timestamp: any;
+  isPinned?: boolean;
+  reactions?: {
+    [emoji: string]: string[]; // emoji: list of user IDs
+  };
   replyTo?: {
     id: string;
     text: string;
@@ -55,8 +66,11 @@ const STICKERS = [
   '🙏', '🙌', '✨', '🕊️', '⛪', '📖', '🕯️', '🛡️', '✝️', '🫂', '🔥', '❤️', '🌟', '🌈', '☀️', '🌸'
 ];
 
+const REACTION_EMOJIS = ['🙏', '❤️', '✨', '🙌'];
+
 export default function ChatPage({ currentUser }: { currentUser: UserProfile | null }) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [pinnedMessage, setPinnedMessage] = useState<Message | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [replyMessage, setReplyMessage] = useState<Message | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -97,11 +111,15 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs: Message[] = [];
+      let pinned: Message | null = null;
       snapshot.forEach((doc) => {
-        msgs.push({ id: doc.id, ...doc.data() } as Message);
+        const data = doc.data() as Message;
+        msgs.push({ id: doc.id, ...data });
+        if (data.isPinned) pinned = { id: doc.id, ...data };
       });
       setMessages(msgs);
-      setTimeout(scrollToBottom, 100);
+      setPinnedMessage(pinned);
+      setTimeout(scrollToBottom, 500);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'community_chat');
     });
@@ -139,7 +157,8 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
         senderId: currentUser.uid,
         senderName: currentUser.displayName,
         senderPhoto: currentUser.photoURL || '',
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        reactions: {}
       };
 
       if (replyMessage) {
@@ -156,6 +175,46 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
       setShowStickers(false);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, path);
+    }
+  };
+
+  const handleReaction = async (messageId: string, emoji: string) => {
+    if (!currentUser) return;
+    const msg = messages.find(m => m.id === messageId);
+    if (!msg) return;
+
+    const reactions = { ...(msg.reactions || {}) };
+    const currentUsers = reactions[emoji] || [];
+    
+    if (currentUsers.includes(currentUser.uid)) {
+      reactions[emoji] = currentUsers.filter(uid => uid !== currentUser.uid);
+    } else {
+      reactions[emoji] = [...currentUsers, currentUser.uid];
+    }
+
+    try {
+      await updateDoc(doc(db, 'community_chat', messageId), { reactions });
+      setActiveMenuId(null);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `community_chat/${messageId}`);
+    }
+  };
+
+  const handlePinMessage = async (messageId: string) => {
+    if (currentUser?.role !== 'admin') return;
+    
+    try {
+      // Unpin current pinned message if any
+      if (pinnedMessage && pinnedMessage.id !== messageId) {
+        await updateDoc(doc(db, 'community_chat', pinnedMessage.id), { isPinned: false });
+      }
+
+      const msg = messages.find(m => m.id === messageId);
+      const newPinStatus = !msg?.isPinned;
+      await updateDoc(doc(db, 'community_chat', messageId), { isPinned: newPinStatus });
+      setActiveMenuId(null);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `community_chat/${messageId}`);
     }
   };
 
@@ -365,8 +424,35 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
           </div>
         </div>
 
+        {/* Pinned Message Display */}
+        <AnimatePresence>
+          {pinnedMessage && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-brand-600 text-white px-4 py-2 flex items-center gap-3 relative z-10 shadow-lg"
+            >
+              <Pin className="w-3.5 h-3.5 shrink-0 rotate-45" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[8px] font-black uppercase tracking-[0.2em] opacity-70">Sacred Announcement</p>
+                <p className="text-[10px] font-bold truncate">{pinnedMessage.text || "[Shared Media]"}</p>
+              </div>
+              <button 
+                onClick={() => {
+                   const el = document.getElementById(`msg-${pinnedMessage.id}`);
+                   el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+                className="text-[8px] font-black uppercase tracking-widest bg-white/20 px-2 py-1 rounded-md hover:bg-white/30 transition-all"
+              >
+                View
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Messages Layout */}
-        <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-2 md:space-y-3 custom-scrollbar z-0 flex flex-col relative">
+        <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-4 md:space-y-5 custom-scrollbar z-0 flex flex-col relative">
           <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
           
           <div className="flex justify-center mb-0.5">
@@ -419,22 +505,25 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                     </div>
                   </div>
                   
-                  <div className={`max-w-[88%] lg:max-w-[80%] group relative px-2.5 py-1.5 rounded-2xl transition-all duration-300 ${
+                  <div className={`max-w-[88%] lg:max-w-[80%] group relative px-3 py-2 rounded-2xl transition-all duration-300 ${
                     isMine 
-                      ? 'bg-brand-600 text-white rounded-br-[4px] shadow-sm' 
-                      : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 rounded-bl-[4px] border border-brand-500/5 shadow-sm'
+                      ? 'bg-brand-600 text-white rounded-br-[4px] shadow-lg' 
+                      : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 rounded-bl-[4px] border border-brand-500/5 shadow-md'
                   }`}>
+                    {msg.isPinned && (
+                      <Pin className={`absolute -top-2 ${isMine ? '-left-2' : '-right-2'} w-3 h-3 text-brand-500 rotate-45 animate-bounce-slow drop-shadow-md`} />
+                    )}
                     <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
                     
-                    <div className={`absolute -top-1.5 ${isMine ? 'right-0' : 'left-0'} z-20`}>
+                    <div className={`absolute -top-3 ${isMine ? 'right-0' : 'left-0'} z-20`}>
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveMenuId(activeMenuId === msg.id ? null : msg.id);
                         }}
-                        className={`p-0.5 bg-white dark:bg-stone-900 rounded-full shadow-md border border-brand-500/10 transition-all text-stone-500 hover:scale-110 active:scale-95 ${activeMenuId === msg.id ? 'ring-1 ring-brand-500/10 text-brand-600 opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                        className={`p-1 bg-white dark:bg-stone-900 rounded-full shadow-md border border-brand-500/10 transition-all text-stone-500 hover:scale-110 active:scale-95 ${activeMenuId === msg.id ? 'ring-1 ring-brand-500/10 text-brand-600 opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                       >
-                        <MoreHorizontal className="w-2.5 h-2.5" />
+                        <MoreHorizontal className="w-3 h-3" />
                       </button>
 
                       <AnimatePresence>
@@ -448,27 +537,47 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                               initial={{ opacity: 0, scale: 0.9, y: 3 }}
                               animate={{ opacity: 1, scale: 1, y: 0 }}
                               exit={{ opacity: 0, scale: 0.9, y: 3 }}
-                              className={`absolute bottom-full mb-1 ${isMine ? 'right-0' : 'left-0'} w-24 bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl rounded-lg shadow-lg border border-brand-500/5 p-1 z-20 flex flex-col gap-0.5`}
+                              className={`absolute bottom-full mb-1 ${isMine ? 'right-0' : 'left-0'} w-32 bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl rounded-xl shadow-2xl border border-brand-500/5 p-1.5 z-20 flex flex-col gap-0.5`}
                             >
+                              <div className="grid grid-cols-4 gap-1 mb-1.5 pb-1.5 border-b border-stone-100 dark:border-stone-800">
+                                {REACTION_EMOJIS.map(emoji => (
+                                  <button
+                                    key={emoji}
+                                    onClick={() => handleReaction(msg.id, emoji)}
+                                    className="p-1.5 hover:bg-brand-500/10 rounded-lg transition-all text-sm"
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
                               <button 
                                 onClick={() => {
                                   setReplyMessage(msg);
                                   setActiveMenuId(null);
                                 }}
-                                className="w-full flex items-center gap-1.5 p-1 rounded-md hover:bg-brand-500/10 text-left text-[7px] font-black uppercase tracking-wider text-brand-600"
+                                className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-brand-500/10 text-left text-[9px] font-black uppercase tracking-wider text-brand-600 transition-colors"
                               >
-                                <CornerUpLeft className="w-2.5 h-2.5" />
+                                <CornerUpLeft className="w-3 h-3" />
                                 Reply
                               </button>
+                              {currentUser?.role === 'admin' && (
+                                <button 
+                                  onClick={() => handlePinMessage(msg.id)}
+                                  className={`w-full flex items-center gap-2 p-2 rounded-lg hover:bg-brand-500/10 text-left text-[9px] font-black uppercase tracking-wider transition-colors ${msg.isPinned ? 'text-brand-400' : 'text-brand-600'}`}
+                                >
+                                  <Pin className="w-3 h-3" />
+                                  {msg.isPinned ? 'Unpin' : 'Pin Sacred'}
+                                </button>
+                              )}
                               {(isMine || currentUser?.role === 'admin') && (
                                 <button 
                                   onClick={() => {
                                     handleDeleteMessage(msg.id);
                                     setActiveMenuId(null);
                                   }}
-                                  className="w-full flex items-center gap-1.5 p-1 rounded-md hover:bg-red-500 hover:text-white transition-all text-left text-[7px] font-black uppercase tracking-wider text-red-500"
+                                  className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all text-left text-[9px] font-black uppercase tracking-wider text-red-500"
                                 >
-                                  <Trash2 className="w-2.5 h-2.5" />
+                                  <Trash2 className="w-3 h-3" />
                                   Delete
                                 </button>
                               )}
@@ -486,7 +595,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                           el?.classList.add('ring-1', 'ring-brand-500/20');
                           setTimeout(() => el?.classList.remove('ring-1', 'ring-brand-500/20'), 2000);
                         }}
-                        className="w-full mb-1.5 p-1.5 rounded-md bg-black/10 dark:bg-white/5 border-l-2 border-white/30 text-left hover:bg-black/20 dark:hover:bg-white/10 transition-all font-medium"
+                        className="w-full mb-1.5 p-1.5 rounded-lg bg-black/10 dark:bg-white/5 border-l-2 border-white/30 text-left hover:bg-black/20 dark:hover:bg-white/10 transition-all font-medium"
                       >
                         <p className="text-[7px] font-black uppercase tracking-widest text-white/60 mb-0.5">{msg.replyTo.senderName}</p>
                         <p className="text-[9px] opacity-80 truncate italic">{msg.replyTo.text}</p>
@@ -494,7 +603,7 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                     )}
 
                     {!isMine && (
-                      <span className="block text-[7px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-[0.2em] mb-0.5">
+                      <span className="block text-[8px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-[0.2em] mb-0.5">
                         {msg.senderName}
                       </span>
                     )}
@@ -516,12 +625,29 @@ export default function ChatPage({ currentUser }: { currentUser: UserProfile | n
                         </div>
                       )}
                       {msg.text && (
-                        <p className="text-[11px] md:text-[13px] leading-snug font-bold tracking-tight">{msg.text}</p>
+                        <p className="text-[12px] md:text-[14px] leading-snug font-bold tracking-tight">{msg.text}</p>
                       )}
                     </div>
 
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                       {msg.reactions && Object.entries(msg.reactions).map(([emoji, uids]) => uids.length > 0 && (
+                         <button 
+                           key={emoji}
+                           onClick={() => handleReaction(msg.id, emoji)}
+                           className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-black transition-all border scale-90 ${
+                             currentUser && uids.includes(currentUser.uid)
+                               ? 'bg-brand-600 text-white border-brand-500'
+                               : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                           }`}
+                         >
+                           <span>{emoji}</span>
+                           <span className="tabular-nums">{uids.length}</span>
+                         </button>
+                       ))}
+                    </div>
+
                     <div className={`flex items-center gap-1 mt-1 ${isMine ? 'justify-end opacity-60' : 'justify-start opacity-40'}`}>
-                      <span className="text-[6px] font-black uppercase tracking-[0.1em]">
+                      <span className="text-[7px] font-black uppercase tracking-[0.1em]">
                         {msg.timestamp?.toDate?.()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '...' }
                       </span>
                     </div>
