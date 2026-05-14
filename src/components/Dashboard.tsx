@@ -40,23 +40,30 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
   const shareDaily = () => {
     if (!daily) return;
     const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-    const message = `*DAILY BREAD | ${today.toUpperCase()}*
+    const message = `*🕊️ ZUCA DAILY BREAD | ${today.toUpperCase()}*
 
-*Scripture Reference:*
+*📖 SCRIPTURE REFERENCE*
+━━━━━━━━━━━━━━━
 ${daily.reference}
 
-*The Holy Word:*
-"${daily.verse}"
+*✨ THE HOLY WORD*
+━━━━━━━━━━━━━━━
+_"${daily.verse}"_
 
-*Saint of the Day:*
-${daily.saintName}
+*🙏 SAINT OF THE DAY*
+━━━━━━━━━━━━━━━
+*${daily.saintName.toUpperCase()}*
 
-*Reflections:*
+*🕯️ REFLECTIONS*
+━━━━━━━━━━━━━━━
 ${daily.saintInfo}
 
-━━━━━━━━━━━━━━━━━━
-*ZUCA PORTAL:* ${window.location.origin}
-✧────────────────✧`;
+*🔗 JOIN THE SANCTUARY*
+${window.location.origin}
+
+━━━━━━━━━━━━━━━
+_Peace and Grace be with you._
+━━━━━━━━━━━━━━━`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };
@@ -87,13 +94,31 @@ ${daily.saintInfo}
         </div>
 
         <div className="relative z-10 flex flex-col gap-10 md:gap-16 max-w-7xl w-full">
-          <motion.div
-            variants={item}
-            className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass-dark border border-white/10 text-[9px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-3xl w-fit"
-          >
-            <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
-            Cathedral of Digital Fellowship
-          </motion.div>
+          <div className="flex flex-wrap items-center gap-4">
+            <motion.div
+              variants={item}
+              className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass-dark border border-white/10 text-[9px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-3xl w-fit"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
+              Cathedral of Digital Fellowship
+            </motion.div>
+
+            <motion.div
+              variants={item}
+              className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] md:text-[11px] font-black uppercase tracking-[0.4em] text-emerald-400 shadow-xl backdrop-blur-xl w-fit group/live relative"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+              <span className="relative">
+                <span className="tabular-nums">14</span> SEEKERS ACTIVE
+              </span>
+              
+              {/* Inviting Hover Message */}
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-2 bg-emerald-600 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover/live:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
+                The Sanctuary is vibrant today! 🙏
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-emerald-600 rotate-45" />
+              </div>
+            </motion.div>
+          </div>
           
           <div className="space-y-4 md:space-y-8">
             <motion.h1 

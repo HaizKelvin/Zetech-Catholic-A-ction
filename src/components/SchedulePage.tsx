@@ -216,21 +216,29 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
     const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const message = `*URGENT: ${act.title.toUpperCase()}*
+    const message = `*🔔 DIVINE APPOINTMENT: ${act.title.toUpperCase()}*
 
+*📅 SCHEDULE DETAILS*
+━━━━━━━━━━━━━━━
 *Day:* ${dayName}
 *Date:* ${dateStr}
 *Time:* ${timeStr}
 *Venue:* ${act.location}
 
-*Details:*
+*📝 EVENT INSIGHTS*
+━━━━━━━━━━━━━━━
 ${act.description}
 
-*Your presence is highly anticipated.* Join us as we gather in faith and fellowship. Do not miss this divine experience.
+*🙌 CALL TO FELLOWSHIP*
+━━━━━━━━━━━━━━━
+Your presence is highly anticipated. Join us as we gather in faith and collective spirit. Do not miss this opportunity for communal growth.
 
-━━━━━━━━━━━━━━━━━━
-*ZUCA PORTAL:* ${window.location.origin}
-✧────────────────✧`;
+*🔗 SANCTUARY LINK*
+${window.location.origin}
+
+━━━━━━━━━━━━━━━
+_Bound by Faith, United in Spirit._
+━━━━━━━━━━━━━━━`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };
