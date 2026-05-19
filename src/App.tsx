@@ -173,21 +173,18 @@ export default function App() {
     // Toggle About dropdown if clicking about
     if (tab === 'about') {
       setIsAboutOpen(!isAboutOpen);
-    } else {
-      // Auto-expand about if a sub-tab is clicked from elsewhere (if we had specific subtabs)
     }
 
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
     
-    // Only push state if the tab is different from the current one in history
     if (window.history.state?.tab !== tab) {
       window.history.pushState({ tab }, '', url.toString());
     }
     
-    // Explicit scroll to top when changing tabs
+    // Immediate scroll for speed
     const main = document.querySelector('main');
-    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    if (main) main.scrollTo({ top: 0 });
 
     if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
@@ -826,16 +823,16 @@ Can you provide more insight, theological context, or a related prayer meditatio
       </div>
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 glass border-r border-brand-500/10 dark:border-white/5 transition-all duration-500 ease-in-out overflow-hidden shadow-2xl ${
+      <aside className={`fixed inset-y-0 left-0 z-50 glass border-r border-brand-500/10 dark:border-white/5 transition-all duration-300 ease-out overflow-hidden shadow-2xl ${
         isSidebarOpen ? 'translate-x-0 w-72 md:w-80' : '-translate-x-full w-72 md:w-80'
       }`}>
         <div className="h-full flex flex-col p-6">
           <div className="mb-8 flex items-center gap-4 px-2 group cursor-pointer" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-            <div className="w-12 h-12 bg-indigo-600 shrink-0 rounded-[18px] flex items-center justify-center shadow-2xl shadow-indigo-500/30 group-hover:rotate-3 transition-all duration-500 border border-white/10 overflow-hidden">
+            <div className="w-12 h-12 bg-indigo-600 shrink-0 rounded-[18px] flex items-center justify-center shadow-2xl shadow-indigo-500/30 group-hover:rotate-3 transition-all duration-300 border border-white/10 overflow-hidden">
                <Church className="w-6 h-6 text-white" />
             </div>
             {isSidebarOpen && (
-              <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col">
+              <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }} className="flex flex-col">
                 <h1 className="text-xl font-black tracking-tight text-stone-900 dark:text-white leading-none">ZUCA</h1>
                 <p className="text-[10px] font-black text-indigo-600 dark:text-brand-400 tracking-wider uppercase opacity-80">Sacred Hub</p>
               </motion.div>
@@ -862,7 +859,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       if (isSidebarOpen) setIsAboutOpen(!isAboutOpen);
                       else handleTabChange('about');
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all duration-500 relative group ${
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all duration-300 relative group ${
                       activeTab === 'about' || (isAboutOpen && isSidebarOpen)
                         ? 'bg-brand-600 text-white shadow-xl shadow-brand-600/20' 
                         : 'text-stone-500 dark:text-stone-400 hover:bg-brand-50/50 dark:hover:bg-white/5 hover:text-brand-700 dark:hover:text-stone-100'
@@ -1001,7 +998,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                   <motion.span 
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center rounded-full text-[9px] font-black leading-none text-white shadow-lg border-2 border-white dark:border-stone-900 transition-colors duration-500 ${
+                    className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center rounded-full text-[9px] font-black leading-none text-white shadow-lg border-2 border-white dark:border-stone-900 transition-colors duration-300 ${
                       notifications.some(n => !n.isRead) ? 'bg-red-500' : 'bg-emerald-500'
                     }`}
                   >
@@ -1149,7 +1146,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
           if (isSidebarOpen) setIsSidebarOpen(false);
           if (isNotificationOpen) setIsNotificationOpen(false);
         }}
-        className={`flex-1 transition-all duration-500 ease-in-out pt-16 md:pt-12 px-3 md:px-12 relative z-10 ${isSidebarOpen ? 'ml-0 md:ml-80' : 'ml-0'}`}
+        className={`flex-1 transition-all duration-300 ease-out pt-16 md:pt-12 px-3 md:px-12 relative z-10 ${isSidebarOpen ? 'ml-0 md:ml-80' : 'ml-0'}`}
       >
         {/* Scroll Progress Bar */}
         <motion.div 
@@ -1159,7 +1156,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
         <div className="max-w-6xl mx-auto pt-2 md:pt-16">
           <AnimatePresence mode="wait">
             {activeTab === 'home' && (
-              <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                 <Dashboard 
                   userName={profile?.displayName?.split(' ')[0] || 'Member'} 
                   onTabChange={(tab) => handleTabChange(tab)}
@@ -1167,7 +1164,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
               </motion.div>
             )}
             {activeTab === 'chat' && (
-              <motion.div key="chat" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <motion.div key="chat" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                 <ChatPage currentUser={profile} />
               </motion.div>
             )}
@@ -1217,7 +1214,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
               </motion.div>
             )}
             {activeTab === 'guide' && (
-              <motion.div key="guide" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <motion.div key="guide" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                 <UserGuide />
               </motion.div>
             )}
@@ -1415,7 +1412,7 @@ const NavItem = React.memo(({ active, onClick, icon, label, isOpen, admin }: { a
           : 'text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-100'
       }`}
     >
-      <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-500 ${active ? 'scale-105' : 'group-hover:scale-105'}`}>
+      <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-300 ${active ? 'scale-105' : 'group-hover:scale-105'}`}>
         {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-[18px] h-[18px]' })}
       </div>
       {isOpen && (

@@ -10,16 +10,35 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'control', 'daily_bread'), (doc) => {
-      if (doc.exists()) {
-        setDaily(doc.data() as DailyControl);
+    let unsubscribe: (() => void) | undefined;
+
+    const fetchDaily = async () => {
+      try {
+        const response = await fetch('/api/daily-bread');
+        if (!response.ok) throw new Error('API failed');
+        const data = await response.json();
+        setDaily(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("API Fetch error, falling back to Firestore:", error);
+        // Fallback to Firestore if API fails
+        unsubscribe = onSnapshot(doc(db, 'control', 'daily_bread'), (doc) => {
+          if (doc.exists()) {
+            setDaily(doc.data() as DailyControl);
+          }
+          setLoading(false);
+        }, (err) => {
+          console.error("Firestore fallback error:", err);
+          setLoading(false);
+        });
       }
-      setLoading(false);
-    }, (error) => {
-      console.error("Dashboard error:", error);
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    };
+
+    fetchDaily();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const container: Variants = {

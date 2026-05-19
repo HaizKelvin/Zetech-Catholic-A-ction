@@ -171,7 +171,13 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
 
       const data = await response.json();
       
-      if (!response.ok) throw new Error(data.error || 'The Spirit is silent.');
+      if (!response.ok) {
+        // Handle specific server-side errors
+        if (data.error?.includes("Secrets")) {
+           throw new Error(data.error);
+        }
+        throw new Error(data.error || 'The Spirit is silent.');
+      }
 
       await addDoc(collection(db, path), {
         userId: auth.currentUser.uid,
@@ -181,12 +187,14 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
       });
 
     } catch (error: any) {
-      handleFirestoreError(error, OperationType.WRITE, path);
+      console.error("Chat error:", error);
       // Fallback message if API fails
       await addDoc(collection(db, path), {
         userId: auth.currentUser.uid,
         role: 'model',
-        text: "My reflection is currently interrupted, fellow pilgrim. Let us pause for a moment in prayer and try again soon.",
+        text: error.message.includes("Secrets") 
+          ? `Divine connection limited. Please check the Sanctuary configuration (Secrets: GEMINI_API_KEY).`
+          : "My reflection is currently interrupted, fellow pilgrim. Let us pause for a moment in prayer and try again soon.",
         timestamp: serverTimestamp()
       });
     } finally {
@@ -199,86 +207,85 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
       <AnimatePresence>
         {isOpen && (
             <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 40 }}
+            initial={{ opacity: 0, scale: 0.98, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 40 }}
-            className="mb-4 w-[calc(100vw-2.5rem)] md:w-[440px] h-[80vh] md:h-[650px] bg-white dark:bg-stone-950 rounded-[40px] shadow-[0_40px_120px_-20px_rgba(0,51,102,0.4)] border border-stone-200/60 dark:border-white/10 overflow-hidden flex flex-col translate-x-0"
+            exit={{ opacity: 0, scale: 0.98, y: 10 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="mb-4 w-[calc(100vw-2rem)] md:w-[320px] h-[58vh] md:h-[420px] bg-white dark:bg-stone-950 rounded-[24px] shadow-[0_20px_60px_-15px_rgba(0,51,102,0.3)] border border-stone-200/60 dark:border-white/10 overflow-hidden flex flex-col translate-x-0 will-change-transform"
           >
             {/* Header - Enhanced legit look */}
-            <div className="p-6 md:p-8 bg-gradient-to-br from-[#003366] to-[#001a33] text-white relative overflow-hidden shrink-0">
+            <div className="p-4 md:p-5 bg-gradient-to-br from-[#003366] to-[#001a33] text-white relative overflow-hidden shrink-0">
                <div className="absolute top-0 right-0 w-64 h-64 bg-zetech-gold/10 blur-[100px] -mr-32 -mt-32 rounded-full pointer-events-none animate-pulse-gentle" />
                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-zetech-gold/5 blur-[60px] rounded-full pointer-events-none" />
               
               <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-5">
-                  <div className="w-16 h-16 rounded-[24px] bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-3xl shrink-0 group shadow-inner">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-[20px] bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-3xl shrink-0 group shadow-inner">
                     <div className="relative">
-                       <Bot className="w-8 h-8 text-zetech-gold group-hover:scale-110 transition-transform duration-500" />
-                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#003366]" />
+                       <Bot className="w-6 h-6 text-zetech-gold group-hover:scale-110 transition-transform duration-500" />
+                       <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#003366]" />
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-black text-xl tracking-tight leading-tight uppercase">Sanctuary <span className="text-zetech-gold serif-display italic font-light lowercase">Spirit</span></h3>
-                    <div className="flex items-center gap-2 mt-1.5">
+                    <h3 className="font-black text-base tracking-tight leading-tight uppercase">Sanctuary <span className="text-zetech-gold serif-display italic font-light lowercase">Spirit</span></h3>
+                    <div className="flex items-center gap-2 mt-1">
                       <div className="flex gap-0.5">
-                         {[1,2,3].map(i => <div key={i} className="w-1 h-3 bg-zetech-gold/20 rounded-full" />)}
+                         {[1,2].map(i => <div key={i} className="w-1 h-2.5 bg-zetech-gold/20 rounded-full" />)}
                       </div>
-                      <span className="text-[9px] text-zetech-gold/80 uppercase tracking-[0.3em] font-black">Divine Wisdom Active</span>
+                      <span className="text-[8px] text-zetech-gold/80 uppercase tracking-[0.3em] font-black italic">Active</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <button 
                     onClick={async () => {
                        if (confirm('Clear our conversation to refresh the soul?')) {
-                         const path = `users/${auth.currentUser?.uid}/chatHistory`;
-                         for (const msg of messages) {
-                           await deleteDoc(doc(db, path, msg.id));
-                         }
+                          const path = `users/${auth.currentUser?.uid}/chatHistory`;
+                          for (const msg of messages) {
+                            await deleteDoc(doc(db, path, msg.id));
+                          }
                        }
                     }}
-                    className="p-3 hover:bg-white/10 rounded-2xl transition-all text-white/40 hover:text-red-300"
+                    className="p-2 hover:bg-white/10 rounded-xl transition-all text-white/40 hover:text-red-300"
                     title="Clear Soul"
                   >
-                    <Trash2 className="w-4.5 h-4.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={() => setIsOpen(false)}
-                    className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-all active:scale-95 border border-white/10"
+                    className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all active:scale-95 border border-white/10"
                   >
-                    <X className="w-4.5 h-4.5 text-white" />
+                    <X className="w-4 h-4 text-white" />
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Messages - More refined typography */}
-            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8 bg-stone-50/30 dark:bg-stone-950/40 custom-scrollbar relative">
+            <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6 bg-stone-50/30 dark:bg-stone-950/40 custom-scrollbar relative">
               <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
               
               {messages.length === 0 && !isLoading && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 relative z-10">
-                  <div className="w-28 h-28 rounded-[40px] bg-white dark:bg-stone-900 flex items-center justify-center mb-10 shadow-2xl border border-stone-100 dark:border-white/5 relative group">
-                    <div className="absolute inset-0 bg-zetech-gold/5 rounded-[40px] scale-110 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Bot className="w-14 h-14 text-zetech-blue drop-shadow-xl relative z-10" />
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 relative z-10">
+                  <div className="w-20 h-20 rounded-[32px] bg-white dark:bg-stone-900 flex items-center justify-center mb-6 shadow-xl border border-stone-100 dark:border-white/5 relative group">
+                    <div className="absolute inset-0 bg-zetech-gold/5 rounded-[32px] scale-110 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Bot className="w-10 h-10 text-zetech-blue drop-shadow-lg relative z-10" />
                   </div>
-                  <h4 className="text-2xl serif-display font-light text-stone-900 dark:text-stone-100 mb-3 italic">Peace be with you, {userName?.split(' ')[0] || 'Seeksers'}</h4>
-                  <p className="text-[13px] font-medium text-stone-500 dark:text-stone-400 leading-relaxed max-w-[240px] mx-auto">
-                    I am your "legit" spiritual guide. Ask for wisdom, a prayer, or just a scripture to light your path.
+                  <h4 className="text-xl serif-display font-light text-stone-900 dark:text-stone-100 mb-2 italic">Peace be with you</h4>
+                  <p className="text-[12px] font-medium text-stone-50 dark:text-stone-400 leading-relaxed max-w-[200px] mx-auto opacity-0 h-0 overflow-hidden md:h-auto md:opacity-100">
+                    I am your spiritual guide. Ask for wisdom or a prayer.
                   </p>
                   
                   {/* Enhanced Legit Suggestions */}
-                  <div className="mt-10 grid grid-cols-1 gap-2.5 w-full max-w-[280px]">
+                  <div className="mt-6 grid grid-cols-1 gap-2 w-full max-w-[260px]">
                     {[
-                      "Legit prayer for exam week",
-                      "Scripture for finding purpose",
-                      "How to grow in faith at Zetech",
-                      "Morning reflection",
+                      "Legit prayer for exams",
+                      "Scripture for hope",
                     ].map((hint) => (
                       <button
                         key={hint}
                         onClick={() => setInput(hint)}
-                        className="px-5 py-3 bg-white dark:bg-stone-900 border border-stone-200/60 dark:border-white/5 rounded-[20px] text-[10px] font-black uppercase tracking-widest text-zetech-blue dark:text-stone-400 hover:bg-[#003366] hover:text-white hover:border-[#003366] hover:-translate-y-0.5 transition-all text-left shadow-sm flex items-center justify-between group"
+                        className="px-4 py-2.5 bg-white dark:bg-stone-900 border border-stone-200/60 dark:border-white/5 rounded-[16px] text-[9px] font-black uppercase tracking-widest text-zetech-blue dark:text-stone-400 hover:bg-[#003366] hover:text-white hover:border-[#003366] hover:-translate-y-0.5 transition-all text-left shadow-sm flex items-center justify-between group"
                       >
                         {hint}
                         <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
@@ -290,18 +297,19 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
 
               {messages.map((msg, idx) => (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
                   key={msg.id || idx} 
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10`}
                 >
-                  <div className={`flex gap-3 max-w-[88%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`px-6 py-4.5 rounded-[28px] text-[15px] leading-[1.6] shadow-md transition-all ${
+                  <div className={`flex gap-3 max-w-[90%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`px-4.5 py-3.5 rounded-[22px] text-[13.5px] leading-[1.5] shadow-md transition-all ${
                       msg.role === 'user' 
                         ? 'bg-[#003366] text-white dark:bg-brand-600 rounded-tr-none font-medium' 
-                        : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-100 dark:border-white/10 rounded-tl-none font-serif italic selection:bg-zetech-gold/20 selection:text-zetech-blue border-l-4 border-l-zetech-gold'
+                        : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-100 dark:border-white/10 rounded-tl-none font-serif italic selection:bg-zetech-gold/20 selection:text-zetech-blue border-l-4 border-l-zetech-gold text-sm'
                     }`}>
-                      <div className="markdown-body prose prose-stone dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-strong:text-zetech-blue prose-strong:font-black">
+                      <div className="markdown-body prose prose-stone dark:prose-invert max-w-none prose-p:my-0.5 prose-headings:my-1 prose-strong:text-zetech-blue prose-strong:font-black">
                         <Markdown>{msg.text}</Markdown>
                       </div>
                     </div>
@@ -310,9 +318,9 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-white dark:bg-stone-900 px-5 py-4 rounded-[24px] rounded-tl-none shadow-md border border-stone-100 dark:border-stone-800 flex items-center gap-3">
-                    <Loader2 className="w-4 h-4 text-zetech-gold animate-spin" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Spirit Reflecting...</span>
+                  <div className="bg-white dark:bg-stone-900 px-4 py-3 rounded-[18px] rounded-tl-none shadow-md border border-stone-100 dark:border-stone-800 flex items-center gap-2">
+                    <Loader2 className="w-3.5 h-3.5 text-zetech-gold animate-spin" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-stone-400">Spirit Reflecting...</span>
                   </div>
                 </div>
               )}
@@ -320,39 +328,39 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
             </div>
 
             {/* Input Area - More legit feel */}
-            <div className="p-6 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-white/10 shrink-0">
-              <form onSubmit={handleSend} className="flex gap-4">
+            <div className="p-4 md:p-5 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-white/10 shrink-0">
+              <form onSubmit={handleSend} className="flex gap-3">
                 <div className="flex-1 relative flex items-center">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder={isListening ? "I'm listening..." : "Whisper to the Spirit..."}
-                    className="w-full px-7 py-4.5 pr-14 bg-stone-50 dark:bg-white/5 border border-stone-200/60 dark:border-white/10 rounded-[24px] outline-none text-[15px] transition-all focus:ring-4 focus:ring-zetech-blue/5 focus:border-[#003366]/40 shadow-inner placeholder:text-stone-400 font-medium"
+                    placeholder={isListening ? "Listening..." : "Whisper..."}
+                    className="w-full px-5 py-3.5 pr-12 bg-stone-50 dark:bg-white/5 border border-stone-200/60 dark:border-white/10 rounded-[18px] outline-none text-[14px] transition-all focus:ring-4 focus:ring-zetech-blue/5 focus:border-[#003366]/40 shadow-inner placeholder:text-stone-400 font-medium"
                   />
                   <button
                     type="button"
                     onClick={toggleListening}
-                    className={`absolute right-3.5 p-2.5 rounded-[18px] transition-all ${
+                    className={`absolute right-2.5 p-2 rounded-[14px] transition-all ${
                       isListening 
                         ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' 
                         : 'text-stone-400 hover:text-zetech-blue hover:bg-stone-100'
                     }`}
                   >
-                    {isListening ? <MicOff className="w-5 h-5 animate-pulse" /> : <Mic className="w-5 h-5" />}
+                    {isListening ? <MicOff className="w-4.5 h-4.5 animate-pulse" /> : <Mic className="w-4.5 h-4.5" />}
                   </button>
                 </div>
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="bg-[#003366] text-white p-4.5 rounded-[24px] hover:translate-y-[-2px] active:translate-y-[0px] disabled:opacity-50 transition-all shadow-[0_12px_24px_-10px_rgba(0,51,102,0.4)] flex items-center justify-center shrink-0 disabled:grayscale group"
+                  className="bg-[#003366] text-white p-3.5 rounded-[18px] hover:translate-y-[-2px] active:translate-y-[0px] disabled:opacity-50 transition-all shadow-[0_8px_16px_-8px_rgba(0,51,102,0.4)] flex items-center justify-center shrink-0 disabled:grayscale group"
                 >
-                  <Send className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                  <Send className="w-5.5 h-5.5 group-hover:rotate-12 transition-transform" />
                 </button>
               </form>
-              <div className="flex items-center justify-center gap-5 mt-5">
+              <div className="flex items-center justify-center gap-4 mt-4">
                  <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-stone-100 dark:to-white/5" />
-                 <p className="text-[8px] text-stone-400 font-black uppercase tracking-[0.4em]">ZUCA Action • Divine Companion</p>
+                 <p className="text-[7px] text-stone-400 font-black uppercase tracking-[0.4em]">ZUCA Action</p>
                  <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-stone-100 dark:to-white/5" />
               </div>
             </div>
@@ -361,12 +369,12 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
       </AnimatePresence>
 
       <motion.button
-        whileHover={{ scale: 1.05, y: -4 }}
+        whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-16 h-16 md:w-20 md:h-20 rounded-[28px] md:rounded-[34px] flex items-center justify-center shadow-[0_20px_50px_-10px_rgba(0,51,102,0.4)] transition-all duration-700 relative group overflow-hidden ${
+        className={`w-12 h-12 md:w-14 md:h-14 rounded-[20px] md:rounded-[24px] flex items-center justify-center shadow-[0_10px_30px_-5px_rgba(0,51,102,0.3)] transition-all duration-300 relative group overflow-hidden ${
           isOpen 
-            ? 'bg-[#001a33] text-white rotate-90 shadow-zetech-gold/20' 
+            ? 'bg-[#001a33] text-white rotate-90' 
             : 'bg-[#003366] text-white'
         }`}
       >
@@ -376,14 +384,14 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
         <AnimatePresence mode="wait">
           {isOpen ? (
             <motion.div key="close" initial={{ opacity: 0, rotate: -90 }} animate={{ opacity: 1, rotate: 0 }} exit={{ opacity: 0, rotate: 90 }}>
-              <X className="w-7 h-7 md:w-8 md:h-8" />
+              <X className="w-6 h-6 md:w-7 md:h-7" />
             </motion.div>
           ) : (
             <motion.div key="open" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.2 }} className="relative z-10 flex items-center justify-center">
-              <MessageCircle className="w-8 h-8 md:w-10 md:h-10 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
+              <MessageCircle className="w-7 h-7 md:w-9 md:h-9 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
               <div className="absolute -top-1 -right-1 flex">
                 <div className="absolute inset-0 bg-zetech-gold rounded-full animate-ping opacity-75" />
-                <div className="relative w-4 h-4 bg-zetech-gold rounded-full border-2 border-[#003366] shadow-[0_0_15px_rgba(212,175,55,0.8)]" />
+                <div className="relative w-3 h-3 md:w-4 md:h-4 bg-zetech-gold rounded-full border-2 border-[#003366] shadow-[0_0_15px_rgba(212,175,55,0.8)]" />
               </div>
             </motion.div>
           )}
