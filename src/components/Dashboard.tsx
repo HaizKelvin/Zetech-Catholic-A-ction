@@ -39,40 +39,44 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
 
   const shareWhatsApp = () => {
     if (!daily) return;
-    const message = `*🕊️ ZUCA DAILY BREAD* ✨
+    const message = `*✨ ZUCA DAILY BREAD ✨*
 *──────────────────*
-📖 *SCRIPTURE FOR TODAY*
-_"${daily.verse}"_
+
+📖 *WORD OF GOD*
+_${daily.verse}_
 — *${daily.reference}*
 
-🙏 *DAILY PATRON: ${daily.saintName.toUpperCase()}*
+🙏 *SAINT OF THE DAY*
+*${daily.saintName.toUpperCase()}*
 ${daily.saintInfo}
 
-✨ *JOIN OUR DIGITAL SANCTUARY*
-${window.location.host}
+🕊️ *JOIN THE FELLOWSHIP*
+Visit the Sanctuary: ${window.location.host}
+
 *──────────────────*
-_Peace and Grace be with you._ 🤍`;
+_Peace be with you always._ 🤍`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };
 
   const shareEmail = () => {
     if (!daily) return;
-    const subject = encodeURIComponent(`🕊️ Daily Bread: ${daily.reference}`);
+    const subject = encodeURIComponent(`🕊️ ZUCA: Daily Bread (${daily.reference})`);
     const body = encodeURIComponent(`Peace be with you,
 
 Here is your Daily Bread from the ZUCA Sanctuary:
 
-📖 SCRIPTURE:
+📖 WORD OF GOD:
 "${daily.verse}"
 — ${daily.reference}
 
-🙏 DAILY PATRON: ${daily.saintName}
+🙏 SAINT OF THE DAY:
+${daily.saintName}
 ${daily.saintInfo}
 
 Join our digital sanctuary for more fellowship: ${window.location.host}
 
-Blessings,
+Blessings and Grace,
 ZUCA Community`);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };

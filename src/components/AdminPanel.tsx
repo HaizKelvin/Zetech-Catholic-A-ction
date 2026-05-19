@@ -33,6 +33,7 @@ export default function AdminPanel() {
   const [isEmailAutoSync, setIsEmailAutoSync] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [announcement, setAnnouncement] = useState({ title: '', message: '' });
+  const [shareStatus, setShareStatus] = useState<{type: 'success' | 'error', message: string} | null>(null);
 
   const displayedUsers = showAllUsers ? users : users.slice(0, 3);
 
@@ -105,6 +106,7 @@ export default function AdminPanel() {
 
   const sendViaEmail = async (subject: string, body: string, recipientList?: string[]) => {
     setEmailLoading(true);
+    setShareStatus(null);
     try {
       // Default to all subscribed users if no specific list
       const emails = recipientList || users
@@ -113,7 +115,7 @@ export default function AdminPanel() {
         .filter(Boolean);
       
       if (emails.length === 0) {
-        alert("No subscribed recipients found.");
+        setShareStatus({ type: 'error', message: "No subscribed recipients found." });
         return;
       }
 
@@ -130,10 +132,13 @@ export default function AdminPanel() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to send emails");
       
-      alert(`Gracefully sent to ${emails.length} souls.`);
+      setShareStatus({ type: 'success', message: `Gracefully sent to ${emails.length} souls.` });
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setShareStatus(null), 5000);
     } catch (error: any) {
       console.error("Email error:", error);
-      alert(`Resonance failure: ${error.message}`);
+      setShareStatus({ type: 'error', message: `Resonance failure: ${error.message}` });
     } finally {
       setEmailLoading(false);
     }
@@ -149,54 +154,60 @@ export default function AdminPanel() {
 
   const broadcastDaily = () => {
     if (!dailyForm.verse) return;
-    const message = `*🕊️ ZUCA DAILY BREAD* ✨
+    const message = `*✨ ZUCA DAILY BREAD ✨*
 *──────────────────*
-📖 *SCRIPTURE FOR TODAY*
-_"${dailyForm.verse}"_
+
+📖 *WORD OF GOD*
+_${dailyForm.verse}_
 — *${dailyForm.reference}*
 
-🙏 *DAILY PATRON: ${dailyForm.saintName.toUpperCase()}*
+🙏 *SAINT OF THE DAY*
+*${dailyForm.saintName.toUpperCase()}*
 ${dailyForm.saintInfo}
 
-✨ *JOIN OUR DIGITAL SANCTUARY*
-${window.location.host}
+🕊️ *JOIN THE FELLOWSHIP*
+Visit the Sanctuary: ${window.location.host}
+
 *──────────────────*
-_Peace and Grace be with you._ 🤍`;
+_Peace be with you always._ 🤍`;
     shareToWhatsApp(message);
   };
 
   const emailDaily = () => {
     if (!dailyForm.verse) return;
-    const subject = `🕊️ Daily Bread: ${dailyForm.reference}`;
+    const subject = `🕊️ ZUCA: Daily Bread (${dailyForm.reference})`;
     const htmlBody = `
-      <div style="font-family: serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #eee; border-radius: 24px; background: #fff; box-shadow: 0 15px 40px rgba(0,0,0,0.05);">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <div style="display: inline-block; width: 50px; height: 50px; background: #5c85ff; border-radius: 15px; line-height: 50px; color: white; font-size: 24px;">⛪</div>
-          <h2 style="color: #5c85ff; text-transform: uppercase; letter-spacing: 0.3em; font-size: 11px; margin-top: 15px;">ZUCA Sanctuary</h2>
+      <div style="font-family: 'Georgia', serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #eef2ff; border-radius: 32px; background: #ffffff; box-shadow: 0 20px 60px rgba(0,0,0,0.06);">
+        <div style="text-align: center; margin-bottom: 40px;">
+          <div style="display: inline-block; width: 64px; height: 64px; background: linear-gradient(135deg, #4f46e5, #4338ca); border-radius: 20px; line-height: 64px; color: white; font-size: 32px; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);">⛪</div>
+          <h2 style="color: #4338ca; text-transform: uppercase; letter-spacing: 0.4em; font-size: 12px; margin-top: 20px; font-weight: 800;">ZUCA Catholic Community</h2>
         </div>
         
-        <h1 style="font-size: 32px; color: #111; text-align: center; margin-bottom: 10px; font-weight: 900; tracking: tight;">Daily Bread</h1>
-        <p style="text-align: center; color: #888; font-size: 14px; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 0.1em;">${new Date().toLocaleDateString('en-GB', { dateStyle: 'full' })}</p>
+        <h1 style="font-size: 36px; color: #111; text-align: center; margin-bottom: 15px; font-weight: 900; letter-spacing: -0.02em;">Bread of Life</h1>
+        <p style="text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 45px; text-transform: uppercase; letter-spacing: 0.2em;">${new Date().toLocaleDateString('en-GB', { dateStyle: 'full' })}</p>
         
-        <div style="margin: 40px 0; padding: 30px; background: #fcfcfc; border: 1px solid #f0f0f0; border-radius: 20px;">
-           <p style="font-size: 16px; color: #666; font-style: italic; margin-bottom: 20px; text-align: center;">— ${dailyForm.reference} —</p>
-           <p style="font-size: 24px; color: #111; line-height: 1.6; text-align: center; font-weight: 300;">"${dailyForm.verse}"</p>
+        <div style="margin: 40px 0; padding: 40px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 28px; position: relative;">
+           <div style="text-align: center; color: #6366f1; font-weight: 800; font-size: 11px; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 0.1em;">Daily Scripture</div>
+           <p style="font-size: 26px; color: #0f172a; line-height: 1.6; text-align: center; font-weight: 300; font-style: italic;">"${dailyForm.verse}"</p>
+           <p style="font-size: 16px; color: #64748b; margin-top: 25px; text-align: center; font-weight: 600;">— ${dailyForm.reference} —</p>
         </div>
 
-        <div style="margin-top: 40px; padding: 30px; border: 1px solid #eee; border-radius: 20px;">
-          <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: #5c85ff; margin: 0 0 15px 0;">🙏 Daily Patron</h3>
-          <p style="font-weight: 900; margin: 0; font-size: 20px; color: #111;">${dailyForm.saintName}</p>
-          <p style="color: #555; font-size: 15px; line-height: 1.8; margin-top: 10px; font-style: italic;">${dailyForm.saintInfo}</p>
+        <div style="margin-top: 40px; padding: 35px; border: 1px dashed #e2e8f0; border-radius: 28px;">
+          <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #6366f1; margin: 0 0 20px 0; font-weight: 800;">🙏 Patron Reflection</h3>
+          <p style="font-weight: 900; margin: 0; font-size: 22px; color: #0f172a;">${dailyForm.saintName}</p>
+          <p style="color: #475569; font-size: 16px; line-height: 1.8; margin-top: 15px;">${dailyForm.saintInfo}</p>
         </div>
 
-        <div style="margin-top: 40px; text-align: center;">
-          <a href="${window.location.origin}" style="display: inline-block; background: #111; color: white; padding: 18px 36px; text-decoration: none; border-radius: 14px; font-weight: 800; font-family: sans-serif; font-size: 12px; letter-spacing: 0.1em;">ENTER THE SANCTUARY</a>
+        <div style="margin-top: 50px; text-align: center;">
+          <a href="${window.location.origin}" style="display: inline-block; background: #0f172a; color: white; padding: 20px 45px; text-decoration: none; border-radius: 16px; font-weight: 800; font-family: sans-serif; font-size: 13px; letter-spacing: 0.15em; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);">VISIT THE SANCTUARY</a>
         </div>
         
-        <p style="margin-top: 50px; text-align: center; font-size: 12px; color: #aaa; border-top: 1px solid #f0f0f0; padding-top: 20px;">
-          Bound by Faith, United in Spirit.<br />
-          ZUCA Catholic Community
-        </p>
+        <div style="margin-top: 60px; text-align: center; padding-top: 30px; border-top: 1px solid #f1f5f9;">
+          <p style="font-size: 13px; color: #94a3b8; line-height: 1.6;">
+            Bound by Faith, United in Spirit.<br />
+            <strong>Zetech University Catholic Action</strong>
+          </p>
+        </div>
       </div>
     `;
     sendViaEmail(subject, htmlBody);
@@ -535,6 +546,25 @@ _United in Spirit and Faith._ 🫂`;
               >
                 {emailLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Email Broadcast <Share2 className="w-5 h-5" /></>}
               </motion.button>
+
+              <AnimatePresence>
+                {shareStatus && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className={`mt-4 p-5 rounded-[24px] flex items-center gap-4 border-2 ${
+                      shareStatus.type === 'success' 
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                        : 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    <div className={`w-3 h-3 rounded-full ${shareStatus.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'} animate-pulse`} />
+                    <p className="text-xs font-black uppercase tracking-widest flex-1">{shareStatus.message}</p>
+                    <button type="button" onClick={() => setShareStatus(null)} className="text-[10px] font-black uppercase opacity-50 hover:opacity-100">Dismiss</button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </form>
 
             {/* Event Broadcast Section */}

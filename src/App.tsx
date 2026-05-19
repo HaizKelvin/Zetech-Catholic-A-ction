@@ -487,7 +487,13 @@ Can you provide more insight, theological context, or a related prayer meditatio
       setResetSent(true);
     } catch (error: any) {
       console.error('Reset error:', error);
-      setAuthError(error.message || 'Could not send reset email. Please verify your email address.');
+      let msg = error.message || 'Could not send reset email. Please verify your email address.';
+      if (error.code === 'auth/user-not-found') {
+        msg = "We couldn't find a soul registered with this email. Please check the spelling or sign up.";
+      } else if (error.code === 'auth/network-request-failed') {
+        msg = "A connection failure occurred. Please check your digital signal.";
+      }
+      setAuthError(msg + " Also, check your spam/junk folder in a few moments.");
     } finally {
       setAuthLoading(false);
     }
@@ -601,7 +607,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                     </h2>
                     <p className="text-stone-500 text-xs mt-1">
                       {resetSent 
-                        ? 'Check your university email for the sacred reset link.' 
+                        ? 'Check your university email (including spam/junk) for the sacred reset link.' 
                         : authMode === 'forgot' 
                           ? 'Enter your email to receive a recovery link.' 
                           : authMode === 'login' 

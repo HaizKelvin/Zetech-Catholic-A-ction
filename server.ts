@@ -66,8 +66,15 @@ app.post("/api/chat", async (req, res) => {
     const response = await result.response;
     res.json({ text: response.text() });
   } catch (error: any) {
-    console.error("Gemini error:", error);
-    res.status(500).json({ error: "The Spirit is reflecting. Please try again soon." });
+    console.error("Gemini Chat Error Details:", {
+      message: error.message,
+      stack: error.stack,
+      response: error.response
+    });
+    res.status(500).json({ 
+      error: "The Spirit is reflecting. Please try again soon.",
+      details: error.message
+    });
   }
 });
 
