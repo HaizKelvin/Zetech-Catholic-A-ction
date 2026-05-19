@@ -7,7 +7,8 @@ import {
   User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { 
   doc, 
@@ -191,7 +192,8 @@ export default function App() {
     if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [resetSent, setResetSent] = useState(false);
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -475,6 +477,25 @@ Can you provide more insight, theological context, or a related prayer meditatio
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authForm.email) {
+      setAuthError('Please enter your university email to receive a reset link.');
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      await sendPasswordResetEmail(auth, authForm.email);
+      setResetSent(true);
+    } catch (error: any) {
+      console.error('Reset error:', error);
+      setAuthError(error.message || 'Could not send reset email. Please verify your email address.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   // Listen for real-time notifications
   useEffect(() => {
     if (!user) {
@@ -564,98 +585,176 @@ Can you provide more insight, theological context, or a related prayer meditatio
                   THE <span className="text-zetech-gold serif-display italic font-light lowercase">Sanctuary</span>
                 </h1>
                 <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400 mt-2">Zetech University Catholic Action</p>
-                
-                <AnimatePresence mode="wait">
+                            <AnimatePresence mode="wait">
                   <motion.div
-                    key={authMode}
+                    key={authMode + (resetSent ? '-sent' : '')}
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
                     className="mt-6"
                   >
                     <h2 className="text-xl font-bold text-zetech-blue">
-                      {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
+                      {resetSent 
+                        ? 'Covenant Reset Sent' 
+                        : authMode === 'login' 
+                          ? 'Welcome Back' 
+                          : authMode === 'signup' 
+                            ? 'Create Account' 
+                            : 'Restore Access'}
                     </h2>
                     <p className="text-stone-500 text-xs mt-1">
-                      {authMode === 'login' ? 'Peace be with you. Re-enter the sanctuary.' : 'Join our spiritual collective today.'}
+                      {resetSent 
+                        ? 'Check your university email for the sacred reset link.' 
+                        : authMode === 'forgot' 
+                          ? 'Enter your email to receive a recovery link.' 
+                          : authMode === 'login' 
+                            ? 'Peace be with you. Re-enter the sanctuary.' 
+                            : 'Join our spiritual collective today.'}
                     </p>
                   </motion.div>
                 </AnimatePresence>
               </div>
 
-              <form onSubmit={handleEmailAuth} className="space-y-4">
-                {authMode === 'signup' && (
-                  <div className="relative group">
-                    <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Sacred Name"
-                      className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
-                      value={authForm.name}
-                      onChange={(e) => setAuthForm({...authForm, name: e.target.value})}
-                    />
-                  </div>
-                )}
-
-                <div className="relative group">
-                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="University Email"
-                    className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
-                    value={authForm.email}
-                    onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <div className="relative group">
-                    <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
-                    <input
-                      type="password"
-                      required
-                      placeholder="Secret Password"
-                      className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
-                      value={authForm.password}
-                      onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
-                    />
-                  </div>
-                  {authMode === 'login' && (
-                    <div className="flex justify-end px-1">
-                      <button type="button" className="text-[10px] font-bold text-zetech-blue/60 hover:text-zetech-blue uppercase tracking-wider">Forgot?</button>
+              {!resetSent ? (
+                <form onSubmit={authMode === 'forgot' ? handlePasswordReset : handleEmailAuth} className="space-y-4">
+                  {authMode === 'signup' && (
+                    <div className="relative group">
+                      <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Sacred Name"
+                        className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
+                        value={authForm.name}
+                        onChange={(e) => setAuthForm({...authForm, name: e.target.value})}
+                      />
                     </div>
                   )}
-                </div>
 
-                {authError && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-center gap-2 text-red-600 text-[10px] font-bold"
-                  >
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    {authError}
-                  </motion.div>
-                )}
+                  <div className="relative group">
+                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="University Email"
+                      className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
+                      value={authForm.email}
+                      onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
+                    />
+                  </div>
 
-                <motion.button
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={authLoading}
-                  type="submit"
-                  className="w-full bg-zetech-blue text-white py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[11px] shadow-lg shadow-zetech-blue/20 mt-4 flex items-center justify-center gap-2 hover:bg-[#002b55] transition-all"
-                >
-                  {authLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      {authMode === 'login' ? 'ENTER SANCTUARY' : 'JOIN ASSEMBLY'} <ArrowRight className="w-4 h-4" />
-                    </>
+                  {authMode !== 'forgot' && (
+                    <div className="space-y-1">
+                      <div className="relative group">
+                        <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
+                        <input
+                          type="password"
+                          required
+                          placeholder="Secret Password"
+                          className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
+                          value={authForm.password}
+                          onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
+                        />
+                      </div>
+                      {authMode === 'login' && (
+                        <div className="flex justify-end px-1">
+                          <button 
+                            type="button" 
+                            onClick={() => {setAuthMode('forgot'); setAuthError('');}}
+                            className="text-[10px] font-bold text-zetech-blue/60 hover:text-zetech-blue uppercase tracking-wider"
+                          >
+                            Forgot?
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
-                </motion.button>
-              </form>
+
+                  {authError && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-center gap-2 text-red-600 text-[10px] font-bold"
+                    >
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      {authError}
+                    </motion.div>
+                  )}
+
+                  {authMode === 'forgot' && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-5 rounded-2xl bg-zetech-blue/5 border border-zetech-blue/10 mb-6"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-lg bg-zetech-blue/10 flex items-center justify-center">
+                          <ShieldCheck className="w-3.5 h-3.5 text-zetech-blue" />
+                        </div>
+                        <h4 className="text-[10px] font-black text-zetech-blue uppercase tracking-[0.2em]">Sacred Recovery Guidelines</h4>
+                      </div>
+                      <ul className="space-y-2.5 text-[10.5px] text-stone-600 font-medium leading-relaxed">
+                        <li className="flex gap-2 underline decoration-zetech-gold/30">
+                          <span className="text-zetech-gold">◈</span>
+                          <span>Use your official <span className="font-bold text-zetech-blue">@zetech.ac.ke</span> email address.</span>
+                        </li>
+                        <li className="flex gap-2">
+                          <span className="text-zetech-gold">◈</span>
+                          <span>Check your <span className="font-bold">Spam/Junk</span> folder if the link is not in your Inbox.</span>
+                        </li>
+                        <li className="flex gap-2">
+                          <span className="text-zetech-gold">◈</span>
+                          <span>The link is sensitive and expires in <span className="font-bold">60 minutes</span>.</span>
+                        </li>
+                        <li className="flex gap-2">
+                          <span className="text-zetech-gold">◈</span>
+                          <span>Sender: <span className="font-bold italic">ZUCA Action</span> (via zuca2430@gmail.com).</span>
+                        </li>
+                      </ul>
+                    </motion.div>
+                  )}
+
+                  <motion.button
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={authLoading}
+                    type="submit"
+                    className="w-full bg-zetech-blue text-white py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[11px] shadow-lg shadow-zetech-blue/20 mt-4 flex items-center justify-center gap-2 hover:bg-[#002b55] transition-all"
+                  >
+                    {authLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        {authMode === 'login' ? 'ENTER SANCTUARY' : authMode === 'signup' ? 'JOIN ASSEMBLY' : 'SEND RESET LINK'} <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </motion.button>
+
+                  {authMode === 'forgot' && (
+                    <button 
+                      type="button"
+                      onClick={() => setAuthMode('login')}
+                      className="w-full text-center text-stone-400 font-bold tracking-wider block text-[10px] uppercase hover:text-zetech-blue transition-colors mt-2"
+                    >
+                      Back to Login
+                    </button>
+                  )}
+                </form>
+              ) : (
+                <div className="space-y-6 text-center">
+                  <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-100">
+                    <Mail className="w-8 h-8 text-emerald-500" />
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {setResetSent(false); setAuthMode('login');}}
+                    className="w-full bg-zetech-blue text-white py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[11px] shadow-lg"
+                  >
+                    RETURN TO SANCTUARY
+                  </motion.button>
+                </div>
+              )}
 
               <div className="mt-8 space-y-4">
                 <div className="relative">
@@ -668,7 +767,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                   disabled={authLoading}
                   className="w-full py-3.5 rounded-xl border border-stone-200 hover:bg-stone-50 transition-all text-[10px] font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2 text-stone-600"
                 >
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/node_modules/firebaseui/dist/google.ico" className="w-4 h-4" alt="" />
+                  <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-4 h-4" alt="Google" />
                   Continue with Google
                 </button>
 

@@ -52,7 +52,13 @@ Welcome to Sanctuary Fellowship, your digital companion for spiritual growth and
 - Dark Mode: Toggle between Light and Dark modes to suit your environment (found at the top right).
 - Privacy: Your data is protected. All private petitions are encrypted and only visible to you.
 
-7. COMMUNITY GUIDELINES
+7. ACCOUNT RECOVERY
+-------------------
+- Forgot Password: Use the 'Forgot?' link on the login page to receive a reset link via email.
+- Sender: Recovery emails come from ZUCA Action (zuca2430@gmail.com). Always check your Spam folder.
+- Verification: Use your official university email (@zetech.ac.ke) for all recovery requests.
+
+8. COMMUNITY GUIDELINES
 -----------------------
 - Be respectful and kind.
 - Use the sanctuary for spiritual growth and upliftment.
@@ -94,6 +100,11 @@ Version: 1.0.0
       title: "Fellowship Hub",
       icon: <Users className="w-5 h-5 text-blue-500" />,
       content: "Join the community chat to share encouragement. Use stickers and media to express your spiritual journey."
+    },
+    {
+      title: "Account Recovery",
+      icon: <Shield className="w-5 h-5 text-zetech-gold" />,
+      content: "Reset your password via the 'Forgot?' link on the login page. Ensure you use your official university email and check your Spam folder."
     },
     {
       title: "Resources & Study",

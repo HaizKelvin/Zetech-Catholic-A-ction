@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { BrevoClient } from "@getbrevo/brevo";
+import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,6 +11,26 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+// Initialize Gemini lazily
+let genAI: GoogleGenAI | null = null;
+function getGemini() {
+  if (!genAI) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
+    genAI = new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
+  }
+  return genAI;
+}
 
 // Initialize Brevo lazily
 let brevoClient: BrevoClient | null = null;
@@ -25,6 +46,49 @@ function getBrevo() {
 }
 
 // API Routes
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message, history, userName } = req.body;
+    
+    const ai = getGemini();
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        ...history.map((m: any) => ({
+          role: m.role === 'user' ? 'user' : 'model',
+          parts: [{ text: m.parts[0].text }]
+        })),
+        { role: 'user', parts: [{ text: message }] }
+      ],
+      config: {
+        systemInstruction: `You are the "Sanctuary Spirit", the official AI spiritual companion for the ZUCA (Zetech University Catholic Action) community. 
+        Your purpose is to provide "legit", authentic, and biblically-grounded Catholic guidance.
+        
+        TONE & PERSONALITY:
+        - Deeply respectful, warm, and spiritually wise.
+        - Use "legit" terminology when appropriate for university students, but keep it sacred.
+        - Refer to the user as "Fellow Seeker", "Friend in Christ", or ${userName ? `"${userName}"` : '"Pilgrim"'}.
+        
+        CORE PRINCIPLES:
+        - Always include a relevant (and accurate) Scripture verse for every guidance session.
+        - If asked for prayer, provide a "legit" profound prayer that touches the heart.
+        - Focus on the Zetech University context: Inventing your future through faith.
+        - Keep responses summarized but high-impact. No fluff.
+        
+        CONSTRAINTS:
+        - Do not give medical or legal advice.
+        - Stay within Catholic tradition and university values.`
+      }
+    });
+
+    res.json({ text: response.text });
+  } catch (error: any) {
+    console.error("Gemini error:", error);
+    res.status(500).json({ error: "The Spirit is reflecting. Please try again in a moment." });
+  }
+});
+
 app.post("/api/send-email", async (req, res) => {
   try {
     const { subject, body, recipients, type } = req.body;
