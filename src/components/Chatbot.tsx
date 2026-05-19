@@ -222,7 +222,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-[20px] bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-3xl shrink-0 group shadow-inner">
                     <div className="relative">
-                       <Bot className="w-6 h-6 text-zetech-gold group-hover:scale-110 transition-transform duration-500" />
+                       <Bot className="w-6 h-6 text-zetech-gold group-hover:scale-110 transition-transform duration-300" />
                        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#003366]" />
                     </div>
                   </div>

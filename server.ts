@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { BrevoClient } from "@getbrevo/brevo";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -13,21 +13,14 @@ const PORT = 3000;
 app.use(express.json());
 
 // Initialize Gemini lazily
-let genAI: GoogleGenAI | null = null;
+let genAI: GoogleGenerativeAI | null = null;
 function getGemini() {
   if (!genAI) {
     const key = process.env.GEMINI_API_KEY;
     if (!key) {
       throw new Error("GEMINI_API_KEY environment variable is required");
     }
-    genAI = new GoogleGenAI({
-      apiKey: key,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        }
-      }
-    });
+    genAI = new GoogleGenerativeAI(key);
   }
   return genAI;
 }
@@ -51,137 +44,30 @@ app.post("/api/chat", async (req, res) => {
     const { message, history, userName } = req.body;
     
     const ai = getGemini();
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: [
-        ...(history || []).map((m: any) => ({
-          role: m.role === 'user' ? 'user' : 'model',
-          parts: [{ text: (m.parts && m.parts[0]?.text) || m.text || "" }]
-        })),
-        { role: 'user', parts: [{ text: message }] }
-      ],
-      config: {
-        systemInstruction: `You are the "Sanctuary Spirit", a spiritual guide for the ZUCA community. 
-        Provide authentic, direct, and concise Catholic guidance.
-        
-        TONE: Warm, respectful, spiritually wise.
-        RESPONSE STYLE: EXTREMELY BRIEF (1-2 sentences).
-        MANDATORY: Include ONE Scripture verse (Book Chapter:Verse).
-        REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`
-      }
+    const model = ai.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: `You are the "Sanctuary Spirit", a spiritual guide for the ZUCA community. 
+      Provide authentic, direct, and concise Catholic guidance.
+      
+      TONE: Warm, respectful, spiritually wise.
+      RESPONSE STYLE: EXTREMELY BRIEF (1-2 sentences).
+      MANDATORY: Include ONE Scripture verse (Book Chapter:Verse).
+      REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`
     });
 
-    res.json({ text: response.text });
+    const chat = model.startChat({
+      history: (history || []).map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: (m.parts && m.parts[0]?.text) || m.text || "" }]
+      })),
+    });
+
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    res.json({ text: response.text() });
   } catch (error: any) {
     console.error("Gemini error:", error);
-    const errorMessage = error.message?.includes("API_KEY_INVALID") 
-      ? "Invalid API Key. Please check your GEMINI_API_KEY in the app settings."
-      : "The spirit is reflecting. Please try again soon.";
-    res.status(500).json({ error: errorMessage });
-  }
-});
-
-// Cache for Daily bread
-let cachedBread: any = null;
-let lastBreadFetchDate: string | null = null;
-
-// Automation for Daily bread (Bible Verse & Saint)
-app.get("/api/daily-bread", async (req, res) => {
-  const today = new Date();
-  const dateStr = today.toISOString().split('T')[0];
-
-  // Return cached version if still today
-  if (cachedBread && lastBreadFetchDate === dateStr) {
-    return res.json(cachedBread);
-  }
-
-  try {
-    let verse = { text: "For I know the plans I have for you, declares the Lord.", reference: "Jeremiah 29:11" };
-    let saintName = "General Memorial";
-    let saintInfo = "A day dedicated to silent prayer and reflection on the journey of faith.";
-
-    // 1. Fetch Bible Verse of the Day (using a more stable API)
-    try {
-      const votdRes = await fetch("https://labs.bible.org/api/?passage=votd&type=json");
-      if (votdRes.ok) {
-        const contentType = votdRes.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-           const bibleData = await votdRes.json();
-           if (Array.isArray(bibleData) && bibleData[0]) {
-             verse = {
-               text: bibleData[0].text,
-               reference: `${bibleData[0].bookname} ${bibleData[0].chapter}:${bibleData[0].verse}`
-             };
-           }
-        }
-      }
-    } catch (e) {
-      console.warn("Bible API failed, using fallback");
-    }
-
-    // 2. Fetch Liturgical Calendar for Saint
-    try {
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      
-      const romcalRes = await fetch(`http://calapi.romcal.net/api/v1/dates/${yyyy}-${mm}-${dd}`);
-      if (romcalRes.ok) {
-        const contentType = romcalRes.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const romcalData = await romcalRes.json();
-          const celebration = romcalData.celebrations?.find((c: any) => c.rank === 'MEMORIAL' || c.rank === 'FEAST' || c.rank === 'SOLEMNITY') || romcalData.celebrations?.[0];
-          if (celebration?.title) {
-            saintName = celebration.title;
-          }
-        }
-      }
-    } catch (e) {
-      console.warn("Romcal API failed, using fallback");
-    }
-
-    // 3. Use Gemini to find a saint if API failed or provide bio
-    try {
-      const ai = getGemini();
-      
-      const prompt = (saintName === "General Memorial" || !saintName)
-        ? `Today is ${today.toDateString()}. Identify a famous Catholic Saint or feast day for today. Provide their name and a 1-sentence spiritually-inspiring biography. Format: Name | Bio`
-        : `Provide a beautiful, spiritually-inspiring 1-sentence biography for ${saintName}. TONE: Sacred and encouraging. FOCUS: Their core virtue.`;
-      
-      const bioResponse = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt
-      });
-      
-      const text = bioResponse.text?.trim() || "";
-      
-      if (text.includes("|")) {
-        const parts = text.split("|");
-        saintName = parts[0].trim();
-        saintInfo = parts[1].trim();
-      } else if (text) {
-        saintInfo = text;
-      }
-    } catch (e) {
-      console.error("Gemini Saint fallback failed:", e);
-    }
-
-    const breadData = {
-      verse: verse.text,
-      reference: verse.reference,
-      saintName: saintName,
-      saintInfo: saintInfo,
-      date: dateStr
-    };
-
-    cachedBread = breadData;
-    lastBreadFetchDate = dateStr;
-
-    res.json(breadData);
-  } catch (error: any) {
-    console.error("Daily Bread Root Error:", error);
-    res.status(500).json({ error: "Failed to gather the Bread of Life." });
+    res.status(500).json({ error: "The Spirit is reflecting. Please try again soon." });
   }
 });
 

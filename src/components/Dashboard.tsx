@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { DailyControl } from '../types';
-import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Heart, Library, Trophy, ArrowUpRight, HelpCircle, MessageCircle } from 'lucide-react';
+import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Heart, Library, Trophy, ArrowUpRight, HelpCircle, MessageCircle, Share2 } from 'lucide-react';
 import { motion, Variants } from 'motion/react';
 
 export default function Dashboard({ userName, onTabChange }: { userName: string, onTabChange: (tab: any) => void }) {
@@ -10,35 +10,16 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-
-    const fetchDaily = async () => {
-      try {
-        const response = await fetch('/api/daily-bread');
-        if (!response.ok) throw new Error('API failed');
-        const data = await response.json();
-        setDaily(data);
-        setLoading(false);
-      } catch (error) {
-        console.error("API Fetch error, falling back to Firestore:", error);
-        // Fallback to Firestore if API fails
-        unsubscribe = onSnapshot(doc(db, 'control', 'daily_bread'), (doc) => {
-          if (doc.exists()) {
-            setDaily(doc.data() as DailyControl);
-          }
-          setLoading(false);
-        }, (err) => {
-          console.error("Firestore fallback error:", err);
-          setLoading(false);
-        });
+    const unsubscribe = onSnapshot(doc(db, 'control', 'daily_bread'), (doc) => {
+      if (doc.exists()) {
+        setDaily(doc.data() as DailyControl);
       }
-    };
-
-    fetchDaily();
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
+      setLoading(false);
+    }, (error) => {
+      console.error("Dashboard error:", error);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const container: Variants = {
@@ -56,23 +37,44 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
     show: { opacity: 1, y: 0 }
   };
 
-  const shareDaily = () => {
+  const shareWhatsApp = () => {
     if (!daily) return;
-    const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
     const message = `*🕊️ ZUCA DAILY BREAD* ✨
 *──────────────────*
-📖 *${daily.reference}*
+📖 *SCRIPTURE FOR TODAY*
 _"${daily.verse}"_
+— *${daily.reference}*
 
-🙏 *PATRON: ${daily.saintName.toUpperCase()}*
-${daily.saintInfo.slice(0, 80)}...
+🙏 *DAILY PATRON: ${daily.saintName.toUpperCase()}*
+${daily.saintInfo}
 
-✨ *JOIN OUR SANCTUARY*
-${window.location.origin}
+✨ *JOIN OUR DIGITAL SANCTUARY*
+${window.location.host}
 *──────────────────*
-_Peace be with you._ 🤍`;
+_Peace and Grace be with you._ 🤍`;
     const encodedText = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+  };
+
+  const shareEmail = () => {
+    if (!daily) return;
+    const subject = encodeURIComponent(`🕊️ Daily Bread: ${daily.reference}`);
+    const body = encodeURIComponent(`Peace be with you,
+
+Here is your Daily Bread from the ZUCA Sanctuary:
+
+📖 SCRIPTURE:
+"${daily.verse}"
+— ${daily.reference}
+
+🙏 DAILY PATRON: ${daily.saintName}
+${daily.saintInfo}
+
+Join our digital sanctuary for more fellowship: ${window.location.host}
+
+Blessings,
+ZUCA Community`);
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };
 
   return (
@@ -153,12 +155,12 @@ _Peace be with you._ 🤍`;
           className="lg:col-span-8 bg-white dark:bg-stone-900/40 p-8 md:p-16 relative overflow-hidden group shadow-2xl rounded-[40px] md:rounded-[80px] border border-stone-100 dark:border-white/5"
         >
           <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
-          <div className="absolute -right-20 -top-20 w-80 h-80 bg-brand-500/5 blur-[100px] rounded-full group-hover:bg-brand-500/10 transition-colors duration-1000" />
+          <div className="absolute -right-20 -top-20 w-80 h-80 bg-brand-500/5 blur-[100px] rounded-full group-hover:bg-brand-500/10 transition-colors duration-500" />
           
           <div className="relative z-10 space-y-8 md:space-y-16">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
-                <div className="w-14 h-14 md:w-20 md:h-20 bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center rounded-[24px] md:rounded-[32px] shadow-sm group-hover:rotate-6 transition-transform duration-700">
+                <div className="w-14 h-14 md:w-20 md:h-20 bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center rounded-[24px] md:rounded-[32px] shadow-sm group-hover:rotate-6 transition-transform duration-300">
                   <BookOpen className="w-6 h-6 md:w-10 md:h-10 text-brand-600 dark:text-brand-400" />
                 </div>
                 <div>
@@ -179,26 +181,36 @@ _Peace be with you._ 🤍`;
               <div className="space-y-10 md:space-y-16">
                 <div className="relative">
                    <Quote className="absolute -top-12 -left-8 w-24 h-24 text-brand-500/5 -z-10 group-hover:scale-110 transition-transform duration-[2s]" />
-                   <p className="text-3xl md:text-6xl lg:text-7xl font-serif italic font-light text-stone-950 dark:text-white leading-[1] tracking-tight group-hover:-translate-x-1 transition-transform duration-1000">
+                   <p className="text-3xl md:text-6xl lg:text-7xl font-serif italic font-light text-stone-950 dark:text-white leading-[1] tracking-tight group-hover:-translate-x-1 transition-transform duration-500">
                      "{daily.verse}"
                    </p>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-10">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-10">
                   <div className="flex items-center gap-6">
-                    <div className="h-[1px] w-12 md:w-24 bg-brand-500/20 rounded-full group-hover:w-32 transition-all duration-1000" />
+                    <div className="h-[1px] w-12 md:w-24 bg-brand-500/20 rounded-full group-hover:w-32 transition-all duration-500" />
                     <p className="text-xs md:text-xl font-black uppercase tracking-[0.5em] text-brand-500 italic drop-shadow-sm font-sans">
                       {daily.reference}
                     </p>
                   </div>
-                  <motion.button 
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={shareDaily}
-                    className="flex items-center gap-3 px-10 py-5 bg-[#25D366] text-white rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl shadow-[#25D366]/20 transition-all hover:bg-[#128C7E]"
-                  >
-                    Share Liturgy <MessageCircle className="w-5 h-5" />
-                  </motion.button>
+                  <div className="flex gap-4">
+                    <motion.button 
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={shareWhatsApp}
+                      className="flex items-center gap-3 px-8 py-5 bg-[#25D366] text-white rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl shadow-[#25D366]/20 transition-all hover:bg-[#128C7E]"
+                    >
+                      WhatsApp <MessageCircle className="w-5 h-5" />
+                    </motion.button>
+                    <motion.button 
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={shareEmail}
+                      className="flex items-center gap-3 px-8 py-5 bg-blue-600 text-white rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all hover:bg-blue-700"
+                    >
+                      Email <Share2 className="w-5 h-5" />
+                    </motion.button>
+                  </div>
                 </div>
               </div>
             ) : null}
@@ -284,9 +296,9 @@ function CompactAction({ title, icon, color, onClick }: { title: string, icon: R
       onClick={onClick}
       className="flex flex-col items-center gap-3 md:gap-5 group"
     >
-      <div className={`w-16 h-16 md:w-28 md:h-28 rounded-[20px] md:rounded-[40px] flex items-center justify-center transition-all duration-500 bg-white dark:bg-stone-900/50 shadow-lg group-hover:shadow-2xl border border-stone-100 dark:border-white/5 relative overflow-hidden shadow-stone-200/50 dark:shadow-none`}>
-        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${color.split(' ')[0]}`} />
-        <div className={`relative z-10 transition-transform duration-500 group-hover:scale-110 ${color.split(' ')[1]}`}>
+      <div className={`w-16 h-16 md:w-28 md:h-28 rounded-[20px] md:rounded-[40px] flex items-center justify-center transition-all duration-300 bg-white dark:bg-stone-900/50 shadow-lg group-hover:shadow-2xl border border-stone-100 dark:border-white/5 relative overflow-hidden shadow-stone-200/50 dark:shadow-none`}>
+        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${color.split(' ')[0]}`} />
+        <div className={`relative z-10 transition-transform duration-300 group-hover:scale-110 ${color.split(' ')[1]}`}>
           {icon}
         </div>
       </div>
