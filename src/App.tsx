@@ -85,7 +85,8 @@ import {
   UserPlus,
   ArrowRight,
   BookOpen,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -201,7 +202,14 @@ export default function App() {
     return false;
   });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ displayName: '', photoURL: '', contactNumber: '', admissionNumber: '', bio: '' });
+  const [editForm, setEditForm] = useState({ 
+    displayName: '', 
+    photoURL: '', 
+    contactNumber: '', 
+    admissionNumber: '', 
+    bio: '',
+    isSubscribed: true 
+  });
   const [isMenuVisible, setIsMenuVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [aiContext, setAiContext] = useState<string | null>(null);
@@ -302,7 +310,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
               photoURL: data.photoURL || firebaseUser.photoURL || '', 
               contactNumber: data.contactNumber || '', 
               admissionNumber: data.admissionNumber || '',
-              bio: data.bio || '' 
+              bio: data.bio || '',
+              isSubscribed: data.isSubscribed ?? true
             });
           }
         }, (error) => {
@@ -366,6 +375,23 @@ Can you provide more insight, theological context, or a related prayer meditatio
           isRead: false,
           timestamp: serverTimestamp()
         });
+
+        // Automatic Welcome Email
+        try {
+          await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              subject: "Welcome to ZUCA Sanctuary 🕊️",
+              body: "Welcome to the fellowship.", // Logic handles the 'welcome' type template
+              recipients: [firebaseUser.email],
+              type: 'welcome',
+              name: profileData.displayName.split(' ')[0]
+            })
+          });
+        } catch (emailError) {
+          console.error("Welcome email automation failed:", emailError);
+        }
       }
     } catch (error) {
        handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);
@@ -382,7 +408,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
         photoURL: editForm.photoURL,
         contactNumber: editForm.contactNumber,
         admissionNumber: editForm.admissionNumber,
-        bio: editForm.bio
+        bio: editForm.bio,
+        isSubscribed: editForm.isSubscribed
       });
       
       setProfile(prev => prev ? { 
@@ -391,7 +418,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
         photoURL: editForm.photoURL,
         contactNumber: editForm.contactNumber,
         admissionNumber: editForm.admissionNumber,
-        bio: editForm.bio
+        bio: editForm.bio,
+        isSubscribed: editForm.isSubscribed
       } : null);
       setIsProfileModalOpen(false);
     } catch (error) {
@@ -492,235 +520,172 @@ Can you provide more insight, theological context, or a related prayer meditatio
 
   if (!user) {
     return (
-      <div className="flex flex-col lg:flex-row min-h-screen bg-brand-950 overflow-hidden text-white font-sans selection:bg-brand-500/30">
-        {/* Left Panel: Cinematic Visual & Brand Message */}
-        <div className="hidden lg:flex lg:w-3/5 relative flex-col justify-between p-16 overflow-hidden">
-          {/* Background Elements */}
-          <div className="absolute inset-0 z-0">
-            <motion.div 
-              initial={{ scale: 1.1, opacity: 0 }}
-              animate={{ scale: 1, opacity: 0.4 }}
-              transition={{ duration: 2.5, ease: "easeOut" }}
-              className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1438032005730-c779502df39b?q=80&w=2671&auto=format&fit=crop')] bg-cover bg-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
-            
-            {/* Animated Atmospheric Glows */}
-            <motion.div 
-               animate={{ 
-                 scale: [1, 1.2, 1],
-                 opacity: [0.1, 0.2, 0.1],
-                 x: [0, 50, 0]
-               }}
-               transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-               className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-brand-500/20 blur-[150px] rounded-full" 
-            />
-            <motion.div 
-               animate={{ 
-                 scale: [1.2, 1, 1.2],
-                 opacity: [0.1, 0.2, 0.1],
-                 y: [0, -50, 0]
-               }}
-               transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-               className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-indigo-500/10 blur-[120px] rounded-full" 
-            />
-          </div>
-
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 1 }}
-            className="relative z-10"
-          >
-            <div className="w-20 h-20 glass-dark rounded-[24px] flex items-center justify-center mb-10 border border-white/10 shadow-3xl">
-              <Church className="text-brand-400 w-10 h-10" />
-            </div>
-            <h1 className="text-8xl font-black tracking-[-0.04em] leading-[0.85] mb-8">
-              THE <br />
-              <span className="serif-display italic font-light text-brand-400 lowercase drop-shadow-3xl">Sanctuary</span>
-            </h1>
-            <p className="text-2xl text-stone-400 font-light max-w-lg leading-relaxed italic serif-display">
-              "A digital assembly for the Zetech University Catholic community—fostering spiritual nourishment, collective wisdom, and authentic fellowship."
-            </p>
-          </motion.div>
-
-          {/* Dynamic Footer Info */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 1 }}
-            className="relative z-10 flex items-center justify-between border-t border-white/5 pt-10"
-          >
-             <div className="flex gap-12">
-                <div className="space-y-1">
-                   <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-500">Established</p>
-                   <p className="text-xs font-bold tracking-widest text-stone-300">MMXXIV</p>
-                </div>
-                <div className="space-y-1">
-                   <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-500">Community</p>
-                   <p className="text-xs font-bold tracking-widest text-brand-400 animate-pulse">ACTIVE</p>
-                </div>
-             </div>
-             
-             <div className="flex items-center gap-4 px-6 py-3 rounded-full glass-dark border border-white/5">
-                <div className="flex -space-x-3">
-                   {[1,2,3].map(i => (
-                     <div key={i} className="w-8 h-8 rounded-full border-2 border-brand-950 bg-stone-800 flex items-center justify-center overflow-hidden">
-                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 423}`} alt="" />
-                     </div>
-                   ))}
-                </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-300">Join the Collective</p>
-             </div>
-          </motion.div>
+      <div className="min-h-screen w-full relative flex items-center justify-center p-4 md:p-6 bg-[#001a33] font-sans selection:bg-zetech-gold/30 overflow-y-auto">
+        {/* Deep Atmospheric Background */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#003366] via-[#001a33] to-[#000d1a]" />
+          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
         </div>
 
-        {/* Right Panel: Auth Flow */}
-        <div className="w-full lg:w-2/5 flex flex-col justify-center p-8 md:p-20 lg:p-24 relative bg-stone-950 border-l border-white/5">
-          {/* Mobile Background */}
-          <div className="lg:hidden absolute inset-0 z-0">
-             <img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?q=80&w=2671&auto=format&fit=crop" className="w-full h-full object-cover opacity-10" alt="" />
-             <div className="absolute inset-0 bg-gradient-to-b from-brand-950 via-brand-950/80 to-brand-950" />
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-md mx-auto w-full relative z-10"
-          >
-            <div className="mb-12 md:mb-16">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={authMode}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-4"
-                >
-                  <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-none">
-                    {authMode === 'login' ? 'WELCOME' : 'SIGN UP'} <br />
-                    <span className="text-brand-400 serif-display italic font-light lowercase">
-                      {authMode === 'login' ? 'Peace be with you' : 'Join the Sanctuary'}
-                    </span>
-                  </h2>
-                  <p className="text-stone-500 font-medium text-lg leading-snug">
-                    {authMode === 'login' 
-                      ? "Enter your credentials to re-enter our digital sanctuary." 
-                      : "Begin your spiritual journey with ZUCA. Join a community that grows together."}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="relative z-10 w-full max-w-[440px] my-8"
+        >
+          {/* Main Auth Card */}
+          <div className="bg-white rounded-[32px] overflow-hidden shadow-[0_40px_80px_-15px_rgba(0,0,0,0.6)] border border-white/10">
+            
+            {/* Header Image Section - The "Clear" Image at the Top */}
+            <div className="relative h-48 md:h-60 overflow-hidden">
+               <img 
+                 src="https://i.ibb.co/tMNKfnYM/Technology-Park-Mangu-Campus.png" 
+                 alt="Zetech University Technology Park" 
+                 className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-1000"
+                 onError={(e) => {
+                   (e.target as any).src = "https://images.unsplash.com/photo-1541339907198-e08756ebafe1?q=80&w=2670";
+                 }}
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/10" />
+               
+               {/* Floating Logo Badge */}
+               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
+                  <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-2xl border-4 border-zetech-gold relative z-20 group">
+                    <div className="absolute inset-0 rotate-45 border-2 border-zetech-gold/20 scale-110 rounded-2xl -z-10 group-hover:rotate-90 transition-transform duration-700" />
+                    <Church className="text-zetech-blue w-10 h-10 group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+               </div>
             </div>
 
-            <form onSubmit={handleEmailAuth} className="space-y-5 md:space-y-6">
-              {authMode === 'signup' && (
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-500/80 ml-4">Full Name</label>
+            {/* Form Section */}
+            <div className="p-8 md:p-10 pt-12">
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-black text-zetech-blue tracking-tight uppercase leading-none">
+                  THE <span className="text-zetech-gold serif-display italic font-light lowercase">Sanctuary</span>
+                </h1>
+                <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400 mt-2">Zetech University Catholic Action</p>
+                
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={authMode}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="mt-6"
+                  >
+                    <h2 className="text-xl font-bold text-zetech-blue">
+                      {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
+                    </h2>
+                    <p className="text-stone-500 text-xs mt-1">
+                      {authMode === 'login' ? 'Peace be with you. Re-enter the sanctuary.' : 'Join our spiritual collective today.'}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <form onSubmit={handleEmailAuth} className="space-y-4">
+                {authMode === 'signup' && (
                   <div className="relative group">
-                    <UserIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-600 group-focus-within:text-brand-400 transition-colors" />
+                    <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Blessed Member"
-                      className="w-full pl-16 pr-8 py-6 rounded-[24px] bg-stone-900 border border-white/5 focus:border-brand-500/30 transition-all text-white font-bold tracking-tight outline-none"
+                      placeholder="Sacred Name"
+                      className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
                       value={authForm.name}
                       onChange={(e) => setAuthForm({...authForm, name: e.target.value})}
                     />
                   </div>
-                </div>
-              )}
+                )}
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-500/80 ml-4">Sanctuary Email</label>
                 <div className="relative group">
-                  <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-600 group-focus-within:text-brand-400 transition-colors" />
+                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
                   <input
                     type="email"
                     required
-                    placeholder="name@university.com"
-                    className="w-full pl-16 pr-8 py-6 rounded-[24px] bg-stone-900 border border-white/5 focus:border-brand-500/30 transition-all text-white font-bold tracking-tight outline-none"
+                    placeholder="University Email"
+                    className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
                     value={authForm.email}
                     onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-500/80 ml-4">Secret Covenant</label>
-                <div className="relative group">
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-stone-800 text-brand-400 border border-white/5">
-                    <div className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
+                <div className="space-y-1">
+                  <div className="relative group">
+                    <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
+                    <input
+                      type="password"
+                      required
+                      placeholder="Secret Password"
+                      className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
+                      value={authForm.password}
+                      onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
+                    />
                   </div>
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    className="w-full pl-16 pr-8 py-6 rounded-[24px] bg-stone-900 border border-white/5 focus:border-brand-500/30 transition-all text-white font-bold tracking-widest outline-none"
-                    value={authForm.password}
-                    onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
-                  />
+                  {authMode === 'login' && (
+                    <div className="flex justify-end px-1">
+                      <button type="button" className="text-[10px] font-bold text-zetech-blue/60 hover:text-zetech-blue uppercase tracking-wider">Forgot?</button>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {authError && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-500 text-xs font-bold"
-                >
-                  <AlertCircle className="w-5 h-5 shrink-0" />
-                  {authError}
-                </motion.div>
-              )}
-
-              <motion.button
-                whileHover={{ scale: 1.02, y: -4 }}
-                whileTap={{ scale: 0.98 }}
-                disabled={authLoading}
-                type="submit"
-                className="w-full bg-white text-brand-950 py-6 rounded-[24px] font-black uppercase tracking-[0.4em] shadow-3xl shadow-white/10 mt-6 text-sm flex items-center justify-center gap-4 transition-all hover:bg-brand-50"
-              >
-                {authLoading ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : (
-                  <>
-                    ENTER SANCTUARY <ChevronRight className="w-5 h-5" />
-                  </>
+                {authError && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-center gap-2 text-red-600 text-[10px] font-bold"
+                  >
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {authError}
+                  </motion.div>
                 )}
-              </motion.button>
-            </form>
 
-            <div className="mt-12 space-y-8">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-                <div className="relative flex justify-center text-xs uppercase font-black tracking-[0.4em]"><span className="bg-stone-950 px-6 text-stone-600">OR</span></div>
+                <motion.button
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  disabled={authLoading}
+                  type="submit"
+                  className="w-full bg-zetech-blue text-white py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[11px] shadow-lg shadow-zetech-blue/20 mt-4 flex items-center justify-center gap-2 hover:bg-[#002b55] transition-all"
+                >
+                  {authLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      {authMode === 'login' ? 'ENTER SANCTUARY' : 'JOIN ASSEMBLY'} <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </motion.button>
+              </form>
+
+              <div className="mt-8 space-y-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-stone-100"></div></div>
+                  <div className="relative flex justify-center text-[8px] uppercase font-black tracking-widest"><span className="bg-white px-3 text-stone-400">Social Access</span></div>
+                </div>
+
+                <button
+                  onClick={handleLogin}
+                  disabled={authLoading}
+                  className="w-full py-3.5 rounded-xl border border-stone-200 hover:bg-stone-50 transition-all text-[10px] font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2 text-stone-600"
+                >
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/node_modules/firebaseui/dist/google.ico" className="w-4 h-4" alt="" />
+                  Continue with Google
+                </button>
+
+                <button 
+                  onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                  className="w-full text-center text-stone-400 font-bold tracking-wider block text-[10px] uppercase hover:text-zetech-blue transition-colors"
+                >
+                  {authMode === 'login' ? "New member? Sign up" : "Already a member? Login"}
+                </button>
               </div>
-
-              <button
-                onClick={handleLogin}
-                disabled={authLoading}
-                className="w-full py-6 rounded-[24px] border border-white/10 hover:bg-white/5 transition-all text-sm font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 text-stone-300"
-              >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/node_modules/firebaseui/dist/google.ico" className="w-5 h-5" alt="" />
-                Sync with Google Account
-              </button>
-
-              <button 
-                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                className="w-full text-center text-stone-500 font-medium tracking-tight mt-6 block text-sm hover:text-brand-400 transition-colors"
-              >
-                {authMode === 'login' ? "New member? Sign up for the Sanctuary" : "Already part of our faith? Login here"}
-              </button>
             </div>
-          </motion.div>
-          
-          {/* Subtle branding for mobile */}
-          <div className="lg:hidden mt-20 text-center flex flex-col items-center opacity-50">
-             <Church className="w-8 h-8 text-brand-400 mb-4" />
-             <p className="text-[10px] font-black uppercase tracking-[0.4em]">ZUCA SANCTUARY</p>
           </div>
-        </div>
+
+          <p className="text-center mt-12 text-white/30 text-[10px] font-bold uppercase tracking-[0.4em]">
+            &copy; {new Date().getFullYear()} ZUCA • INVENT YOUR FUTURE
+          </p>
+        </motion.div>
       </div>
     );
   }
@@ -1254,6 +1219,27 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       placeholder="My journey in faith..." 
                       className="w-full px-6 py-4 rounded-3xl h-24 resize-none bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
                     />
+                  </div>
+                  <div className="flex items-center justify-between p-6 bg-stone-100 dark:bg-white/5 rounded-3xl border border-stone-200 dark:border-white/10">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${editForm.isSubscribed ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                        {editForm.isSubscribed ? <Mail className="w-5 h-5" /> : <X className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="font-black text-sm text-stone-900 dark:text-white leading-none mb-1">Email Resonance</p>
+                        <p className="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-widest">Divine Updates & News</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, isSubscribed: !editForm.isSubscribed })}
+                      className={`w-12 h-6 rounded-full relative transition-colors duration-500 ${editForm.isSubscribed ? 'bg-emerald-500' : 'bg-stone-300 dark:bg-stone-800'}`}
+                    >
+                      <motion.div 
+                        animate={{ x: editForm.isSubscribed ? 24 : 4 }}
+                        className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                      />
+                    </button>
                   </div>
                 </div>
 

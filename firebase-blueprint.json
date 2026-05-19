@@ -10,6 +10,7 @@
         "displayName": { "type": "string" },
         "photoURL": { "type": "string", "description": "URL to profile picture." },
         "bio": { "type": "string", "description": "A short spiritual bio." },
+        "isSubscribed": { "type": "boolean", "description": "Whether the user wants to receive automatic email updates." },
         "role": { "type": "string", "enum": ["admin", "member"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },

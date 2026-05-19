@@ -30,6 +30,9 @@ export default function AdminPanel() {
   const [broadcastTarget, setBroadcastTarget] = useState<'group' | 'members'>('group');
   const [events, setEvents] = useState<any[]>([]);
   const [isWhatsAppAutoSync, setIsWhatsAppAutoSync] = useState(false);
+  const [isEmailAutoSync, setIsEmailAutoSync] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [announcement, setAnnouncement] = useState({ title: '', message: '' });
 
   const displayedUsers = showAllUsers ? users : users.slice(0, 3);
 
@@ -57,7 +60,9 @@ export default function AdminPanel() {
 
     const subSettings = onSnapshot(doc(db, 'control', 'settings'), (d) => {
       if (d.exists()) {
-        setIsWhatsAppAutoSync(d.data().isWhatsAppAutoSync || false);
+        const data = d.data();
+        setIsWhatsAppAutoSync(data.isWhatsAppAutoSync || false);
+        setIsEmailAutoSync(data.isEmailAutoSync || false);
       }
     });
 
@@ -88,6 +93,52 @@ export default function AdminPanel() {
     }
   };
 
+  const toggleEmailSync = async () => {
+    try {
+      const nextValue = !isEmailAutoSync;
+      await setDoc(doc(db, 'control', 'settings'), { isEmailAutoSync: nextValue }, { merge: true });
+      setIsEmailAutoSync(nextValue);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'control/settings');
+    }
+  };
+
+  const sendViaEmail = async (subject: string, body: string, recipientList?: string[]) => {
+    setEmailLoading(true);
+    try {
+      // Default to all subscribed users if no specific list
+      const emails = recipientList || users
+        .filter(u => u.isSubscribed !== false) // Only subscribed souls
+        .map(u => u.email)
+        .filter(Boolean);
+      
+      if (emails.length === 0) {
+        alert("No subscribed recipients found.");
+        return;
+      }
+
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject,
+          body,
+          recipients: emails
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to send emails");
+      
+      alert(`Gracefully sent to ${emails.length} souls.`);
+    } catch (error: any) {
+      console.error("Email error:", error);
+      alert(`Resonance failure: ${error.message}`);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   const shareToWhatsApp = (text: string, phone?: string) => {
     const encodedText = encodeURIComponent(text);
     const url = phone 
@@ -113,6 +164,29 @@ _Peace be with you._ 🤍`;
     shareToWhatsApp(message);
   };
 
+  const emailDaily = () => {
+    const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    const subject = `🕊️ Daily Bread: ${dailyForm.reference}`;
+    const htmlBody = `
+      <div style="font-family: serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #eee; border-radius: 20px;">
+        <h2 style="color: #5c85ff; text-transform: uppercase; letter-spacing: 0.2em; font-size: 14px;">ZUCA Sanctuary</h2>
+        <h1 style="font-size: 32px; color: #1a1a1a;">Daily Bread</h1>
+        <hr style="border: 0; border-top: 1px solid #f0f0f0; margin: 30px 0;" />
+        <p style="font-size: 18px; color: #666; font-style: italic;">"${dailyForm.reference}"</p>
+        <p style="font-size: 24px; color: #111; line-height: 1.4;">"${dailyForm.verse}"</p>
+        <div style="margin-top: 40px; padding: 20px; background: #f9f9f9; border-radius: 12px;">
+          <h3 style="font-size: 16px; margin: 0 0 10px 0;">🙏 Patron of the Day</h3>
+          <p style="font-weight: bold; margin: 0;">${dailyForm.saintName}</p>
+          <p style="color: #555; font-size: 14px;">${dailyForm.saintInfo}</p>
+        </div>
+        <div style="margin-top: 40px; text-align: center;">
+          <a href="${window.location.origin}" style="background: #5c85ff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 30px; font-weight: bold; font-family: sans-serif; font-size: 14px; letter-spacing: 0.1em;">ENTER THE SANCTUARY</a>
+        </div>
+      </div>
+    `;
+    sendViaEmail(subject, htmlBody);
+  };
+
   const broadcastEvent = (event: any) => {
     const d = event.date instanceof Timestamp ? event.date.toDate() : new Date(event.date);
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
@@ -132,6 +206,92 @@ ${window.location.origin}
 *──────────────────*
 _United in Spirit and Faith._ 🫂`;
     shareToWhatsApp(message);
+  };
+
+  const emailEvent = (event: any) => {
+    const d = event.date instanceof Timestamp ? event.date.toDate() : new Date(event.date);
+    const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
+    const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const subject = `🔔 ZUCA Event: ${event.title}`;
+    const htmlBody = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #fff; border: 1px solid #eaeaea; border-radius: 20px;">
+        <p style="color: #5c85ff; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3em; font-size: 10px; margin-bottom: 20px;">FELLOWSHIP ANNOUNCEMENT</p>
+        <h1 style="font-size: 32px; font-weight: 900; tracking: tight; margin: 0; color: #111;">${event.title}</h1>
+        <div style="margin: 30px 0; border-left: 4px solid #5c85ff; padding-left: 20px;">
+          <p style="margin: 5px 0;">📅 <strong>${dayName}, ${dateStr}</strong></p>
+          <p style="margin: 5px 0;">⏰ <strong>${timeStr}</strong></p>
+          <p style="margin: 5px 0;">📍 <strong>${event.location}</strong></p>
+        </div>
+        <p style="font-size: 16px; color: #444; line-height: 1.6; margin-bottom: 30px;">${event.description}</p>
+        <a href="${window.location.origin}" style="display: inline-block; background: #111; color: #fff; padding: 18px 36px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 12px; letter-spacing: 0.1em;">JOIN THE FELLOWSHIP</a>
+      </div>
+    `;
+    sendViaEmail(subject, htmlBody);
+  };
+
+  const broadcastAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!announcement.title || !announcement.message) return;
+
+    setLoading(true);
+    try {
+      // 1. Post to Notifications (Internal)
+      await addDoc(collection(db, 'notifications'), {
+        userId: 'all',
+        title: announcement.title,
+        message: announcement.message,
+        type: 'announcement',
+        isRead: false,
+        timestamp: serverTimestamp()
+      });
+
+      // 2. Email Broadcast
+      if (isEmailAutoSync) {
+        const subject = `🕊️ ZUCA: ${announcement.title}`;
+        const htmlBody = `
+          <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #fff; border: 1px solid #eaeaea; border-radius: 20px;">
+            <p style="color: #5c85ff; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3em; font-size: 10px; margin-bottom: 20px;">COMMUNITY ANNOUNCEMENT</p>
+            <h1 style="font-size: 32px; font-weight: 900; tracking: tight; margin: 0; color: #111;">${announcement.title}</h1>
+            <hr style="border: 0; border-top: 1px solid #f0f0f0; margin: 30px 0;" />
+            <p style="font-size: 16px; color: #444; line-height: 1.6; margin-bottom: 30px;">${announcement.message}</p>
+            <div style="text-align: center;">
+              <a href="${window.location.origin}" style="display: inline-block; background: #5c85ff; color: #fff; padding: 18px 36px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 12px; letter-spacing: 0.1em;">VISIT THE SANCTUARY</a>
+            </div>
+            <p style="margin-top: 40px; font-size: 12px; color: #aaa; text-align: center;">Bound by Faith, United in Spirit.</p>
+          </div>
+        `;
+        await sendViaEmail(subject, htmlBody);
+      } else {
+        alert("Sanctuary updated internal feed. (Email sync inactive)");
+      }
+      
+      setAnnouncement({ title: '', message: '' });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'notifications');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendSingleEmail = async (user: UserProfile) => {
+    const subject = `🕊️ ZUCA Sanctuary: Message from Authority`;
+    const message = prompt(`Compose sacred message for ${user.displayName}:`);
+    if (!message) return;
+
+    const htmlBody = `
+      <div style="font-family: serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #eee; border-radius: 20px;">
+        <h2 style="color: #5c85ff; text-transform: uppercase; letter-spacing: 0.2em; font-size: 14px;">ZUCA Sanctuary</h2>
+        <h1 style="font-size: 24px;">Blessings, ${user.displayName}</h1>
+        <p style="font-size: 16px; color: #444; line-height: 1.6;">${message}</p>
+        <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; text-align: center;">
+          <p style="font-size: 12px; color: #999;">Peace and Grace be with you.</p>
+        </div>
+      </div>
+    `;
+    
+    await sendViaEmail(subject, htmlBody, [user.email]);
   };
 
   const updateDaily = async (e: React.FormEvent) => {
@@ -158,6 +318,9 @@ _United in Spirit and Faith._ 🫂`;
       setLoading(false);
       if (isWhatsAppAutoSync) {
         broadcastDaily();
+      }
+      if (isEmailAutoSync) {
+        emailDaily();
       }
     }
   };
@@ -261,7 +424,21 @@ _United in Spirit and Faith._ 🫂`;
             }`}
           >
             <Zap className={`w-4 h-4 ${isWhatsAppAutoSync ? 'animate-pulse' : 'opacity-30'}`} />
-            {isWhatsAppAutoSync ? 'Sync Active' : 'Sync Inactive'}
+            {isWhatsAppAutoSync ? 'WA Sync' : 'WA Sync'}
+          </motion.button>
+
+          <motion.button 
+            whileHover={{ y: -5 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={toggleEmailSync}
+            className={`flex-1 px-6 py-4 md:px-8 md:py-5 rounded-[20px] md:rounded-[28px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl transition-all text-[9px] md:text-[10px] ${
+              isEmailAutoSync 
+                ? 'bg-blue-600 text-white shadow-blue-500/20' 
+                : 'bg-stone-200 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
+            }`}
+          >
+            <Zap className={`w-4 h-4 ${isEmailAutoSync ? 'animate-pulse' : 'opacity-30'}`} />
+            {isEmailAutoSync ? 'Email Sync' : 'Email Sync'}
           </motion.button>
           
           <motion.button 
@@ -337,10 +514,11 @@ _United in Spirit and Faith._ 🫂`;
               <motion.button 
                 type="button"
                 whileHover={{ scale: 1.02 }}
-                onClick={broadcastDaily}
-                className="w-full py-5 md:py-6 bg-[#25D366] text-white rounded-[24px] md:rounded-[32px] font-black uppercase tracking-[0.3em] text-[10px] md:text-xs shadow-xl flex items-center justify-center gap-4 mt-4"
+                disabled={emailLoading}
+                onClick={emailDaily}
+                className="w-full py-5 md:py-6 bg-blue-600 text-white rounded-[24px] md:rounded-[32px] font-black uppercase tracking-[0.3em] text-[10px] md:text-xs shadow-xl flex items-center justify-center gap-4 mt-4"
               >
-                Broadcast to WhatsApp <MessageCircle className="w-5 h-5" />
+                {emailLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Email Broadcast <Share2 className="w-5 h-5" /></>}
               </motion.button>
             </form>
 
@@ -368,16 +546,63 @@ _United in Spirit and Faith._ 🫂`;
                       </div>
                       <div className="flex gap-3">
                         <button 
+                          onClick={() => emailEvent(event)}
+                          disabled={emailLoading}
+                          className="px-6 py-3 bg-blue-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-transform disabled:opacity-50"
+                        >
+                          {emailLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <>Email <Share2 className="w-3.5 h-3.5" /></>}
+                        </button>
+                        <button 
                           onClick={() => broadcastEvent(event)}
                           className="px-6 py-3 bg-[#25D366] text-white rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-transform"
                         >
-                          Broadcast <MessageCircle className="w-3.5 h-3.5" />
+                          WhatsApp <MessageCircle className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
                   ))
                 )}
               </div>
+            </div>
+
+            {/* Community Announcement Section */}
+            <div className="pt-12 border-t border-stone-200 dark:border-white/5 space-y-8">
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[24px] bg-brand-600 flex items-center justify-center shadow-2xl shadow-brand-900/20 text-white shrink-0">
+                  <Zap className="w-6 h-6 md:w-8 md:h-8" />
+                </div>
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">Broadcast Tower</h2>
+                  <p className="text-stone-400 text-[10px] font-black uppercase tracking-widest mt-1">Universal Community Update</p>
+                </div>
+              </div>
+
+              <form onSubmit={broadcastAnnouncement} className="space-y-6">
+                <div className="space-y-4">
+                  <input 
+                    required 
+                    type="text" 
+                    value={announcement.title} 
+                    onChange={e => setAnnouncement({...announcement, title: e.target.value})} 
+                    className="w-full glass-card p-5 font-bold text-stone-900 dark:text-white outline-none" 
+                    placeholder="Announcement Title" 
+                  />
+                  <textarea 
+                    required 
+                    value={announcement.message} 
+                    onChange={e => setAnnouncement({...announcement, message: e.target.value})} 
+                    className="w-full glass-card p-5 min-h-[120px] text-stone-800 dark:text-stone-200 outline-none" 
+                    placeholder="Sacred message to all souls..." 
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full py-5 bg-stone-900 dark:bg-stone-800 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl flex items-center justify-center gap-3 hover:bg-stone-800 transition-all"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Initiate Universal Broadcast <Zap className="w-4 h-4" /></>}
+                </button>
+              </form>
             </div>
         </section>
 
@@ -442,6 +667,14 @@ _United in Spirit and Faith._ 🫂`;
                       </div>
                       
                       <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                        <button 
+                          onClick={() => sendSingleEmail(u)}
+                          disabled={emailLoading}
+                          className="p-2 text-blue-500 opacity-0 group-hover:opacity-100 transition-all hover:scale-110 disabled:opacity-50"
+                          title="Send Email"
+                        >
+                          {emailLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                        </button>
                         {u.contactNumber && (
                           <button 
                             onClick={() => shareToWhatsApp(`*SACRED GREETING*
@@ -460,8 +693,9 @@ Blessings from the ZUCA community! We celebrate your presence in our fellowship 
                             <MessageCircle className="w-4 h-4" />
                           </button>
                         )}
-                        <div className="px-2 py-0.5 md:px-3 md:py-1 bg-white dark:bg-white/5 rounded-lg border border-stone-100 dark:border-white/5 shadow-sm">
+                        <div className="px-2 py-0.5 md:px-3 md:py-1 bg-white dark:bg-white/5 rounded-lg border border-stone-100 dark:border-white/5 shadow-sm flex items-center gap-2">
                           <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-stone-500 dark:text-stone-400">{u.role}</span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${u.isSubscribed !== false ? 'bg-emerald-500' : 'bg-red-500'}`} title={u.isSubscribed !== false ? 'Subscribed' : 'Not Subscribed'} />
                         </div>
                         <button
                           onClick={() => handleRemoveUser(u.uid)}

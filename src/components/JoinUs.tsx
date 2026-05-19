@@ -338,7 +338,7 @@ export default function JoinUs() {
                            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/10 to-transparent" />
                            <div className="flex items-center gap-3 z-10">
                               <Church className="w-6 h-6 text-white" />
-                              <h4 className="text-white font-black tracking-widest text-sm uppercase">ZUCA ASSEMBLY</h4>
+                              <h4 className="text-white font-black tracking-widest text-sm uppercase">ZUCA ACTION</h4>
                            </div>
                         </div>
                         
@@ -424,7 +424,7 @@ export default function JoinUs() {
             <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-brand-500/20 blur-[100px] rounded-full group-hover:scale-150 transition-transform duration-[3s] shadow-2xl" />
             
             <div className="space-y-6 md:space-y-8 relative z-10">
-              <h3 className="text-3xl md:text-5xl font-black tracking-tight serif-display italic">The Assembly</h3>
+              <h3 className="text-3xl md:text-5xl font-black tracking-tight serif-display italic">The Action</h3>
               <p className="text-stone-400 text-base md:text-xl font-light leading-relaxed italic serif-display">
                 "Connect instantly with fellow members via our official WhatsApp community for daily updates and prayer calls."
               </p>

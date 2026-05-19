@@ -10,6 +10,7 @@ export interface UserProfile {
   contactNumber?: string;
   admissionNumber?: string;
   bio?: string;
+  isSubscribed?: boolean;
   role: UserRole;
   createdAt: Timestamp;
   online?: boolean;

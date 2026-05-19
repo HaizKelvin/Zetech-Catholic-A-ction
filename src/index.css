@@ -25,6 +25,9 @@
   --color-brand-800: #3730a3;
   --color-brand-900: #312e81;
   --color-brand-950: #1e1b4b;
+
+  --color-zetech-blue: #003366;
+  --color-zetech-gold: #ffcc00;
 }
 
 @layer base {
