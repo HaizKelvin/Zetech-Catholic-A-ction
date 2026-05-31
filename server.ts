@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { BrevoClient } from "@getbrevo/brevo";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -13,14 +13,21 @@ const PORT = 3000;
 app.use(express.json());
 
 // Initialize Gemini lazily
-let genAI: GoogleGenerativeAI | null = null;
+let genAI: GoogleGenAI | null = null;
 function getGemini() {
   if (!genAI) {
     const key = process.env.GEMINI_API_KEY;
     if (!key) {
       throw new Error("GEMINI_API_KEY environment variable is required");
     }
-    genAI = new GoogleGenerativeAI(key);
+    genAI = new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
   }
   return genAI;
 }
@@ -44,27 +51,64 @@ app.post("/api/chat", async (req, res) => {
     const { message, history, userName } = req.body;
     
     const ai = getGemini();
-    const model = ai.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: `You are the "Sanctuary Spirit", a spiritual guide for the ZUCA community. 
-      Provide authentic, direct, and concise Catholic guidance.
-      
-      TONE: Warm, respectful, spiritually wise.
-      RESPONSE STYLE: EXTREMELY BRIEF (1-2 sentences).
-      MANDATORY: Include ONE Scripture verse (Book Chapter:Verse).
-      REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`
+    const systemInstruction = `You are the "Sanctuary Spirit", a spiritual guide for the ZUCA community. 
+Provide authentic, direct, and concise Catholic guidance.
+
+TONE: Warm, respectful, spiritually wise.
+RESPONSE STYLE: EXTREMELY BRIEF (1-2 sentences).
+MANDATORY: Include ONE Scripture verse (Book Chapter:Verse).
+REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`;
+
+    // Clean and alternate history
+    const contents: any[] = [];
+    let lastRole: string | null = null;
+
+    if (history && Array.isArray(history)) {
+      for (const m of history) {
+        const role = m.role === 'user' ? 'user' : 'model';
+        const text = (m.parts && m.parts[0]?.text) || m.text || "";
+        const cleanText = text.trim();
+        if (!cleanText) continue;
+
+        if (role === lastRole) {
+          if (contents.length > 0) {
+            contents[contents.length - 1].parts[0].text += "\n" + cleanText;
+          }
+        } else {
+          contents.push({
+            role,
+            parts: [{ text: cleanText }]
+          });
+          lastRole = role;
+        }
+      }
+    }
+
+    // Append new user message
+    if (lastRole === 'user') {
+      if (contents.length > 0) {
+        contents[contents.length - 1].parts[0].text += "\n" + message;
+      }
+    } else {
+      contents.push({
+        role: 'user',
+        parts: [{ text: message }]
+      });
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents,
+      config: {
+        systemInstruction,
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.MINIMAL,
+        },
+      }
     });
 
-    const chat = model.startChat({
-      history: (history || []).map((m: any) => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: (m.parts && m.parts[0]?.text) || m.text || "" }]
-      })),
-    });
-
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    res.json({ text: response.text() });
+    const aiText = response.text || "My reflection is currently interrupted, fellow pilgrim. Let us pause for a moment in prayer.";
+    res.json({ text: aiText });
   } catch (error: any) {
     console.error("Gemini Chat Error Details:", {
       message: error.message,

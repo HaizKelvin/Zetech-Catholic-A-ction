@@ -211,7 +211,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98, y: 10 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="mb-4 w-[calc(100vw-2rem)] md:w-[320px] h-[58vh] md:h-[420px] bg-white dark:bg-stone-950 rounded-[24px] shadow-[0_20px_60px_-15px_rgba(0,51,102,0.3)] border border-stone-200/60 dark:border-white/10 overflow-hidden flex flex-col translate-x-0 will-change-transform"
+            className="mb-4 w-[calc(100vw-2rem)] md:w-[290px] h-[50vh] md:h-[360px] bg-white dark:bg-stone-950 rounded-[24px] shadow-[0_20px_60px_-15px_rgba(0,51,102,0.3)] border border-stone-200/60 dark:border-white/10 overflow-hidden flex flex-col translate-x-0 will-change-transform"
           >
             {/* Header - Enhanced legit look */}
             <div className="p-4 md:p-5 bg-gradient-to-br from-[#003366] to-[#001a33] text-white relative overflow-hidden shrink-0">
@@ -262,7 +262,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
             </div>
 
             {/* Messages - More refined typography */}
-            <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6 bg-stone-50/30 dark:bg-stone-950/40 custom-scrollbar relative">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-stone-50/30 dark:bg-stone-950/40 custom-scrollbar relative">
               <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
               
               {messages.length === 0 && !isLoading && (
@@ -328,7 +328,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
             </div>
 
             {/* Input Area - More legit feel */}
-            <div className="p-4 md:p-5 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-white/10 shrink-0">
+            <div className="p-3 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-white/10 shrink-0">
               <form onSubmit={handleSend} className="flex gap-3">
                 <div className="flex-1 relative flex items-center">
                   <input
@@ -336,7 +336,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={isListening ? "Listening..." : "Whisper..."}
-                    className="w-full px-5 py-3.5 pr-12 bg-stone-50 dark:bg-white/5 border border-stone-200/60 dark:border-white/10 rounded-[18px] outline-none text-[14px] transition-all focus:ring-4 focus:ring-zetech-blue/5 focus:border-[#003366]/40 shadow-inner placeholder:text-stone-400 font-medium"
+                    className="w-full px-4 py-2.5 pr-10 bg-stone-50 dark:bg-white/5 border border-stone-200/60 dark:border-white/10 rounded-[18px] outline-none text-[13px] transition-all focus:ring-4 focus:ring-zetech-blue/5 focus:border-[#003366]/40 shadow-inner placeholder:text-stone-400 font-medium"
                   />
                   <button
                     type="button"
@@ -353,7 +353,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="bg-[#003366] text-white p-3.5 rounded-[18px] hover:translate-y-[-2px] active:translate-y-[0px] disabled:opacity-50 transition-all shadow-[0_8px_16px_-8px_rgba(0,51,102,0.4)] flex items-center justify-center shrink-0 disabled:grayscale group"
+                  className="bg-[#003366] text-white p-2.5 rounded-[18px] hover:translate-y-[-2px] active:translate-y-[0px] disabled:opacity-50 transition-all shadow-[0_8px_16px_-8px_rgba(0,51,102,0.4)] flex items-center justify-center shrink-0 disabled:grayscale group"
                 >
                   <Send className="w-5.5 h-5.5 group-hover:rotate-12 transition-transform" />
                 </button>

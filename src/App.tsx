@@ -201,6 +201,7 @@ export default function App() {
     return false;
   });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [savingState, setSavingState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [editForm, setEditForm] = useState({ 
     displayName: '', 
     photoURL: '', 
@@ -410,19 +411,25 @@ Can you provide more insight, theological context, or a related prayer meditatio
         bio: editForm.bio,
         isSubscribed: editForm.isSubscribed
       });
-      
-      setProfile(prev => prev ? { 
-        ...prev, 
-        displayName: editForm.displayName,
-        photoURL: editForm.photoURL,
-        contactNumber: editForm.contactNumber,
-        admissionNumber: editForm.admissionNumber,
-        bio: editForm.bio,
-        isSubscribed: editForm.isSubscribed
-      } : null);
       setIsProfileModalOpen(false);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
+    }
+  };
+
+  const autoSaveProfileField = async (key: string, value: any) => {
+    if (!user) return;
+    setSavingState('saving');
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, {
+        [key]: value
+      });
+      setSavingState('saved');
+      setTimeout(() => setSavingState('idle'), 2000);
+    } catch (err) {
+      console.error(`Auto-save of ${key} failed:`, err);
+      setSavingState('error');
     }
   };
 
@@ -1250,12 +1257,37 @@ Can you provide more insight, theological context, or a related prayer meditatio
                   <X className="w-6 h-6" />
                 </button>
                 
-                <h3 className="text-3xl font-bold mb-8">Spiritual Profile</h3>
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-3xl font-bold">Spiritual Profile</h3>
+                  <div className="flex items-center gap-2">
+                    {savingState === 'saving' && (
+                      <span className="flex items-center gap-1.5 text-[10px] text-brand-600 dark:text-brand-400 font-extrabold bg-brand-500/10 px-3 py-1.5 rounded-full animate-pulse uppercase tracking-wider">
+                        <Loader2 className="w-3 h-3 animate-spin text-brand-600" />
+                        Storing...
+                      </span>
+                    )}
+                    {savingState === 'saved' && (
+                      <span className="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                        🕊️ Auto-Stored
+                      </span>
+                    )}
+                    {savingState === 'error' && (
+                      <span className="flex items-center gap-1.5 text-[10px] text-red-600 dark:text-red-400 font-extrabold bg-red-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                        ⚠️ Retrying
+                      </span>
+                    )}
+                    {savingState === 'idle' && (
+                      <span className="text-[10px] text-stone-400 uppercase tracking-widest font-black">
+                        Saved in Faith
+                      </span>
+                    )}
+                  </div>
+                </div>
                 <form onSubmit={handleUpdateProfile} className="space-y-6">
-                  <div className="flex flex-col items-center gap-6 mb-10 text-center">
-                    <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-2xl relative group">
+                  <div className="flex flex-col items-center gap-6 mb-8 text-center bg-stone-500/5 p-6 rounded-[32px] border border-stone-200/40 dark:border-white/5">
+                    <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-2xl relative group border-2 border-brand-500/20">
                       {editForm.photoURL ? (
-                        <img src={editForm.photoURL} alt="Preview" className="w-full h-full object-cover" />
+                        <img src={editForm.photoURL} alt="Preview" className="w-full h-full object-cover animate-fade-in" />
                       ) : (
                         <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                           <UserIcon className="w-8 h-8 text-slate-300" />
@@ -1273,6 +1305,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                               try {
                                 const compressed = await compressImage(file);
                                 setEditForm({...editForm, photoURL: compressed});
+                                await autoSaveProfileField('photoURL', compressed);
                               } catch (error) {
                                 console.error("Compression failed:", error);
                               }
@@ -1280,6 +1313,43 @@ Can you provide more insight, theological context, or a related prayer meditatio
                           }}
                         />
                       </label>
+                    </div>
+                    <div className="w-full">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-3">
+                        Choose Spiritual Guide or Upload Portrait
+                      </p>
+                      
+                      <div className="grid grid-cols-6 gap-2 w-full max-w-sm mx-auto">
+                        {[
+                          { name: 'Dove', title: 'Peace', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=peace&mouth=smile' },
+                          { name: 'Shield', title: 'Faith', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=faith&eyes=happy' },
+                          { name: 'Spirit', title: 'Flame', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=spirit&mouth=smile' },
+                          { name: 'Grace', title: 'Sanctuary', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=grace&eyes=happy' },
+                          { name: 'Wisdom', title: 'Word', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wisdom&mouth=smile' },
+                          { name: 'Joy', title: 'Hope', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=joy&eyes=happy' },
+                        ].map((preset) => {
+                          const isSelected = editForm.photoURL === preset.url;
+                          return (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              onClick={async () => {
+                                setEditForm(prev => ({ ...prev, photoURL: preset.url }));
+                                await autoSaveProfileField('photoURL', preset.url);
+                              }}
+                              className={`p-1 rounded-xl border transition-all flex flex-col items-center gap-1 bg-white dark:bg-stone-900 ${
+                                isSelected 
+                                  ? 'border-brand-500 ring-2 ring-brand-500/20 scale-105' 
+                                  : 'border-stone-200 dark:border-white/10 hover:border-brand-500/40 hover:scale-105'
+                              }`}
+                              title={preset.name}
+                            >
+                              <img src={preset.url} alt={preset.name} className="w-7 h-7 rounded-lg object-cover" />
+                              <span className="text-[7px] font-black uppercase tracking-wider text-stone-400">{preset.title}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 
@@ -1290,7 +1360,9 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       type="text" 
                       value={editForm.displayName} 
                       onChange={e => setEditForm({...editForm, displayName: e.target.value})} 
-                      className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
+                      onBlur={() => autoSaveProfileField('displayName', editForm.displayName)}
+                      className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 outline-none focus:border-brand-500 transition-colors" 
+                      placeholder="Display Name"
                     />
                   </div>
                   <div>
@@ -1299,8 +1371,9 @@ Can you provide more insight, theological context, or a related prayer meditatio
                         type="tel" 
                         value={editForm.contactNumber} 
                         onChange={e => setEditForm({...editForm, contactNumber: e.target.value})} 
+                        onBlur={() => autoSaveProfileField('contactNumber', editForm.contactNumber)}
                         placeholder="+254..." 
-                        className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
+                        className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 outline-none focus:border-brand-500 transition-colors" 
                     />
                   </div>
                   <div>
@@ -1309,8 +1382,9 @@ Can you provide more insight, theological context, or a related prayer meditatio
                         type="text" 
                         value={editForm.admissionNumber} 
                         onChange={e => setEditForm({...editForm, admissionNumber: e.target.value})} 
+                        onBlur={() => autoSaveProfileField('admissionNumber', editForm.admissionNumber)}
                         placeholder="e.g. BSCIT..." 
-                        className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
+                        className="w-full px-6 py-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 outline-none focus:border-brand-500 transition-colors" 
                     />
                   </div>
                   <div>
@@ -1318,8 +1392,9 @@ Can you provide more insight, theological context, or a related prayer meditatio
                     <textarea 
                       value={editForm.bio} 
                       onChange={e => setEditForm({...editForm, bio: e.target.value})} 
+                      onBlur={() => autoSaveProfileField('bio', editForm.bio)}
                       placeholder="My journey in faith..." 
-                      className="w-full px-6 py-4 rounded-3xl h-24 resize-none bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
+                      className="w-full px-6 py-4 rounded-3xl h-24 resize-none bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 outline-none focus:border-brand-500 transition-colors" 
                     />
                   </div>
                   <div className="flex items-center justify-between p-6 bg-stone-100 dark:bg-white/5 rounded-3xl border border-stone-200 dark:border-white/10">
@@ -1334,7 +1409,11 @@ Can you provide more insight, theological context, or a related prayer meditatio
                     </div>
                     <button
                       type="button"
-                      onClick={() => setEditForm({ ...editForm, isSubscribed: !editForm.isSubscribed })}
+                      onClick={async () => {
+                        const nextVal = !editForm.isSubscribed;
+                        setEditForm(prev => ({ ...prev, isSubscribed: nextVal }));
+                        await autoSaveProfileField('isSubscribed', nextVal);
+                      }}
                       className={`w-12 h-6 rounded-full relative transition-colors duration-500 ${editForm.isSubscribed ? 'bg-emerald-500' : 'bg-stone-300 dark:bg-stone-800'}`}
                     >
                       <motion.div 
