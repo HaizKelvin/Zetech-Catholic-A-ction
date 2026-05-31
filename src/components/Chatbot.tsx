@@ -194,7 +194,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
         role: 'model',
         text: error.message.includes("Secrets") 
           ? `Divine connection limited. Please check the Sanctuary configuration (Secrets: GEMINI_API_KEY).`
-          : "My reflection is currently interrupted, fellow pilgrim. Let us pause for a moment in prayer and try again soon.",
+          : `My connection is currently interrupted: ${error.message || 'Unknown reflection error'}. Please try again shortly.`,
         timestamp: serverTimestamp()
       });
     } finally {

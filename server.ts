@@ -101,9 +101,6 @@ REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`;
       contents,
       config: {
         systemInstruction,
-        thinkingConfig: {
-          thinkingLevel: ThinkingLevel.MINIMAL,
-        },
       }
     });
 
@@ -119,6 +116,40 @@ REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`;
       error: "The Spirit is reflecting. Please try again soon.",
       details: error.message
     });
+  }
+});
+
+app.get("/api/chat/health", async (req, res) => {
+  try {
+    const key = process.env.GEMINI_API_KEY;
+    const isKeySet = !!key;
+    const keyLength = key ? key.length : 0;
+    const keyPrefix = key ? key.slice(0, 6) : "none";
+
+    let testResult = "Not attempted";
+    if (isKeySet) {
+      try {
+        const ai = getGemini();
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: "Hello, reply with one word: 'Sanctuary'",
+        });
+        testResult = response.text ? response.text.trim() : "Empty response";
+      } catch (e: any) {
+        testResult = `Error calling Gemini: ${e.message}`;
+      }
+    }
+
+    res.json({
+      status: "ready",
+      keyConfigured: isKeySet,
+      keyLength,
+      keyPrefix,
+      testResult,
+      time: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 
