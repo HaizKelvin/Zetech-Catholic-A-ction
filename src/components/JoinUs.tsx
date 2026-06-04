@@ -4,7 +4,25 @@ import { db } from '../firebase';
 import { OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserPlus, Send, MessageCircle, CheckCircle2, GraduationCap, Phone, Mail, User, Quote, Camera, Download, ShieldCheck, Zap, QrCode, Church, AlertCircle, Loader2 } from 'lucide-react';
+import { 
+  UserPlus, 
+  Send, 
+  MessageCircle, 
+  CheckCircle2, 
+  GraduationCap, 
+  Phone, 
+  Mail, 
+  User, 
+  Quote, 
+  Download, 
+  ShieldCheck, 
+  Church, 
+  AlertCircle, 
+  Loader2, 
+  Sparkles, 
+  BookmarkCheck,
+  ChevronRight 
+} from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
@@ -13,38 +31,45 @@ export default function JoinUs() {
     fullName: '',
     admissionNumber: '',
     phoneNumber: '',
-    schoolEmail: '',
-    profileImage: ''
+    schoolEmail: ''
   });
+  
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [membershipInfo, setMembershipInfo] = useState<any>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 1024 * 1024) {
-        setNotification({ type: 'error', message: 'Image too large. Limit: 1MB' });
-        setTimeout(() => setNotification(null), 3000);
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, profileImage: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
+  // Form Field Validation helpers
+  const getInitials = (name: string) => {
+    if (!name) return 'ZU';
+    return name
+      .trim()
+      .split(/\s+/)
+      .map(part => part[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
   };
+
+  const isNameValid = formData.fullName.trim().length >= 3;
+  const isAdmissionValid = formData.admissionNumber.trim().length >= 4;
+  const isPhoneValid = formData.phoneNumber.trim().replace(/\D/g, '').length >= 9;
+  const isEmailValid = formData.schoolEmail.trim().includes('@') && formData.schoolEmail.trim().includes('.');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.profileImage) {
-      setNotification({ type: 'error', message: 'Profile photo required for ID' });
-      setTimeout(() => setNotification(null), 3000);
+    
+    if (!isNameValid || !isAdmissionValid || !isPhoneValid || !isEmailValid) {
+      setNotification({ 
+        type: 'error', 
+        message: 'Please complete all details correctly before joining.' 
+      });
+      setTimeout(() => setNotification(null), 4000);
       return;
     }
+
     setLoading(true);
     
     try {
@@ -57,13 +82,21 @@ export default function JoinUs() {
       const info = {
         ...formData,
         id: docRef.id.slice(-8).toUpperCase(),
-        joinDate: new Date().toLocaleDateString()
+        joinDate: new Date().toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        })
       };
       
       setMembershipInfo(info);
       setSubmitted(true);
+      setNotification({ type: 'success', message: 'Covenant recorded successfully!' });
+      setTimeout(() => setNotification(null), 3000);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'registrations');
+      setNotification({ type: 'error', message: 'Failed to submit. Please try again.' });
+      setTimeout(() => setNotification(null), 4000);
     } finally {
       setLoading(false);
     }
@@ -75,14 +108,12 @@ export default function JoinUs() {
         setLoading(true);
         setNotification({ type: 'info', message: 'Generating your sacred identity card...' });
         
-        // Brief delay to allow notification to show
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
+        await new Promise(resolve => setTimeout(resolve, 600));
         await document.fonts.ready;
         
         const canvas = await html2canvas(cardRef.current, {
           backgroundColor: '#ffffff',
-          scale: 2, // Slightly lower scale for better mobile compatibility
+          scale: 3, // High scale for pristine printable quality
           useCORS: true,
           logging: false,
           allowTaint: false,
@@ -110,13 +141,11 @@ export default function JoinUs() {
         pdf.addImage(imgData, 'PNG', 0, 0, 85, 135, undefined, 'FAST');
         pdf.save(`ZUCA-ID-${membershipInfo.fullName.replace(/\s+/g, '-')}.pdf`);
         
-        setNotification({ type: 'success', message: 'Covenant Identity Secured. PDF Downloaded.' });
-        
-        // Clear notification after 4 seconds
+        setNotification({ type: 'success', message: 'Certificate secured & downloaded!' });
         setTimeout(() => setNotification(null), 4000);
       } catch (err) {
         console.error('Failed to generate PDF', err);
-        setNotification({ type: 'error', message: 'Generation failed. Please try again from a laptop if on mobile.' });
+        setNotification({ type: 'error', message: 'Export failed. Standard printable version ready on screen.' });
         setTimeout(() => setNotification(null), 5000);
       } finally {
         setLoading(false);
@@ -125,52 +154,70 @@ export default function JoinUs() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 lg:space-y-32 pb-32">
-      {/* Hero Section - Cinematic Upgrade */}
+    <div className="max-w-7xl mx-auto space-y-12 lg:space-y-24 pb-32">
+      {/* Dynamic Toast Notifications */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-full shadow-3xl border flex items-center gap-3 backdrop-blur-3xl min-w-[320px] justify-center ${
+              notification.type === 'success' ? 'bg-emerald-600/95 border-emerald-400 text-white shadow-emerald-500/20' :
+              notification.type === 'error' ? 'bg-rose-600/95 border-rose-400 text-white shadow-rose-500/20' :
+              'bg-brand-600/95 border-brand-400 text-white shadow-brand-500/20'
+            }`}
+          >
+            {notification.type === 'success' && <CheckCircle2 className="w-5 h-5" />}
+            {notification.type === 'error' && <AlertCircle className="w-5 h-5" />}
+            {notification.type === 'info' && <Loader2 className="w-5 h-5 animate-spin" />}
+            <span className="text-[11px] font-black uppercase tracking-[0.15em] leading-none">{notification.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hero Header Banner */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-12 md:py-48 px-6 md:px-32 rounded-[32px] md:rounded-[120px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-20 mx-2 md:mx-0"
+        className="relative py-16 md:py-32 px-6 md:px-20 rounded-[32px] md:rounded-[64px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mx-2 md:mx-0 text-left"
       >
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&q=80" 
-            className="w-full h-full object-cover mix-blend-overlay scale-110 opacity-30 transition-transform duration-[15s] group-hover:scale-100"
+            className="w-full h-full object-cover mix-blend-overlay scale-110 opacity-20 transition-transform duration-[15s] group-hover:scale-100"
             alt="Sanctuary Fellowship"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/50 to-transparent" />
         </div>
         
-        <div className="relative z-10 space-y-6 md:space-y-12 max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="inline-flex items-center gap-3 px-6 py-2 md:px-8 md:py-3 rounded-full glass-dark border border-white/10 text-[9px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-xl"
-          >
-            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
-            Sanctify Your Path
-          </motion.div>
+        <div className="relative z-10 space-y-6 max-w-4xl">
+          <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full glass-dark border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-zetech-gold shadow-2xl backdrop-blur-md">
+            <Sparkles className="w-3.5 h-3.5 text-zetech-gold animate-pulse" />
+            Orientation Intake 2026
+          </div>
           
-          <h1 className="text-4xl md:text-[9rem] font-black tracking-[-0.05em] leading-tight md:leading-[0.8] text-white serif-display italic">
-            Walk with <br className="hidden md:block" />
-            <span className="text-brand-400 not-italic uppercase font-black text-xl md:text-5xl tracking-[0.4em] block mt-2 md:mt-4">Us in Faith</span>
+          <h1 className="text-3xl md:text-7xl font-black tracking-tight leading-none text-white uppercase font-sans">
+            Become a <span className="serif-display italic font-light text-zetech-gold font-serif pl-1 lowercase">Covenant Member</span>
           </h1>
           
-          <p className="text-stone-400 text-sm md:text-3xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80">
-            A sanctuary for students seeking spiritual nourishment, intellectual growth, and authentic community.
+          <p className="text-stone-300 text-xs md:text-lg font-medium max-w-2xl leading-relaxed">
+            Skip the queues and register instantly! Provide your detail inputs below to join Zetech Catholic Action (ZUCA) and secure your official, printable membership credential card in seconds.
           </p>
         </div>
       </motion.header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-20 px-4">
-        {/* Registration Form - Refined */}
+      {/* Main Registration Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 px-2 md:px-0">
+        
+        {/* Registration Form Column - Streamlined and Focused for Orientation Day */}
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          className="lg:col-span-12 xl:col-span-7 glass p-6 md:p-20 relative overflow-hidden rounded-[32px] md:rounded-[80px] border border-stone-100 dark:border-white/5 shadow-2xl"
+          className="lg:col-span-12 xl:col-span-7 bg-white dark:bg-stone-900/80 p-6 md:p-12 relative overflow-hidden rounded-[32px] border border-stone-200/40 dark:border-white/5 shadow-xl text-left"
         >
-          <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
+          <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
           
           <AnimatePresence mode="wait">
             {!submitted ? (
@@ -180,105 +227,152 @@ export default function JoinUs() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 onSubmit={handleSubmit} 
-                className="space-y-8 md:space-y-12 relative z-10"
+                className="space-y-8 relative z-10"
               >
-                {/* Photo Upload Section */}
-                <div className="flex flex-col items-center justify-center space-y-6 mb-4">
-                   <div className="relative group cursor-pointer">
-                     <div className="w-32 h-32 md:w-48 md:h-48 rounded-[40px] md:rounded-[56px] bg-stone-100 dark:bg-white/5 border-2 border-dashed border-stone-200 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all group-hover:border-brand-500/50 group-hover:bg-brand-50/50 dark:group-hover:bg-brand-500/5 shadow-inner ring-0 group-hover:ring-8 ring-brand-500/5">
-                        {formData.profileImage ? (
-                          <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                        ) : (
-                          <div className="text-center p-4">
-                            <Camera className="w-8 h-8 md:w-12 md:h-12 text-stone-300 dark:text-stone-700 mx-auto mb-2" />
-                            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-stone-400">Click to Upload</p>
-                            <p className="text-[6px] md:text-[8px] font-bold text-stone-300 dark:text-stone-700 uppercase mt-1">Identity Capture</p>
-                          </div>
-                        )}
-                     </div>
-                     <input 
-                       type="file" 
-                       accept="image/*" 
-                       onChange={handleImageChange}
-                       className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                     />
-                     <div className="absolute -bottom-2 -right-2 bg-brand-600 text-white p-3 md:p-4 rounded-3xl shadow-xl shadow-brand-600/30 group-hover:scale-110 group-hover:rotate-6 transition-all">
-                        <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
-                     </div>
-                   </div>
-                   <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 text-center">Profile Authentication Required</p>
+                {/* Visual Header / Instruction */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-stone-100 dark:border-white/5 gap-4">
+                  <div>
+                    <h3 className="text-xl font-black text-stone-950 dark:text-white uppercase tracking-tight">Enrollment Registry</h3>
+                    <p className="text-xs text-stone-400 uppercase font-black tracking-widest mt-1">First Year Orientation Portal</p>
+                  </div>
+                  <div className="flex items-center gap-2 bg-[#5c85ff]/10 text-brand-600 dark:text-brand-400 px-4 py-2 rounded-full border border-[#5c85ff]/20">
+                    <Church className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Holy Covenant 2026</span>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
-                  <div className="space-y-3 md:space-y-4">
-                    <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-3 md:gap-4 ml-4">
-                      <User className="w-4 h-4 md:w-5 md:h-5" /> Full Name
-                    </label>
+                {/* Microinteractive Preview Seal (Replaces camera/image upload) */}
+                <div className="p-6 rounded-3xl bg-stone-500/5 border border-stone-200/40 dark:border-white/5 flex flex-col md:flex-row items-center gap-6">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#003366] to-[#5c85ff] border-4 border-white shadow-xl flex items-center justify-center relative shrink-0">
+                    <div className="absolute inset-0 bg-white/5 flex items-center justify-center" />
+                    <span className="text-2xl font-black text-white uppercase font-sans tracking-tighter">
+                      {getInitials(formData.fullName)}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 text-center md:text-left">
+                    <span className="text-[9px] font-black uppercase bg-zetech-gold/20 text-brand-800 dark:text-zetech-gold px-2.5 py-1 rounded-full tracking-widest inline-block leading-none mb-1">
+                      Dynamic Monogram Seal
+                    </span>
+                    <h4 className="text-sm font-black text-stone-950 dark:text-white uppercase tracking-tight">Instant Covenant Generation</h4>
+                    <p className="text-xs text-stone-400 dark:text-stone-500 font-semibold leading-relaxed">
+                      Instead of a profile image, your official card features an elegant, high-contrast dynamic seal based on your name initials. Clear, clean, and prints beautifully!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Form fields */}
+                <div className="space-y-6 pt-2">
+                  
+                  {/* Full Name Input */}
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-center px-2">
+                      <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400 flex items-center gap-2">
+                        <User className="w-4 h-4 text-brand-500" /> Full Name
+                      </label>
+                      {formData.fullName && (
+                        <span className={`text-[9px] font-extrabold uppercase tracking-widest ${isNameValid ? 'text-emerald-500' : 'text-stone-400'}`}>
+                          {isNameValid ? '✓ Verified Format' : 'Too Short'}
+                        </span>
+                      )}
+                    </div>
                     <input
                       required
                       type="text"
                       placeholder="e.g. John Doe"
-                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-sm md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
+                      className="w-full px-6 py-4 rounded-2xl text-stone-950 dark:text-white bg-stone-50/50 dark:bg-black/20 border border-stone-200 dark:border-white/5 focus:border-brand-500 focus:bg-white dark:focus:bg-stone-900 transition-all font-bold tracking-tight outline-none shadow-sm"
                       value={formData.fullName}
                       onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-3 md:space-y-4">
-                    <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-3 md:gap-4 ml-4">
-                      <GraduationCap className="w-4 h-4 md:w-5 md:h-5" /> Admission
-                    </label>
+
+                  {/* Admission Input */}
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-center px-2">
+                      <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400 flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-brand-500" /> Admission / Student Number
+                      </label>
+                      {formData.admissionNumber && (
+                        <span className={`text-[9px] font-extrabold uppercase tracking-widest ${isAdmissionValid ? 'text-emerald-500' : 'text-stone-400'}`}>
+                          {isAdmissionValid ? '✓ Checked' : 'Required'}
+                        </span>
+                      )}
+                    </div>
                     <input
                       required
                       type="text"
-                      placeholder="BSCIT-01..."
-                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-sm md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
+                      placeholder="e.g. BBIT-01-9999/2026 or BSCIT..."
+                      className="w-full px-6 py-4 rounded-2xl text-stone-950 dark:text-white bg-stone-50/50 dark:bg-black/20 border border-stone-200 dark:border-white/5 focus:border-brand-500 focus:bg-white dark:focus:bg-stone-900 transition-all font-bold tracking-tight outline-none shadow-sm"
                       value={formData.admissionNumber}
                       onChange={e => setFormData({ ...formData, admissionNumber: e.target.value })}
                     />
                   </div>
+
+                  {/* Double Row: Phone & Email */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* Phone Number Input */}
+                    <div className="space-y-2.5">
+                      <div className="flex justify-between items-center px-2">
+                        <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400 flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-brand-500" /> WhatsApp Number
+                        </label>
+                        {formData.phoneNumber && (
+                          <span className={`text-[9px] font-extrabold uppercase tracking-widest ${isPhoneValid ? 'text-emerald-500' : 'text-stone-400'}`}>
+                            {isPhoneValid ? '✓ Valid' : 'Too Short'}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        required
+                        type="tel"
+                        placeholder="e.g. 0712345678"
+                        className="w-full px-6 py-4 rounded-2xl text-stone-950 dark:text-white bg-stone-50/50 dark:bg-black/20 border border-stone-200 dark:border-white/5 focus:border-brand-500 focus:bg-white dark:focus:bg-stone-900 transition-all font-bold tracking-tight outline-none shadow-sm"
+                        value={formData.phoneNumber}
+                        onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
+                      />
+                    </div>
+
+                    {/* Email Input */}
+                    <div className="space-y-2.5">
+                      <div className="flex justify-between items-center px-2">
+                        <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-brand-600 dark:text-brand-400 flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-brand-500" /> Email Address
+                        </label>
+                        {formData.schoolEmail && (
+                          <span className={`text-[9px] font-extrabold uppercase tracking-widest ${isEmailValid ? 'text-emerald-500' : 'text-stone-400'}`}>
+                            {isEmailValid ? '✓ Valid' : 'Format @...'}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        required
+                        type="email"
+                        placeholder="e.g. student@zetech.ac.ke"
+                        className="w-full px-6 py-4 rounded-2xl text-stone-950 dark:text-white bg-stone-50/50 dark:bg-black/20 border border-stone-200 dark:border-white/5 focus:border-brand-500 focus:bg-white dark:focus:bg-stone-900 transition-all font-bold tracking-tight outline-none shadow-sm"
+                        value={formData.schoolEmail}
+                        onChange={e => setFormData({ ...formData, schoolEmail: e.target.value })}
+                      />
+                    </div>
+
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
-                  <div className="space-y-3 md:space-y-4">
-                    <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-3 md:gap-4 ml-4">
-                      <Phone className="w-4 h-4 md:w-5 md:h-5" /> Phone Number
-                    </label>
-                    <input
-                      required
-                      type="tel"
-                      placeholder="0712 345 678"
-                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-sm md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
-                      value={formData.phoneNumber}
-                      onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-3 md:space-y-4">
-                    <label className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-brand-600 dark:text-brand-400 flex items-center gap-3 md:gap-4 ml-4">
-                      <Mail className="w-4 h-4 md:w-5 md:h-5" /> School Email
-                    </label>
-                    <input
-                      required
-                      type="email"
-                      placeholder="john.doe@zetech.ac.ke"
-                      className="w-full px-6 md:px-8 py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-sm md:text-lg bg-stone-50/50 dark:bg-black/20 border border-stone-100 dark:border-white/5 focus:border-brand-500/30 transition-all shadow-inner font-bold tracking-tight"
-                      value={formData.schoolEmail}
-                      onChange={e => setFormData({ ...formData, schoolEmail: e.target.value })}
-                    />
-                  </div>
-                </div>
-
+                {/* Submit Action Block */}
                 <motion.button
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.01, y: -2 }}
+                  whileTap={{ scale: 0.99 }}
                   disabled={loading}
                   type="submit"
-                  className="w-full bg-brand-900 text-white py-6 md:py-8 rounded-[24px] md:rounded-[40px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] shadow-3xl shadow-brand-900/40 mt-4 md:mt-6 text-[10px] md:text-sm flex items-center justify-center gap-4 md:gap-6 group"
+                  className="w-full bg-[#003366] hover:bg-[#002244] text-white py-5 rounded-2xl font-black uppercase tracking-[0.25em] shadow-lg shadow-brand-900/10 transition-all text-xs flex items-center justify-center gap-3 cursor-pointer mt-6"
                 >
                   {loading ? (
-                    'Recording Covenant...'
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      Recording Entry...
+                    </>
                   ) : (
                     <>
-                      Confirm My Journey <Send className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-3 transition-transform" />
+                      Confirm & Enroll <Send className="w-4 h-4 text-white" />
                     </>
                   )}
                 </motion.button>
@@ -286,109 +380,110 @@ export default function JoinUs() {
             ) : (
               <motion.div 
                 key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-6 md:py-12 relative z-10 flex flex-col items-center"
+                className="text-center py-6 flex flex-col items-center"
               >
-                {/* Custom Toast Notification */}
-                <AnimatePresence>
-                  {notification && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -50, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                      className={`fixed top-10 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-[30px] shadow-3xl border flex items-center gap-3 backdrop-blur-3xl min-w-[280px] justify-center ${
-                        notification.type === 'success' ? 'bg-emerald-600/90 border-emerald-400 text-white shadow-emerald-500/20' :
-                        notification.type === 'error' ? 'bg-red-600/90 border-red-400 text-white shadow-red-500/20' :
-                        'bg-brand-600/90 border-brand-400 text-white shadow-brand-500/20'
-                      }`}
-                    >
-                      {notification.type === 'success' && <CheckCircle2 className="w-5 h-5 shadow-inner" />}
-                      {notification.type === 'error' && <AlertCircle className="w-5 h-5 shadow-inner" />}
-                      {notification.type === 'info' && <Loader2 className="w-5 h-5 animate-spin" />}
-                      <span className="text-[11px] font-black uppercase tracking-[0.2em] leading-none pr-2">{notification.message}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
                 {membershipInfo && (
                   <>
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-500/10 rounded-[24px] flex items-center justify-center mb-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
-                      <CheckCircle2 className="w-8 h-8 md:w-10 md:h-10 text-emerald-600 dark:text-emerald-500" />
+                    <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-4 border border-emerald-500/20 shadow-md">
+                      <CheckCircle2 className="w-8 h-8 text-emerald-600" />
                     </div>
                     
-                    <h2 className="text-3xl md:text-6xl font-black tracking-tighter mb-4 text-stone-900 dark:text-white leading-none">
-                      REGISTERED <br />
-                      <span className="text-brand-600 dark:text-brand-400 serif-display italic font-light lowercase">Successfully</span>
+                    <h2 className="text-2xl md:text-4xl font-black tracking-tight mb-2 text-stone-950 dark:text-white uppercase">
+                      Covenant Created
                     </h2>
-                    <p className="text-sm md:text-lg text-stone-500 dark:text-stone-400 mb-12 max-w-sm font-medium tracking-tight">
-                      Your covenant with ZUCA is now official. Please secure your membership card below.
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mb-8 max-w-sm font-semibold leading-relaxed">
+                      Your registry entry with ZUCA is verified. Download or print your modern credential card below!
                     </p>
 
-                    {/* Membership Card - Minimalist ID Card */}
-                    <div className="mb-16 w-full flex justify-center">
+                    {/* Clear & Concise Vector Membership Card */}
+                    <div className="mb-8 w-full flex justify-center">
                       <div 
                         ref={cardRef}
                         id="membership-card-render"
-                        className="w-[300px] h-[450px] rounded-[24px] bg-white text-stone-900 relative overflow-hidden shadow-2xl border border-stone-100 flex flex-col items-center"
+                        className="w-[300px] h-[450px] rounded-[24px] bg-white text-stone-900 relative overflow-hidden shadow-2xl border border-stone-200 flex flex-col justify-between select-none"
                         style={{ fontFamily: "'Outfit', sans-serif" }}
                       >
-                        {/* Brand Banner */}
-                        <div className="w-full h-24 bg-brand-600 flex items-center justify-center px-6 relative">
-                           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/10 to-transparent" />
-                           <div className="flex items-center gap-3 z-10">
-                              <Church className="w-6 h-6 text-white" />
-                              <h4 className="text-white font-black tracking-widest text-sm uppercase">ZUCA ACTION</h4>
+                        {/* Sacred Head Banner */}
+                        <div className="w-full h-24 bg-[#003366] flex items-center justify-between px-6 relative shrink-0">
+                           <div className="absolute inset-0 bg-gradient-to-tr from-[#002244] to-transparent" />
+                           <div className="flex items-center gap-2.5 z-10">
+                              <Church className="w-5 h-5 text-zetech-gold" />
+                              <div className="text-left">
+                                <h4 className="text-white font-black tracking-widest text-[9px] uppercase leading-none">ZUCA Sanctuary</h4>
+                                <p className="text-zetech-gold/90 font-black text-[6.5px] uppercase tracking-[0.14em] mt-0.5 leading-none">Catholic Action</p>
+                              </div>
+                           </div>
+                           <div className="z-10 bg-white/10 px-2.5 py-1 rounded-full text-[8px] font-black uppercase text-white tracking-widest border border-white/5">
+                              YEAR 2026
                            </div>
                         </div>
                         
-                        {/* Main Content */}
-                        <div className="flex-1 w-full flex flex-col items-center justify-center p-8 space-y-6">
-                           <div className="w-32 h-32 rounded-full border-4 border-stone-50 overflow-hidden shadow-lg ring-1 ring-stone-100 bg-stone-100">
-                              {membershipInfo.profileImage && (
-                                <img src={membershipInfo.profileImage} alt="" className="w-full h-full object-cover" />
-                              )}
-                           </div>
+                        {/* Seal Emblem & Main Details Area */}
+                        <div className="flex-1 w-full flex flex-col justify-between p-6">
                            
-                           <div className="text-center space-y-1 w-full overflow-hidden">
-                              <h3 className="text-xl font-black text-stone-900 uppercase truncate px-2">{membershipInfo.fullName}</h3>
-                              <div className="inline-block px-3 py-1 bg-brand-50 text-brand-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                 Member ID: #{membershipInfo.id}
+                           {/* Initials Gold Emblazoned Stamp Holder */}
+                           <div className="flex justify-center pt-2">
+                             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#003366] via-[#002244] to-brand-900 border-4 border-stone-100 flex items-center justify-center shadow-md relative overflow-hidden">
+                                <div className="absolute inset-0 bg-white/[0.03] flex items-center justify-center" />
+                                <span className="text-2xl font-black text-white uppercase tracking-tighter">
+                                   {getInitials(membershipInfo.fullName)}
+                                </span>
+                             </div>
+                           </div>
+
+                           {/* Name and Member ID Card Accent */}
+                           <div className="text-center space-y-1">
+                              <h3 className="text-lg font-black text-stone-950 uppercase tracking-tight truncate max-w-[240px] mx-auto px-2">{membershipInfo.fullName}</h3>
+                              <div className="inline-block px-3 py-1 bg-brand-50 text-brand-600 rounded-full text-[9px] font-bold tracking-widest border border-brand-100/50 leading-none">
+                                 MEMBER ID: #{membershipInfo.id}
                               </div>
                            </div>
                            
-                           <div className="w-full space-y-3 pt-6 border-t border-stone-100">
-                              <div className="flex justify-between items-center px-1">
-                                 <span className="text-[9px] font-bold text-stone-300 uppercase tracking-widest">Admission</span>
-                                 <span className="text-xs font-bold text-stone-900">{membershipInfo.admissionNumber}</span>
+                           {/* Details Grid Table */}
+                           <div className="w-full space-y-2.5 pt-4 border-t border-stone-100">
+                              <div className="flex justify-between items-center text-left">
+                                 <span className="text-[8px] font-black text-stone-400 uppercase tracking-wider">Admission</span>
+                                 <span className="text-xs font-bold text-stone-950 uppercase">{membershipInfo.admissionNumber}</span>
                               </div>
-                              <div className="flex justify-between items-center px-1">
-                                 <span className="text-[9px] font-bold text-stone-300 uppercase tracking-widest">Since Date</span>
-                                 <span className="text-xs font-bold text-stone-900">{membershipInfo.joinDate}</span>
+                              <div className="flex justify-between items-center text-left">
+                                 <span className="text-[8px] font-black text-stone-400 uppercase tracking-wider">Contact</span>
+                                 <span className="text-xs font-bold text-stone-950">{membershipInfo.phoneNumber}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-left">
+                                 <span className="text-[8px] font-black text-stone-400 uppercase tracking-wider">Official Email</span>
+                                 <span className="text-xs font-bold text-stone-950 lowercase max-w-[150px] truncate">{membershipInfo.schoolEmail}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-left">
+                                 <span className="text-[8px] font-black text-stone-400 uppercase tracking-wider">Enrolled On</span>
+                                 <span className="text-xs font-bold text-stone-950">{membershipInfo.joinDate}</span>
                               </div>
                            </div>
                         </div>
 
-                        {/* Footer / QR */}
-                        <div className="w-full p-6 bg-stone-50/50 flex flex-col items-center">
-                           <div className="flex items-center gap-2 text-emerald-600 mb-4 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
-                              <ShieldCheck className="w-3 h-3" />
-                              <span className="text-[9px] font-black uppercase tracking-widest leading-none">Holy Covenant Verified</span>
+                        {/* Seal validation signature line footer */}
+                        <div className="w-full py-4 bg-stone-50 flex flex-col items-center border-t border-stone-100">
+                           <div className="flex items-center gap-1.5 text-emerald-600 mb-1 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100/60 shadow-sm">
+                              <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                              <span className="text-[8px] font-black uppercase tracking-widest leading-none">Holy Covenant Verified</span>
                            </div>
-                           <p className="text-[8px] font-bold text-stone-300 uppercase tracking-[0.3em]">Official Sanctuary Credential</p>
+                           <p className="text-[6.5px] font-bold text-stone-400 uppercase tracking-[0.3em]">Official Sanctuary Digitized Credential</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full max-w-md">
+                    {/* Action buttons */}
+                    <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
                       <motion.button 
-                        whileHover={{ scale: 1.02, y: -5 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={downloadCard}
-                        className="flex-1 bg-brand-600 text-white py-5 md:py-6 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-[12px] shadow-3xl shadow-brand-600/30 flex items-center justify-center gap-4 group"
+                        className="flex-1 bg-[#003366] text-white py-4.5 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-900/10 flex items-center justify-center gap-2.5 cursor-pointer"
                       >
-                        Download Certificate <Download className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+                        Print PDF <Download className="w-4 h-4 text-white" />
                       </motion.button>
+                      
                       <button 
                         onClick={() => {
                           setSubmitted(false);
@@ -396,13 +491,12 @@ export default function JoinUs() {
                             fullName: '',
                             admissionNumber: '',
                             phoneNumber: '',
-                            schoolEmail: '',
-                            profileImage: ''
+                            schoolEmail: ''
                           });
                         }}
-                        className="flex-1 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 py-5 md:py-6 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-[12px] hover:bg-stone-200 dark:hover:bg-white/10 transition-all border border-stone-200/50 dark:border-white/5"
+                        className="flex-1 bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 py-4.5 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-stone-200 dark:hover:bg-white/10 transition-all border border-stone-200/50 dark:border-white/5 cursor-pointer"
                       >
-                        Register Another
+                        Enroll New Member
                       </button>
                     </div>
                   </>
@@ -412,21 +506,73 @@ export default function JoinUs() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Community Links - Balanced */}
+        {/* Orientation Faith Checklist Side Panel - Highly Functional for Tomorrow */}
         <motion.div 
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          className="lg:col-span-12 xl:col-span-5 flex flex-col gap-10 md:gap-16"
+          className="lg:col-span-12 xl:col-span-5 flex flex-col gap-8 text-left"
         >
-          <div className="glass-dark p-10 md:p-16 bg-brand-950 text-white shadow-3xl shadow-brand-900/20 relative overflow-hidden group rounded-[40px] md:rounded-[60px] flex flex-col justify-between h-full min-h-[300px] md:min-h-[400px]">
-            <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
-            <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-brand-500/20 blur-[100px] rounded-full group-hover:scale-150 transition-transform duration-[3s] shadow-2xl" />
+          {/* Real-time Validation Checklist Tracker */}
+          <div className="bg-white dark:bg-stone-900/80 p-8 rounded-[32px] border border-stone-200/40 dark:border-white/5 shadow-xl relative overflow-hidden">
+            <div className="absolute inset-0 divine-pattern opacity-[0.015] pointer-events-none" />
+            <h4 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-[#003366] dark:text-brand-400 mb-6 flex items-center gap-3">
+              <BookmarkCheck className="w-4 h-4 text-[#003366] dark:text-brand-400" />
+              Enrollment Checklist
+            </h4>
             
-            <div className="space-y-6 md:space-y-8 relative z-10">
-              <h3 className="text-3xl md:text-5xl font-black tracking-tight serif-display italic">The Action</h3>
-              <p className="text-stone-400 text-base md:text-xl font-light leading-relaxed italic serif-display">
-                "Connect instantly with fellow members via our official WhatsApp community for daily updates and prayer calls."
+            <div className="space-y-4">
+              {[
+                { label: "Give Full Name", done: isNameValid, tip: "At least 3 letters" },
+                { label: "Add Uni Admission No", done: isAdmissionValid, tip: "Unique university digits" },
+                { label: "Provide Phone Contact", done: isPhoneValid, tip: "Preferably WhatsApp enabled" },
+                { label: "Record Official Email", done: isEmailValid, tip: "Contains @ and dot suffix" }
+              ].map((step, idx) => (
+                <div 
+                  key={idx} 
+                  className={`flex items-start gap-4 p-4 rounded-2xl transition-all border ${
+                    step.done 
+                      ? 'bg-emerald-550/5 border-emerald-500/20 text-emerald-900 dark:text-emerald-400' 
+                      : 'bg-stone-500/5 border-stone-100 dark:border-white/5 text-stone-500'
+                  }`}
+                >
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${
+                    step.done 
+                      ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-600' 
+                      : 'bg-stone-200 dark:bg-stone-800 border-stone-300 dark:border-stone-700 text-stone-400'
+                  }`}>
+                    {step.done ? (
+                      <span className="text-[10px] font-black">✓</span>
+                    ) : (
+                      <span className="text-[10px] font-bold">{idx + 1}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-black uppercase tracking-wider leading-none mt-1">{step.label}</h5>
+                    <p className="text-[9px] text-stone-400 uppercase font-black tracking-widest mt-1.5">{step.tip}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-8 pt-6 border-t border-stone-100 dark:border-white/5 flex items-center justify-between">
+              <span className="text-[9px] font-black uppercase tracking-widest text-[#5c85ff]">Registry Progress</span>
+              <span className="text-xs font-black font-mono">
+                {[isNameValid, isAdmissionValid, isPhoneValid, isEmailValid].filter(Boolean).length} / 4 Done
+              </span>
+            </div>
+          </div>
+
+          {/* Social Links Block */}
+          <div className="bg-[#003366] text-white p-8 rounded-[32px] shadow-xl relative overflow-hidden group">
+            <div className="absolute inset-0 divine-pattern opacity-10 pointer-events-none" />
+            <div className="absolute -right-16 -bottom-16 w-60 h-60 bg-zetech-gold/15 blur-[80px] rounded-full pointer-events-none" />
+            
+            <div className="space-y-4 relative z-10">
+              <span className="text-[8px] font-black uppercase text-zetech-gold tracking-[0.4em]">Connect Instantly</span>
+              <h3 className="text-xl md:text-2xl font-black uppercase">Official WhatsApp</h3>
+              <p className="text-stone-300 text-xs font-medium leading-relaxed">
+                Connect and coordinate directly with ZUCA group leads, choir, and general parish announcements.
               </p>
             </div>
             
@@ -434,25 +580,24 @@ export default function JoinUs() {
               href="https://chat.whatsapp.com/GxuvB559sZLIurYvXbxHmU" 
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.05, y: -5 }}
-              className="mt-8 inline-flex items-center justify-between gap-6 px-8 py-5 md:px-10 md:py-7 bg-white text-brand-950 rounded-[28px] md:rounded-[40px] text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl relative z-10 w-full hover:bg-brand-50 transition-colors"
+              whileHover={{ scale: 1.02 }}
+              className="mt-6 inline-flex items-center justify-between gap-4 px-6 py-4.5 bg-white text-brand-950 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg w-full"
             >
-              Go to WhatsApp <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-[#25D366]" />
+              Enter Parish Chat <MessageCircle className="w-5 h-5 text-[#25D366]" />
             </motion.a>
           </div>
 
-          <div className="glass p-8 md:p-16 border-stone-100 dark:border-white/5 rounded-[40px] md:rounded-[60px] shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
-            <h4 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.5em] text-brand-600 mb-6 md:mb-10 flex items-center gap-4">
-              <div className="w-6 md:w-8 h-px bg-brand-600/30" /> Our Vision
-            </h4>
+          {/* Vision Quote Block */}
+          <div className="bg-white dark:bg-stone-900/80 p-8 rounded-[32px] border border-stone-200/40 dark:border-white/5 shadow-xl relative overflow-hidden">
+            <div className="absolute inset-0 divine-pattern opacity-[0.015] pointer-events-none" />
             <div className="relative">
-              <Quote className="absolute -top-6 -left-6 w-12 md:w-16 h-12 md:h-16 text-brand-500/5 group-hover:scale-125 transition-transform duration-1000 shrink-0" />
-              <p className="text-lg md:text-3xl text-stone-900 dark:text-stone-200 leading-snug md:leading-[1.3] italic font-serif pl-6 md:pl-8 border-l-2 border-brand-500/20">
-                To be a vibrant Catholic community in academia, fostering spiritual nourishment and intellectual growth through prayer and service.
+              <Quote className="absolute -top-4 -left-4 w-12 h-12 text-brand-500/5" />
+              <p className="text-base text-stone-900 dark:text-stone-200 leading-relaxed italic font-serif pl-6 border-l-2 border-brand-500/20">
+                "For where two or three are gathered together in my name, there am I in the midst of them." — Matthew 18:20
               </p>
             </div>
           </div>
+
         </motion.div>
       </div>
     </div>

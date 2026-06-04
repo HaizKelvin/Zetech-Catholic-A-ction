@@ -137,24 +137,37 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !auth.currentUser || isLoading) return;
+    if (!input.trim() || isLoading) return;
 
     const userText = input;
     setInput('');
     setIsLoading(true);
 
-    const path = `users/${auth.currentUser.uid}/chatHistory`;
+    const isGuest = !auth.currentUser;
+    const path = isGuest ? '' : `users/${auth.currentUser.uid}/chatHistory`;
 
     try {
-      await addDoc(collection(db, path), {
-        userId: auth.currentUser.uid,
+      const newUserMessage: ChatMessage = {
+        id: isGuest ? Math.random().toString() : '',
+        userId: isGuest ? 'guest' : auth.currentUser!.uid,
         role: 'user',
         text: userText,
-        timestamp: serverTimestamp()
-      });
+        timestamp: isGuest ? Timestamp.now() : serverTimestamp() as any
+      };
+
+      if (isGuest) {
+        setMessages(prev => [...prev, newUserMessage]);
+      } else {
+        await addDoc(collection(db, path), {
+          userId: auth.currentUser!.uid,
+          role: 'user',
+          text: userText,
+          timestamp: serverTimestamp()
+        });
+      }
 
       // Constructing history for context
-      const history = messages.slice(-10).map(m => ({
+      const history = [...messages, newUserMessage].slice(-10).map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.text }]
       }));
@@ -165,38 +178,62 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
         body: JSON.stringify({ 
           message: userText, 
           history,
-          userName 
+          userName: isGuest ? 'Pilgrim Friend' : userName 
         })
       });
 
       const data = await response.json();
       
       if (!response.ok) {
-        // Handle specific server-side errors
         if (data.error?.includes("Secrets")) {
            throw new Error(data.error);
         }
         throw new Error(data.error || 'The Spirit is silent.');
       }
 
-      await addDoc(collection(db, path), {
-        userId: auth.currentUser.uid,
+      const newModelMessage: ChatMessage = {
+        id: isGuest ? Math.random().toString() : '',
+        userId: isGuest ? 'guest' : auth.currentUser!.uid,
         role: 'model',
         text: data.text,
-        timestamp: serverTimestamp()
-      });
+        timestamp: isGuest ? Timestamp.now() : serverTimestamp() as any
+      };
+
+      if (isGuest) {
+        setMessages(prev => [...prev, newModelMessage]);
+      } else {
+        await addDoc(collection(db, path), {
+          userId: auth.currentUser!.uid,
+          role: 'model',
+          text: data.text,
+          timestamp: serverTimestamp()
+        });
+      }
 
     } catch (error: any) {
       console.error("Chat error:", error);
-      // Fallback message if API fails
-      await addDoc(collection(db, path), {
-        userId: auth.currentUser.uid,
+      const errText = error.message.includes("Secrets") 
+        ? `Divine connection limited. Please check the Sanctuary configuration (Secrets: GEMINI_API_KEY).`
+        : `My connection is currently interrupted: ${error.message || 'Unknown reflection error'}. Please try again shortly.`;
+
+      const newErrorMessage: ChatMessage = {
+        id: isGuest ? Math.random().toString() : '',
+        userId: isGuest ? 'guest' : auth.currentUser!.uid,
         role: 'model',
-        text: error.message.includes("Secrets") 
-          ? `Divine connection limited. Please check the Sanctuary configuration (Secrets: GEMINI_API_KEY).`
-          : `My connection is currently interrupted: ${error.message || 'Unknown reflection error'}. Please try again shortly.`,
-        timestamp: serverTimestamp()
-      });
+        text: errText,
+        timestamp: isGuest ? Timestamp.now() : serverTimestamp() as any
+      };
+
+      if (isGuest) {
+        setMessages(prev => [...prev, newErrorMessage]);
+      } else {
+        await addDoc(collection(db, path), {
+          userId: auth.currentUser!.uid,
+          role: 'model',
+          text: errText,
+          timestamp: serverTimestamp()
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -240,9 +277,13 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
                   <button 
                     onClick={async () => {
                        if (confirm('Clear our conversation to refresh the soul?')) {
-                          const path = `users/${auth.currentUser?.uid}/chatHistory`;
-                          for (const msg of messages) {
-                            await deleteDoc(doc(db, path, msg.id));
+                          if (!auth.currentUser) {
+                            setMessages([]);
+                          } else {
+                            const path = `users/${auth.currentUser?.uid}/chatHistory`;
+                            for (const msg of messages) {
+                              await deleteDoc(doc(db, path, msg.id));
+                            }
                           }
                        }
                     }}
