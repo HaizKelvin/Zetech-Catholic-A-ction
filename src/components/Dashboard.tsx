@@ -2,13 +2,34 @@ import React, { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { DailyControl } from '../types';
-import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Heart, Library, Trophy, ArrowUpRight, HelpCircle, MessageCircle, Share2, Sparkles, QrCode, ArrowRight, UserPlus, X } from 'lucide-react';
+import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Heart, Library, Trophy, ArrowUpRight, HelpCircle, MessageCircle, Share2, Sparkles, QrCode, ArrowRight, UserPlus, X, Upload } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'motion/react';
 
 export default function Dashboard({ userName, onTabChange }: { userName: string, onTabChange: (tab: any) => void }) {
   const [daily, setDaily] = useState<DailyControl | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewQr, setViewQr] = useState(false);
+  const [customQr, setCustomQr] = useState<string | null>(() => {
+    return localStorage.getItem('zuca_booth_qr');
+  });
+
+  const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        localStorage.setItem('zuca_booth_qr', base64String);
+        setCustomQr(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleQrClear = () => {
+    localStorage.removeItem('zuca_booth_qr');
+    setCustomQr(null);
+  };
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'control', 'daily_bread'), (doc) => {
@@ -201,7 +222,7 @@ ZUCA Community`);
           {[
             {
               title: "Sacred gatherings",
-              desc: "Join us in Room 102 (Main Chapel) for prayers on Tuesday, our choir rehearsal on Friday, and Sunday Holy Mass at 9:00 AM.",
+              desc: "Join us for Jumuiya in PG 6 Room every Tuesday at 4:20 PM at the school, choir rehearsal on Friday, and Sunday Holy Mass at 9:00 AM.",
               action: "Schedule & Locations",
               tab: "schedule"
             },
@@ -400,21 +421,46 @@ ZUCA Community`);
                 </div>
                 <h3 className="text-2xl md:text-3xl font-black uppercase text-stone-950 dark:text-white font-sans mt-2">QR Code</h3>
                 <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed font-semibold max-w-sm mx-auto">
-                  Scan this code with your phone camera to instantly launch the ZUCA Sanctuary registration portal on your mobile device!
+                  {customQr 
+                    ? "Showing your custom uploaded registration QR code. Scan this code with your phone camera!"
+                    : "Scan this code with your phone camera to instantly launch the ZUCA Sanctuary registration portal on your mobile device!"
+                  }
                 </p>
               </div>
 
               {/* QR Image Wrapper */}
               <div className="bg-stone-100 dark:bg-stone-950 p-6 rounded-[28px] border border-stone-100 dark:border-white/5 inline-block mx-auto relative group shadow-inner">
                 <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + '?tab=join')}`} 
+                  src={customQr || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + '?tab=join')}`} 
                   alt="ZUCA Join Portal QR" 
-                  className="w-48 h-48 md:w-60 md:h-60 rounded-xl"
+                  className="w-48 h-48 md:w-60 md:h-60 rounded-xl object-contain bg-white"
                   referrerPolicy="no-referrer"
                 />
                 
                 {/* Visual Scanner line effect */}
                 <div className="absolute inset-x-6 top-6 h-1 bg-brand-500/40 shadow-[0_0_15px_rgba(92,133,255,1)] rounded-full animate-bounce pointer-events-none" />
+              </div>
+
+              <div className="flex flex-col items-center gap-3">
+                <label className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-black rounded-xl text-[10px] uppercase tracking-widest cursor-pointer shadow-md transition-all flex items-center gap-2">
+                  <Upload className="w-3.5 h-3.5" />
+                  {customQr ? "Change QR Code" : "Upload your QR"}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleQrUpload} 
+                    className="hidden" 
+                  />
+                </label>
+                
+                {customQr && (
+                  <button 
+                    onClick={handleQrClear}
+                    className="text-[9px] font-black uppercase text-rose-500 hover:text-rose-600 tracking-widest transition-colors cursor-pointer"
+                  >
+                    Reset to Default QR
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-col gap-2">

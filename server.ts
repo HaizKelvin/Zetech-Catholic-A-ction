@@ -46,10 +46,39 @@ function getBrevo() {
 }
 
 // API Routes
+function generateSpiritualFallback(userMessage: string, userName: string): string {
+  const msg = userMessage.toLowerCase();
+  const name = userName || "Friend";
+  
+  if (msg.includes("mass") || msg.includes("service") || msg.includes("sacrament") || msg.includes("eucharist") || msg.includes("liturgy")) {
+    return `Peace be with you, ${name}. The Holy Mass is the sacred source and summit of our faith journey. Let us attend and receive the Eucharist with deep, pure hearts. (Matthew 26:26)`;
+  }
+  if (msg.includes("choir") || msg.includes("sing") || msg.includes("music") || msg.includes("rehearsal")) {
+    return `Blessings, ${name}! High chanting or singing is praying twice to the Lord. Our choir family meets every Friday to prepare beautiful harmonies for the assembly. (Psalm 100:2)`;
+  }
+  if (msg.includes("jumuiya") || msg.includes("meeting") || msg.includes("tuesday") || msg.includes("room") || msg.includes("school") || msg.includes("class") || msg.includes("gather") || msg.includes("pg 6")) {
+    return `Dearest ${name}, please remember we now meet for Jumuiya fellowship and shared prayers at PG 6 Room every Tuesday at 4:20 PM at the school. Come join other pilgrims! (Matthew 18:20)`;
+  }
+  if (msg.includes("pray") || msg.includes("intention") || msg.includes("petition") || msg.includes("altar")) {
+    return `I am praying with you, ${name}. Rest assured that your heartfelt intentions are fully presented before our Lord's holy altar. (Philippians 4:6)`;
+  }
+  if (msg.includes("confession") || msg.includes("sin") || msg.includes("forgive") || msg.includes("mercy")) {
+    return `God's divine mercy is an infinite ocean, ${name}. Never hesitate to approach the beautiful Sacrament of Reconciliation for complete renewal. (1 John 1:9)`;
+  }
+  if (msg.includes("hello") || msg.includes("hi") || msg.includes("hey") || msg.includes("jambo")) {
+    return `A very warm welcome to you, ${name}! The Sanctuary Spirit greets you on this blessed day. How can I guide your collegiate faith journey today? (John 14:27)`;
+  }
+  if (msg.includes("who are you") || msg.includes("what is your name")) {
+    return `I am the Sanctuary Spirit, the digital guide of Zetech University Catholic Action, here to accompany you through scriptures and spiritual support. (Proverbs 3:5-6)`;
+  }
+  
+  return `Keep walking in faith, ${name}. Let your university journey be guided by prayers, genuine academic effort, and loving charity towards all. (Proverbs 3:5-6)`;
+}
+
 app.post("/api/chat", async (req, res) => {
+  const { message, history, userName } = req.body;
+  
   try {
-    const { message, history, userName } = req.body;
-    
     const ai = getGemini();
     const systemInstruction = `You are the "Sanctuary Spirit", a spiritual guide for the ZUCA community. 
 Provide authentic, direct, and concise Catholic guidance.
@@ -107,15 +136,9 @@ REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`;
     const aiText = response.text || "My reflection is currently interrupted, fellow pilgrim. Let us pause for a moment in prayer.";
     res.json({ text: aiText });
   } catch (error: any) {
-    console.error("Gemini Chat Error Details:", {
-      message: error.message,
-      stack: error.stack,
-      response: error.response
-    });
-    res.status(500).json({ 
-      error: "The Spirit is reflecting. Please try again soon.",
-      details: error.message
-    });
+    console.warn("Gemini API call failed, falling back to spiritual guidance generator:", error.message);
+    const fallbackText = generateSpiritualFallback(message || "", userName || "Pilgrim Friend");
+    res.json({ text: fallbackText });
   }
 });
 

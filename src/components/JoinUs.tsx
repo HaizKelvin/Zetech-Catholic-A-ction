@@ -53,6 +53,7 @@ export default function JoinUs() {
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
   const [previewMember, setPreviewMember] = useState<RegisteredMember | null>(null);
+  const [exportingMember, setExportingMember] = useState<RegisteredMember | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Real-time listener for registrations (sorted client-side to prevent Firestore composite index request crashes)
@@ -158,22 +159,26 @@ export default function JoinUs() {
     }
   };
 
-  const downloadCardPDF = async (member: RegisteredMember) => {
+  const triggerExport = async (member: RegisteredMember, format: 'pdf' | 'png') => {
     try {
-      setNotification({ type: 'info', message: 'Generating clear, concise printable PDF...' });
+      setNotification({ type: 'info', message: `Preparing high-quality ${format.toUpperCase()} card...` });
       
-      // Select the hidden/rendered container element
-      const element = document.getElementById(`printable-card-${member.id}`);
+      // Update state to render offscreen card
+      setExportingMember(member);
+      
+      // Essential delay for React rendering cycle to finish mounting the target node
+      await new Promise(resolve => setTimeout(resolve, 250));
+      
+      const element = document.getElementById('export-card-node');
       if (!element) {
-        throw new Error("Card element not found in DOM");
+        throw new Error("Target export element was not rendered in the layout");
       }
 
-      await new Promise(resolve => setTimeout(resolve, 500));
       await document.fonts.ready;
       
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
-        scale: 3, // High-DPI render for needle-sharp print typography
+        scale: 3.5, // Ultra sharp printable DPI quality
         useCORS: true,
         logging: false,
         allowTaint: false,
@@ -182,25 +187,41 @@ export default function JoinUs() {
       });
       
       const imgData = canvas.toDataURL('image/png', 1.0);
+      const safeFileName = `ZUCA_MEMBER_${member.fullName.toUpperCase().trim().replace(/\s+/g, '_')}`;
       
-      // Classic landscape layout for standard wallets [85mm x 54mm]
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: [85, 54]
-      });
+      if (format === 'png') {
+        const link = document.createElement('a');
+        link.download = `${safeFileName}.png`;
+        link.href = imgData;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setNotification({ type: 'success', message: 'Card saved as Image (PNG)!' });
+      } else {
+        // High quality standard landscape credit card dimensions [85.6mm x 54mm]
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: [85.6, 54]
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 54, undefined, 'FAST');
+        pdf.save(`${safeFileName}.pdf`);
+        
+        setNotification({ type: 'success', message: 'Printable PDF Card downloaded!' });
+      }
       
-      pdf.addImage(imgData, 'PNG', 0, 0, 85, 54, undefined, 'FAST');
-      pdf.save(`ZUCA-ID-${member.fullName.replace(/\s+/g, '-')}.pdf`);
-      
-      setNotification({ type: 'success', message: 'PDF exported successfully!' });
       setTimeout(() => setNotification(null), 3000);
     } catch (err) {
-      console.error('Failed to generate PDF', err);
-      // Fallback - print window
+      console.error('Failed to generate credential card', err);
+      // Fallback
       window.print();
-      setNotification({ type: 'error', message: 'Export failed. Standard print view triggered.' });
+      setNotification({ type: 'error', message: 'Direct download issue. Browser print triggered.' });
       setTimeout(() => setNotification(null), 4000);
+    } finally {
+      // Clear offscreen render to keep DOM lightweight
+      setExportingMember(null);
     }
   };
 
@@ -233,6 +254,56 @@ export default function JoinUs() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Off-screen dynamic capture node for reliable PDF/PNG generations */}
+      <div className="absolute top-[-9999px] left-[-9999px] overflow-hidden pointer-events-none" aria-hidden="true">
+        {exportingMember && (
+          <div 
+            id="export-card-node"
+            className="w-[350px] h-[220px] bg-white text-stone-950 p-[20px] rounded-none border-[3px] border-stone-950 flex flex-col justify-between select-none relative"
+            style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}
+          >
+            {/* Top Header Section */}
+            <div className="border-b-[1.5px] border-stone-950 pb-[6px] flex justify-between items-start text-left">
+              <div>
+                <h3 className="text-[12px] font-black tracking-[0.12em] uppercase text-stone-950 leading-tight">ZETECH UNIVERSITY</h3>
+                <p className="text-[8.5px] font-extrabold text-[#003366] uppercase tracking-widest leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
+              </div>
+              <div className="text-[8.5px] font-mono font-black border border-stone-950 px-[6px] py-[1.5px] uppercase tracking-wider leading-none">
+                YEAR 2026
+              </div>
+            </div>
+
+            {/* Grid values of absolute clarity */}
+            <div className="flex-1 flex flex-col justify-center space-y-2 py-[8px] text-[10.5px] text-left">
+              <div className="flex justify-between items-baseline leading-none">
+                <span className="text-[7.5px] font-bold text-stone-500 uppercase tracking-wider font-mono">PILGRIM NAME</span>
+                <span className="text-[11px] font-black text-stone-950 uppercase tracking-tight text-right truncate max-w-[210px]">{exportingMember.fullName}</span>
+              </div>
+              <div className="flex justify-between items-baseline leading-none">
+                <span className="text-[7.5px] font-bold text-stone-500 uppercase tracking-wider font-mono">ADMISSION NO</span>
+                <span className="text-[11px] font-black text-stone-950 font-mono uppercase text-right">{exportingMember.admissionNumber}</span>
+              </div>
+              <div className="flex justify-between items-baseline leading-none">
+                <span className="text-[7.5px] font-bold text-stone-500 uppercase tracking-wider font-mono">WHATSAPP</span>
+                <span className="text-[11px] font-bold text-stone-950 font-mono text-right">{exportingMember.phoneNumber}</span>
+              </div>
+              <div className="flex justify-between items-baseline leading-none">
+                <span className="text-[7.5px] font-bold text-stone-500 uppercase tracking-wider font-mono">EMAIL ADDRESS</span>
+                <span className="text-[10px] font-bold text-stone-950 font-mono lowercase text-right truncate max-w-[210px]">{exportingMember.schoolEmail}</span>
+              </div>
+            </div>
+
+            {/* Pure typographic Footer stamp style block */}
+            <div className="border-t-[1.5px] border-stone-950 pt-[6px] flex justify-between items-center text-[7.5px] font-mono font-bold leading-none text-left">
+              <span className="uppercase text-stone-500 tracking-wide">MEMBER ID: #{exportingMember.id.slice(-8).toUpperCase()}</span>
+              <span className="text-emerald-700 font-extrabold tracking-widest uppercase flex items-center gap-1">
+                ● COVENANT REGISTERED
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modern High-Conversion Header Banner */}
       <header className="relative py-12 md:py-24 px-6 md:px-16 rounded-[28px] overflow-hidden bg-[#001f3f] text-white shadow-xl text-left">
@@ -394,19 +465,27 @@ export default function JoinUs() {
                     <h4 className="text-sm font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-tight">Active Enrollment Feedback</h4>
                     <p className="text-[10px] text-emerald-600 dark:text-emerald-500 font-extrabold uppercase tracking-wider">Student successfully registered. Card is fully prepared below.</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button 
-                      onClick={() => downloadCardPDF(lastRegistered)} 
-                      className="px-4 py-2 bg-[#003366] text-white text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-md cursor-pointer hover:bg-[#002244] transition-all"
+                      onClick={() => triggerExport(lastRegistered, 'pdf')} 
+                      className="px-3 py-1.5 bg-[#003366] hover:bg-[#002244] text-white text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                      title="Download as printable PDF"
                     >
-                      <Download className="w-3.5 h-3.5" /> Download Card PDF
+                      <Download className="w-3 h-3" /> PDF
+                    </button>
+                    <button 
+                      onClick={() => triggerExport(lastRegistered, 'png')} 
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                      title="Save as PNG image"
+                    >
+                      <Download className="w-3 h-3" /> PNG Image
                     </button>
                     <button 
                       onClick={() => setLastRegistered(null)}
-                      className="p-2 hover:bg-stone-200 dark:hover:bg-white/10 rounded-lg text-stone-500 cursor-pointer"
+                      className="p-1.5 hover:bg-stone-200 dark:hover:bg-white/10 rounded-lg text-stone-500 cursor-pointer transition-all"
                       title="Dismiss"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -527,17 +606,17 @@ export default function JoinUs() {
                     <div className="flex gap-2 shrink-0">
                       <button 
                         onClick={() => setPreviewMember(member)}
-                        className="p-2 border border-stone-200 dark:border-white/10 dark:hover:border-white/25 rounded-lg text-stone-500 dark:text-stone-400 hover:text-stone-950 hover:bg-stone-100 hover:dark:bg-stone-900 transition-all cursor-pointer"
-                        title="View concise card"
+                        className="p-2 border border-stone-200 dark:border-white/10 dark:hover:border-white/25 rounded-lg text-[#003366] dark:text-brand-400 hover:text-white hover:bg-[#003366] dark:hover:bg-brand-500 transition-all cursor-pointer"
+                        title="View & Download options"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button 
-                        onClick={() => downloadCardPDF(member)}
+                        onClick={() => triggerExport(member, 'pdf')}
                         className="px-3 py-1.5 bg-[#003366]/10 text-[#003366] hover:bg-[#003366] hover:text-white dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500 dark:hover:text-stone-950 transition-all text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1 shadow-sm cursor-pointer"
-                        title="Print PDF Card"
+                        title="Quick Download PDF"
                       >
-                        <Download className="w-3.5 h-3.5" /> Print
+                        <Download className="w-3.5 h-3.5" /> PDF
                       </button>
                     </div>
                   </div>
@@ -628,17 +707,27 @@ export default function JoinUs() {
 
               {/* Action Buttons inside Modal */}
               <div className="flex flex-col gap-2.5">
-                <motion.button 
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => downloadCardPDF(previewMember)}
-                  className="w-full bg-[#003366] text-white py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Download className="w-4 h-4 text-white" /> Download Printable PDF
-                </motion.button>
+                <div className="grid grid-cols-2 gap-3">
+                  <motion.button 
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => triggerExport(previewMember, 'pdf')}
+                    className="bg-[#003366] hover:bg-[#002244] text-white py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    <Download className="w-4 h-4 text-white" /> Download PDF
+                  </motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => triggerExport(previewMember, 'png')}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    <Download className="w-4 h-4 text-white" /> Save as PNG
+                  </motion.button>
+                </div>
                 <button 
                   onClick={() => setPreviewMember(null)}
-                  className="w-full py-3 hover:bg-stone-100 dark:hover:bg-white/5 transition-all text-[10px] text-stone-500 font-black uppercase tracking-widest cursor-pointer"
+                  className="w-full py-2 hover:bg-stone-100 dark:hover:bg-white/5 transition-all text-[10px] text-stone-500 font-extrabold uppercase tracking-widest cursor-pointer mt-1"
                 >
                   Back to Registration
                 </button>
