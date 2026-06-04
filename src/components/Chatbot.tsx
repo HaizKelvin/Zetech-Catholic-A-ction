@@ -182,20 +182,29 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
         })
       });
 
-      const data = await response.json();
+      // Safely read response text and attempt parsing to prevent "Unexpected end of JSON input" errors
+      const responseText = await response.text();
+      let data: any = {};
+      try {
+        if (responseText) {
+          data = JSON.parse(responseText);
+        }
+      } catch (jsonErr) {
+        console.error("Failed to parse chat response as JSON:", jsonErr);
+      }
       
       if (!response.ok) {
-        if (data.error?.includes("Secrets")) {
-           throw new Error(data.error);
+        if (data.error?.includes("Secrets") || data.details?.includes("API key") || response.status === 500) {
+          throw new Error("Sanctuary configuration missing or incomplete. Please check that GEMINI_API_KEY is configured in Settings > Secrets.");
         }
-        throw new Error(data.error || 'The Spirit is silent.');
+        throw new Error(data.error || `Service temporarily unresponsive (Status ${response.status}).`);
       }
 
       const newModelMessage: ChatMessage = {
         id: isGuest ? Math.random().toString() : '',
         userId: isGuest ? 'guest' : auth.currentUser!.uid,
         role: 'model',
-        text: data.text,
+        text: data.text || "My reflection is quiet at this moment, fellow pilgrim. Let us proceed in faith.",
         timestamp: isGuest ? Timestamp.now() : serverTimestamp() as any
       };
 
