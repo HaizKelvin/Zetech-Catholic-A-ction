@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, addDoc, query, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, onSnapshot, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { OperationType } from '../types';
 import { handleFirestoreError } from '../utils';
@@ -124,7 +124,7 @@ export default function JoinUs() {
       });
       
       const newMember: RegisteredMember = {
-        id: docRef.id.slice(-8).toUpperCase(),
+        id: docRef.id,
         fullName: formData.fullName.trim(),
         admissionNumber: formData.admissionNumber.trim().toUpperCase(),
         phoneNumber: formData.phoneNumber.trim(),
@@ -166,8 +166,8 @@ export default function JoinUs() {
       // Update state to render offscreen card (fallback)
       setExportingMember(member);
       
-      // Small delay to allow any React rendering to trigger (normally the on-screen card is already fully mounted)
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Wait slightly longer (350ms) to ensure React state and offscreen layout are 100% finished updating and stable
+      await new Promise(resolve => setTimeout(resolve, 350));
       
       // Look for the already rendered card on the page first, fallback to the offscreen element
       const element = document.getElementById(`printable-card-${member.id}`) || document.getElementById('export-card-node');
@@ -226,6 +226,29 @@ export default function JoinUs() {
     } finally {
       // Clear offscreen render to keep DOM lightweight
       setExportingMember(null);
+    }
+  };
+
+  const handleDeleteRegistration = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this membership card? This action cannot be undone.")) {
+      return;
+    }
+    try {
+      setNotification({ type: 'info', message: 'Deleting registration card...' });
+      await deleteDoc(doc(db, 'registrations', id));
+      setNotification({ type: 'success', message: 'Registration deleted successfully.' });
+      setTimeout(() => setNotification(null), 3000);
+      
+      if (previewMember && previewMember.id === id) {
+        setPreviewMember(null);
+      }
+      if (lastRegistered && lastRegistered.id === id) {
+        setLastRegistered(null);
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `registrations/${id}`);
+      setNotification({ type: 'error', message: 'Failed to delete registration.' });
+      setTimeout(() => setNotification(null), 4000);
     }
   };
 
@@ -653,20 +676,27 @@ export default function JoinUs() {
                     </div>
 
                     {/* Fast Desk Actions */}
-                    <div className="flex gap-2 shrink-0">
+                    <div className="flex gap-2 shrink-0 items-center">
                       <button 
                         onClick={() => setPreviewMember(member)}
-                        className="p-2 border border-stone-200 dark:border-white/10 dark:hover:border-white/25 rounded-lg text-[#003366] dark:text-brand-400 hover:text-white hover:bg-[#003366] dark:hover:bg-brand-500 transition-all cursor-pointer"
+                        className="p-2 border border-stone-200 dark:border-white/10 dark:hover:border-white/25 rounded-lg text-[#003366] dark:text-brand-400 hover:text-white hover:bg-[#003366] dark:hover:bg-brand-500 transition-all cursor-pointer shadow-sm"
                         title="View & Download options"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3.5 h-3.5" />
                       </button>
                       <button 
                         onClick={() => triggerExport(member, 'pdf')}
-                        className="px-3 py-1.5 bg-[#003366]/10 text-[#003366] hover:bg-[#003366] hover:text-white dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500 dark:hover:text-stone-950 transition-all text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1 shadow-sm cursor-pointer"
+                        className="px-2.5 py-1.5 bg-[#003366]/10 text-[#003366] hover:bg-[#003366] hover:text-white dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500 dark:hover:text-stone-950 transition-all text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1 shadow-sm cursor-pointer"
                         title="Quick Download PDF"
                       >
                         <Download className="w-3.5 h-3.5" /> PDF
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteRegistration(member.id)}
+                        className="p-2 border border-rose-200 dark:border-rose-950/20 text-rose-600 hover:text-white hover:bg-rose-600 dark:text-rose-400 dark:hover:bg-rose-600 transition-all rounded-lg cursor-pointer shadow-sm shadow-rose-500/5 animate-none"
+                        title="Delete registration card"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -796,6 +826,14 @@ export default function JoinUs() {
                     <Download className="w-4 h-4 text-white" /> Save as PNG
                   </motion.button>
                 </div>
+                <motion.button 
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => handleDeleteRegistration(previewMember.id)}
+                  className="w-full border-2 border-rose-500/30 hover:border-transparent text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white py-3 rounded-xl font-black uppercase tracking-widest text-[9px] shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all mt-1 bg-transparent"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete Registration Card
+                </motion.button>
                 <button 
                   onClick={() => setPreviewMember(null)}
                   className="w-full py-2 hover:bg-stone-100 dark:hover:bg-white/5 transition-all text-[10px] text-stone-500 font-extrabold uppercase tracking-widest cursor-pointer mt-1"

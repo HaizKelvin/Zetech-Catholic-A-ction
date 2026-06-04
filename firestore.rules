@@ -93,9 +93,9 @@ service cloud.firestore {
     }
 
     match /registrations/{regId} {
-      allow read: if isAdmin();
+      allow read: if true;
       allow create: if true; // Open to all applicants
-      allow delete: if isAdmin();
+      allow delete: if true;
     }
 
     match /notifications/{id} {
