@@ -163,13 +163,14 @@ export default function JoinUs() {
     try {
       setNotification({ type: 'info', message: `Preparing high-quality ${format.toUpperCase()} card...` });
       
-      // Update state to render offscreen card
+      // Update state to render offscreen card (fallback)
       setExportingMember(member);
       
-      // Essential delay for React rendering cycle to finish mounting the target node
-      await new Promise(resolve => setTimeout(resolve, 250));
+      // Small delay to allow any React rendering to trigger (normally the on-screen card is already fully mounted)
+      await new Promise(resolve => setTimeout(resolve, 150));
       
-      const element = document.getElementById('export-card-node');
+      // Look for the already rendered card on the page first, fallback to the offscreen element
+      const element = document.getElementById(`printable-card-${member.id}`) || document.getElementById('export-card-node');
       if (!element) {
         throw new Error("Target export element was not rendered in the layout");
       }
@@ -177,13 +178,15 @@ export default function JoinUs() {
       await document.fonts.ready;
       
       const canvas = await html2canvas(element, {
-        backgroundColor: '#ffffff',
-        scale: 3.5, // Ultra sharp printable DPI quality
+        backgroundColor: null, // Keeps the custom gradient transparency intact
+        scale: 3.5, // High DPI print resolution
         useCORS: true,
         logging: false,
-        allowTaint: false,
+        allowTaint: true, // Prevents cross-origin taint errors
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        windowWidth: 350,
+        windowHeight: 220
       });
       
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -193,6 +196,7 @@ export default function JoinUs() {
         const link = document.createElement('a');
         link.download = `${safeFileName}.png`;
         link.href = imgData;
+        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -217,7 +221,7 @@ export default function JoinUs() {
       console.error('Failed to generate credential card', err);
       // Fallback
       window.print();
-      setNotification({ type: 'error', message: 'Direct download issue. Browser print triggered.' });
+      setNotification({ type: 'error', message: 'Direct download issue. Browser print triggered as fallback.' });
       setTimeout(() => setNotification(null), 4000);
     } finally {
       // Clear offscreen render to keep DOM lightweight
@@ -256,49 +260,74 @@ export default function JoinUs() {
       </AnimatePresence>
 
       {/* Off-screen dynamic capture node for reliable PDF/PNG generations */}
-      <div className="absolute top-[-9999px] left-[-9999px] overflow-hidden pointer-events-none" aria-hidden="true">
+      <div 
+        className="fixed pointer-events-none z-[-50] overflow-hidden" 
+        style={{ bottom: '-1000px', right: '-1000px', width: '350px', height: '220px' }}
+        aria-hidden="true"
+      >
         {exportingMember && (
           <div 
             id="export-card-node"
-            className="w-[350px] h-[220px] bg-white text-stone-950 p-[20px] rounded-none border-[3px] border-stone-950 flex flex-col justify-between select-none relative"
-            style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}
+            className="w-[350px] h-[220px] text-white p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden"
+            style={{ 
+              fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+              background: "linear-gradient(135deg, #001a36 0%, #002d5c 100%)",
+              border: "3px solid #d4af37",
+              boxShadow: "inset 0 0 20px rgba(0,0,0,0.4)"
+            }}
           >
+            {/* Soft decorative background watermark cross */}
+            <div className="absolute right-[12px] bottom-[30px] text-[130px] font-light text-[#d4af37]/5 pointer-events-none select-none font-sans leading-none">
+              ✝
+            </div>
+
             {/* Top Header Section */}
-            <div className="border-b-[1.5px] border-stone-950 pb-[6px] flex justify-between items-start text-left">
+            <div className="border-b border-[#d4af37]/30 pb-[6px] flex justify-between items-start text-left relative z-10">
               <div>
-                <h3 className="text-[12px] font-black tracking-[0.12em] uppercase text-stone-950 leading-tight">ZETECH UNIVERSITY</h3>
-                <p className="text-[8.5px] font-extrabold text-[#003366] uppercase tracking-widest leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
+                <h3 className="text-[11px] font-black tracking-[0.14em] uppercase text-[#d4af37] leading-tight">ZETECH UNIVERSITY</h3>
+                <p className="text-[7.5px] font-extrabold text-white/95 uppercase tracking-[0.12em] leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
               </div>
-              <div className="text-[8.5px] font-mono font-black border border-stone-950 px-[6px] py-[1.5px] uppercase tracking-wider leading-none">
-                YEAR 2026
+              <div className="text-[7px] font-mono font-black border border-[#d4af37]/60 rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none text-[#d4af37] bg-white/5">
+                YEAR 2026/2027
               </div>
             </div>
 
             {/* Grid values of absolute clarity */}
-            <div className="flex-1 flex flex-col justify-center space-y-2 py-[8px] text-[10.5px] text-left">
-              <div className="flex justify-between items-baseline leading-none">
-                <span className="text-[7.5px] font-bold text-stone-500 uppercase tracking-wider font-mono">PILGRIM NAME</span>
-                <span className="text-[11px] font-black text-stone-950 uppercase tracking-tight text-right truncate max-w-[210px]">{exportingMember.fullName}</span>
+            <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
+              {/* Member Info Fields */}
+              <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
+                <div className="leading-none">
+                  <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">MEMBER NAME</span>
+                  <span className="text-[11px] font-black text-white uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{exportingMember.fullName}</span>
+                </div>
+                
+                <div className="leading-none">
+                  <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">ADMISSION NO</span>
+                  <span className="text-[10px] font-bold text-white uppercase font-mono tracking-wide mt-0.5 block">{exportingMember.admissionNumber}</span>
+                </div>
+
+                <div className="leading-none">
+                  <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">WHATSAPP & EMAIL</span>
+                  <span className="text-[8px] font-bold text-white/80 font-mono truncate max-w-[200px] block mt-0.5">{exportingMember.phoneNumber} • {exportingMember.schoolEmail}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-baseline leading-none">
-                <span className="text-[7.5px] font-bold text-stone-500 uppercase tracking-wider font-mono">ADMISSION NO</span>
-                <span className="text-[11px] font-black text-stone-950 font-mono uppercase text-right">{exportingMember.admissionNumber}</span>
-              </div>
-              <div className="flex justify-between items-baseline leading-none">
-                <span className="text-[7.5px] font-bold text-stone-500 uppercase tracking-wider font-mono">WHATSAPP</span>
-                <span className="text-[11px] font-bold text-stone-950 font-mono text-right">{exportingMember.phoneNumber}</span>
-              </div>
-              <div className="flex justify-between items-baseline leading-none">
-                <span className="text-[7.5px] font-bold text-stone-500 uppercase tracking-wider font-mono">EMAIL ADDRESS</span>
-                <span className="text-[10px] font-bold text-stone-950 font-mono lowercase text-right truncate max-w-[210px]">{exportingMember.schoolEmail}</span>
+
+              {/* Photo & Seal Column */}
+              <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
+                <div className="w-[56px] h-[56px] rounded-lg border border-[#d4af37]/40 bg-[#001021]/60 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner">
+                  {/* Subtle golden cross inside avatar placeholder */}
+                  <span className="text-[20px] text-[#d4af37]/40 font-light leading-none">✝</span>
+                  <span className="text-[5px] font-extrabold text-[#d4af37]/80 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
+                  <div className="absolute inset-0 border border-white/5 rounded-lg pointer-events-none" />
+                </div>
               </div>
             </div>
 
             {/* Pure typographic Footer stamp style block */}
-            <div className="border-t-[1.5px] border-stone-950 pt-[6px] flex justify-between items-center text-[7.5px] font-mono font-bold leading-none text-left">
-              <span className="uppercase text-stone-500 tracking-wide">MEMBER ID: #{exportingMember.id.slice(-8).toUpperCase()}</span>
-              <span className="text-emerald-700 font-extrabold tracking-widest uppercase flex items-center gap-1">
-                ● COVENANT REGISTERED
+            <div className="border-t border-[#d4af37]/30 pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10">
+              <span className="uppercase text-white/50 tracking-wide">MEMBER ID: #{exportingMember.id.slice(-8).toUpperCase()}</span>
+              <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
               </span>
             </div>
           </div>
@@ -491,51 +520,72 @@ export default function JoinUs() {
                 </div>
 
                 {/* THE CLEAR AND CONCISE MEMBERSHIP CARD DISPLAY (LANDSCAPE, Swiss Modernist Style, NO IMAGES) */}
-                <div className="flex justify-center py-4 bg-white/40 dark:bg-stone-900/40 rounded-2xl border border-stone-200/40 dark:border-white/5 shadow-inner">
+                <div className="flex justify-center py-4 bg-white/45 dark:bg-stone-900/40 rounded-2xl border border-stone-200/40 dark:border-white/5 shadow-inner">
                   
-                  {/* Invisible Target node layout template for exact high-dpi screenshot */}
+                  {/* Target node layout template for exact high-dpi screenshot */}
                   <div className="relative p-2">
                     <div 
                       id={`printable-card-${lastRegistered.id}`}
-                      className="w-[320px] h-[200px] bg-white text-stone-950 p-[20px] rounded-0 border-2 border-stone-950 flex flex-col justify-between select-none relative shadow-md"
-                      style={{ fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif" }}
+                      className="w-[350px] h-[220px] text-white p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden shadow-2xl"
+                      style={{ 
+                        fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+                        background: "linear-gradient(135deg, #001a36 0%, #002d5c 100%)",
+                        border: "3px solid #d4af37",
+                        boxShadow: "inset 0 0 20px rgba(0,0,0,0.4)"
+                      }}
                     >
+                      {/* Soft decorative background watermark cross */}
+                      <div className="absolute right-[12px] bottom-[30px] text-[130px] font-light text-[#d4af37]/5 pointer-events-none select-none font-sans leading-none">
+                        ✝
+                      </div>
+
                       {/* Top Header Section */}
-                      <div className="border-b border-stone-950 pb-[6px] flex justify-between items-start text-left">
+                      <div className="border-b border-[#d4af37]/30 pb-[6px] flex justify-between items-start text-left relative z-10">
                         <div>
-                          <h3 className="text-[11px] font-black tracking-[0.12em] uppercase text-stone-950 leading-tight">ZETECH UNIVERSITY</h3>
-                          <p className="text-[8px] font-extrabold text-stone-500 uppercase tracking-widest leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
+                          <h3 className="text-[11px] font-black tracking-[0.14em] uppercase text-[#d4af37] leading-tight">ZETECH UNIVERSITY</h3>
+                          <p className="text-[7.5px] font-extrabold text-white/95 uppercase tracking-[0.12em] leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
                         </div>
-                        <div className="text-[8.5px] font-black font-mono border border-stone-950 px-[6px] py-[1.5px] uppercase tracking-wider leading-none">
-                          YEAR 2026
-                        </div>
-                      </div>
-
-                      {/* Middle Grid values of absolute clarity */}
-                      <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[8px] text-[10px] text-left">
-                        <div className="flex justify-between items-baseline leading-none">
-                          <span className="text-[7.5px] font-bold text-stone-405 uppercase tracking-wider">PILGRIM NAME</span>
-                          <span className="text-[10px] font-black text-stone-950 uppercase tracking-tight text-right truncate max-w-[180px]">{lastRegistered.fullName}</span>
-                        </div>
-                        <div className="flex justify-between items-baseline leading-none">
-                          <span className="text-[7.5px] font-bold text-stone-405 uppercase tracking-wider">ADMISSION NO</span>
-                          <span className="text-[10px] font-black text-stone-950 font-mono uppercase text-right">{lastRegistered.admissionNumber}</span>
-                        </div>
-                        <div className="flex justify-between items-baseline leading-none">
-                          <span className="text-[7.5px] font-bold text-stone-405 uppercase tracking-wider">WHATSAPP</span>
-                          <span className="text-[10px] font-bold text-stone-950 text-right">{lastRegistered.phoneNumber}</span>
-                        </div>
-                        <div className="flex justify-between items-baseline leading-none">
-                          <span className="text-[7.5px] font-bold text-stone-405 uppercase tracking-wider">EMAIL ADDRESS</span>
-                          <span className="text-[9.5px] font-bold text-stone-950 lowercase text-right truncate max-w-[180px]">{lastRegistered.schoolEmail}</span>
+                        <div className="text-[7px] font-mono font-black border border-[#d4af37]/60 rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none text-[#d4af37] bg-white/5">
+                          YEAR 2026/2027
                         </div>
                       </div>
 
-                      {/* Pure typographic Footer stamp style block */}
-                      <div className="border-t border-stone-950 pt-[6px] flex justify-between items-center text-[7.5px] font-mono font-bold leading-none text-left">
-                        <span className="uppercase text-stone-505 tracking-wide">MEMBER ID: #{lastRegistered.id}</span>
-                        <span className="text-emerald-700 font-black tracking-widest uppercase flex items-center gap-1">
-                          ● COVENANT REGISTERED
+                      {/* Grid values of absolute clarity */}
+                      <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
+                        {/* Member Info Fields */}
+                        <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
+                          <div className="leading-none">
+                            <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">MEMBER NAME</span>
+                            <span className="text-[11px] font-black text-white uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{lastRegistered.fullName}</span>
+                          </div>
+                          
+                          <div className="leading-none">
+                            <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">ADMISSION NO</span>
+                            <span className="text-[10px] font-bold text-white uppercase font-mono tracking-wide mt-0.5 block">{lastRegistered.admissionNumber}</span>
+                          </div>
+
+                          <div className="leading-none">
+                            <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">WHATSAPP & EMAIL</span>
+                            <span className="text-[8px] font-bold text-white/80 font-mono truncate max-w-[200px] block mt-0.5">{lastRegistered.phoneNumber} • {lastRegistered.schoolEmail}</span>
+                          </div>
+                        </div>
+
+                        {/* Photo & Seal Column */}
+                        <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
+                          <div className="w-[56px] h-[56px] rounded-lg border border-[#d4af37]/40 bg-[#001021]/60 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner">
+                            {/* Subtle golden cross inside avatar placeholder */}
+                            <span className="text-[20px] text-[#d4af37]/40 font-light leading-none">✝</span>
+                            <span className="text-[5px] font-extrabold text-[#d4af37]/80 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
+                            <div className="absolute inset-0 border border-white/5 rounded-lg pointer-events-none" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Typographic Footer stamp style block */}
+                      <div className="border-t border-[#d4af37]/30 pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10">
+                        <span className="uppercase text-white/50 tracking-wide">MEMBER ID: #{lastRegistered.id.slice(-8).toUpperCase()}</span>
+                        <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
+                          <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
                         </span>
                       </div>
                     </div>
@@ -655,50 +705,71 @@ export default function JoinUs() {
                 </p>
               </div>
 
-              {/* Landscape Card Rendering Node Holder */}
+               {/* Landscape Card Rendering Node Holder */}
               <div className="bg-stone-100 dark:bg-stone-950 p-4 rounded-2xl border border-stone-100 dark:border-white/5 inline-block mx-auto relative group shadow-inner">
                 
                 <div 
                   id={`printable-card-${previewMember.id}`}
-                  className="w-[320px] h-[200px] bg-white text-stone-950 p-[20px] rounded-0 border-2 border-stone-950 flex flex-col justify-between select-none relative"
-                  style={{ fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif" }}
+                  className="w-[350px] h-[220px] text-white p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden shadow-2xl"
+                  style={{ 
+                    fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+                    background: "linear-gradient(135deg, #001a36 0%, #002d5c 100%)",
+                    border: "3px solid #d4af37",
+                    boxShadow: "inset 0 0 20px rgba(0,0,0,0.4)"
+                  }}
                 >
+                  {/* Soft decorative background watermark cross */}
+                  <div className="absolute right-[12px] bottom-[30px] text-[130px] font-light text-[#d4af37]/5 pointer-events-none select-none font-sans leading-none">
+                    ✝
+                  </div>
+
                   {/* Top Header Section */}
-                  <div className="border-b border-stone-950 pb-[6px] flex justify-between items-start text-left">
+                  <div className="border-b border-[#d4af37]/30 pb-[6px] flex justify-between items-start text-left relative z-10">
                     <div>
-                      <h3 className="text-[11px] font-black tracking-[0.12em] uppercase text-stone-950 leading-tight">ZETECH UNIVERSITY</h3>
-                      <p className="text-[8px] font-extrabold text-stone-500 uppercase tracking-widest leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
+                      <h3 className="text-[11px] font-black tracking-[0.14em] uppercase text-[#d4af37] leading-tight">ZETECH UNIVERSITY</h3>
+                      <p className="text-[7.5px] font-extrabold text-white/95 uppercase tracking-[0.12em] leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
                     </div>
-                    <div className="text-[8.5px] font-black font-mono border border-stone-950 px-[6px] py-[1.5px] uppercase tracking-wider leading-none">
-                      YEAR 2026
+                    <div className="text-[7px] font-mono font-black border border-[#d4af37]/60 rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none text-[#d4af37] bg-white/5">
+                      YEAR 2026/2027
                     </div>
                   </div>
 
-                  {/* Middle Grid values of absolute clarity */}
-                  <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[8px] text-[10px] text-left">
-                    <div className="flex justify-between items-baseline leading-none">
-                      <span className="text-[7.5px] font-bold text-stone-405 uppercase tracking-wider">PILGRIM NAME</span>
-                      <span className="text-[10px] font-black text-stone-950 uppercase tracking-tight text-right truncate max-w-[180px]">{previewMember.fullName}</span>
+                  {/* Grid values of absolute clarity */}
+                  <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
+                    {/* Member Info Fields */}
+                    <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
+                      <div className="leading-none">
+                        <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">MEMBER NAME</span>
+                        <span className="text-[11px] font-black text-white uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{previewMember.fullName}</span>
+                      </div>
+                      
+                      <div className="leading-none">
+                        <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">ADMISSION NO</span>
+                        <span className="text-[10px] font-bold text-white uppercase font-mono tracking-wide mt-0.5 block">{previewMember.admissionNumber}</span>
+                      </div>
+
+                      <div className="leading-none">
+                        <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">WHATSAPP & EMAIL</span>
+                        <span className="text-[8px] font-bold text-white/80 font-mono truncate max-w-[200px] block mt-0.5">{previewMember.phoneNumber} • {previewMember.schoolEmail}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-baseline leading-none">
-                      <span className="text-[7.5px] font-bold text-stone-405 uppercase tracking-wider">ADMISSION NO</span>
-                      <span className="text-[10px] font-black text-stone-950 font-mono uppercase text-right">{previewMember.admissionNumber}</span>
-                    </div>
-                    <div className="flex justify-between items-baseline leading-none">
-                      <span className="text-[7.5px] font-bold text-stone-405 uppercase tracking-wider">WHATSAPP</span>
-                      <span className="text-[10px] font-bold text-stone-950 text-right">{previewMember.phoneNumber}</span>
-                    </div>
-                    <div className="flex justify-between items-baseline leading-none">
-                      <span className="text-[7.5px] font-bold text-stone-405 uppercase tracking-wider">EMAIL ADDRESS</span>
-                      <span className="text-[9.5px] font-bold text-stone-950 lowercase text-right truncate max-w-[180px]">{previewMember.schoolEmail}</span>
+
+                    {/* Photo & Seal Column */}
+                    <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
+                      <div className="w-[56px] h-[56px] rounded-lg border border-[#d4af37]/40 bg-[#001021]/60 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner">
+                        {/* Subtle golden cross inside avatar placeholder */}
+                        <span className="text-[20px] text-[#d4af37]/40 font-light leading-none">✝</span>
+                        <span className="text-[5px] font-extrabold text-[#d4af37]/80 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
+                        <div className="absolute inset-0 border border-white/5 rounded-lg pointer-events-none" />
+                      </div>
                     </div>
                   </div>
 
                   {/* Typographic Footer stamp style block */}
-                  <div className="border-t border-stone-950 pt-[6px] flex justify-between items-center text-[7.5px] font-mono font-bold leading-none text-left">
-                    <span className="uppercase text-stone-505 tracking-wide">MEMBER ID: #{previewMember.id}</span>
-                    <span className="text-emerald-700 font-black tracking-widest uppercase flex items-center gap-1">
-                      ● COVENANT REGISTERED
+                  <div className="border-t border-[#d4af37]/30 pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10">
+                    <span className="uppercase text-white/50 tracking-wide">MEMBER ID: #{previewMember.id.slice(-8).toUpperCase()}</span>
+                    <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
                     </span>
                   </div>
                 </div>

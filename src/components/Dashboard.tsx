@@ -1,47 +1,69 @@
 import React, { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { DailyControl } from '../types';
+import { DailyControl, OperationType } from '../types';
 import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Heart, Library, Trophy, ArrowUpRight, HelpCircle, MessageCircle, Share2, Sparkles, QrCode, ArrowRight, UserPlus, X, Upload } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'motion/react';
+import { handleFirestoreError } from '../utils';
 
 export default function Dashboard({ userName, onTabChange }: { userName: string, onTabChange: (tab: any) => void }) {
   const [daily, setDaily] = useState<DailyControl | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewQr, setViewQr] = useState(false);
-  const [customQr, setCustomQr] = useState<string | null>(() => {
-    return localStorage.getItem('zuca_booth_qr');
-  });
+  const [customQr, setCustomQr] = useState<string | null>(null);
 
   const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64String = reader.result as string;
-        localStorage.setItem('zuca_booth_qr', base64String);
-        setCustomQr(base64String);
+        try {
+          await setDoc(doc(db, 'control', 'booth_qr'), {
+            qrCode: base64String,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.WRITE, 'control/booth_qr');
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleQrClear = () => {
-    localStorage.removeItem('zuca_booth_qr');
-    setCustomQr(null);
+  const handleQrClear = async () => {
+    try {
+      await deleteDoc(doc(db, 'control', 'booth_qr'));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'control/booth_qr');
+    }
   };
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'control', 'daily_bread'), (doc) => {
+    const unsubscribeDaily = onSnapshot(doc(db, 'control', 'daily_bread'), (doc) => {
       if (doc.exists()) {
         setDaily(doc.data() as DailyControl);
       }
       setLoading(false);
     }, (error) => {
-      console.error("Dashboard error:", error);
+      handleFirestoreError(error, OperationType.GET, 'control/daily_bread');
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    const unsubscribeQr = onSnapshot(doc(db, 'control', 'booth_qr'), (doc) => {
+      if (doc.exists() && doc.data().qrCode) {
+        setCustomQr(doc.data().qrCode);
+      } else {
+        setCustomQr(null);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'control/booth_qr');
+    });
+
+    return () => {
+      unsubscribeDaily();
+      unsubscribeQr();
+    };
   }, []);
 
   const container: Variants = {
@@ -222,7 +244,7 @@ ZUCA Community`);
           {[
             {
               title: "Sacred gatherings",
-              desc: "Join us for Jumuiya in PG 6 Room every Tuesday at 4:20 PM at the school, choir rehearsal on Friday, and Sunday Holy Mass at 9:00 AM.",
+              desc: "Join us for Jumuiya in PG 6 Room every Wednesday at 4:20 PM, Choir Practice on Thursday at 4:30 PM, Saturday & Sunday at 3:00 PM, and Sunday Holy Mass at 9:00 AM.",
               action: "Schedule & Locations",
               tab: "schedule"
             },

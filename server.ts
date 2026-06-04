@@ -53,11 +53,11 @@ function generateSpiritualFallback(userMessage: string, userName: string): strin
   if (msg.includes("mass") || msg.includes("service") || msg.includes("sacrament") || msg.includes("eucharist") || msg.includes("liturgy")) {
     return `Peace be with you, ${name}. The Holy Mass is the sacred source and summit of our faith journey. Let us attend and receive the Eucharist with deep, pure hearts. (Matthew 26:26)`;
   }
-  if (msg.includes("choir") || msg.includes("sing") || msg.includes("music") || msg.includes("rehearsal")) {
-    return `Blessings, ${name}! High chanting or singing is praying twice to the Lord. Our choir family meets every Friday to prepare beautiful harmonies for the assembly. (Psalm 100:2)`;
+  if (msg.includes("choir") || msg.includes("sing") || msg.includes("music") || msg.includes("rehearsal") || msg.includes("practice")) {
+    return `Blessings, ${name}! High chanting or singing is praying twice to the Lord. Our choir family meets on Thursdays at 4:30 PM, and Saturdays & Sundays at 3:00 PM. (Psalm 100:2)`;
   }
-  if (msg.includes("jumuiya") || msg.includes("meeting") || msg.includes("tuesday") || msg.includes("room") || msg.includes("school") || msg.includes("class") || msg.includes("gather") || msg.includes("pg 6")) {
-    return `Dearest ${name}, please remember we now meet for Jumuiya fellowship and shared prayers at PG 6 Room every Tuesday at 4:20 PM at the school. Come join other pilgrims! (Matthew 18:20)`;
+  if (msg.includes("jumuiya") || msg.includes("meeting") || msg.includes("wednesday") || msg.includes("tuesday") || msg.includes("room") || msg.includes("school") || msg.includes("class") || msg.includes("gather") || msg.includes("pg 6")) {
+    return `Dearest ${name}, please remember we now meet for Jumuiya fellowship and shared prayers at PG 6 Room every Wednesday at 4:20 PM at the school. Come join other pilgrims! (Matthew 18:20)`;
   }
   if (msg.includes("pray") || msg.includes("intention") || msg.includes("petition") || msg.includes("altar")) {
     return `I am praying with you, ${name}. Rest assured that your heartfelt intentions are fully presented before our Lord's holy altar. (Philippians 4:6)`;
@@ -82,6 +82,11 @@ app.post("/api/chat", async (req, res) => {
     const ai = getGemini();
     const systemInstruction = `You are the "Sanctuary Spirit", a spiritual guide for the ZUCA community. 
 Provide authentic, direct, and concise Catholic guidance.
+
+IMPORTANT SCHEDULE INFO:
+- Jumuiya fellowship is every Wednesday at 4:20 PM in PG 6 Room at the school.
+- Choir practices are on Thursdays at 4:30 PM, Saturdays at 3:00 PM, and Sundays at 3:00 PM.
+- Sunday Holy Mass is at 9:00 AM.
 
 TONE: Warm, respectful, spiritually wise.
 RESPONSE STYLE: EXTREMELY BRIEF (1-2 sentences).
