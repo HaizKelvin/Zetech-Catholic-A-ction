@@ -11,6 +11,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
   const [loading, setLoading] = useState(true);
   const [viewQr, setViewQr] = useState(false);
   const [customQr, setCustomQr] = useState<string | null>(null);
+  const [whatsAppGroupLink, setWhatsAppGroupLink] = useState('https://chat.whatsapp.com/JLH8fWq8d8H05Y6zW92bX');
 
   const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,9 +61,18 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
       handleFirestoreError(error, OperationType.GET, 'control/booth_qr');
     });
 
+    const unsubscribeSettings = onSnapshot(doc(db, 'control', 'settings'), (doc) => {
+      if (doc.exists() && doc.data().whatsAppGroupLink) {
+        setWhatsAppGroupLink(doc.data().whatsAppGroupLink);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'control/settings');
+    });
+
     return () => {
       unsubscribeDaily();
       unsubscribeQr();
+      unsubscribeSettings();
     };
   }, []);
 
@@ -100,7 +110,7 @@ Visit the Sanctuary: ${window.location.host}
 *──────────────────*
 _Peace be with you always._ 🤍`;
     const encodedText = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
   };
 
   const shareEmail = () => {
@@ -235,6 +245,15 @@ ZUCA Community`);
               className="px-6 py-4 bg-white/10 dark:bg-white/5 text-white border border-white/10 font-black rounded-2xl tracking-[0.2em] text-[10px] md:text-[11px] uppercase hover:bg-white/20 transition-all flex items-center gap-3 shadow-lg cursor-pointer"
             >
               <QrCode className="w-4 h-4 text-white" /> Booth QR Code
+            </motion.button>
+
+            <motion.button 
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => window.open(whatsAppGroupLink, '_blank')}
+              className="px-6 py-4 bg-[#25D366] hover:bg-[#128C7E] text-white font-black rounded-2xl tracking-[0.2em] text-[10px] md:text-[11px] uppercase shadow-lg shadow-[#25D366]/25 transition-all flex items-center gap-3 cursor-pointer"
+            >
+              <MessageCircle className="w-4 h-4 text-white" /> Join WhatsApp Group
             </motion.button>
           </div>
         </div>
@@ -390,17 +409,25 @@ ZUCA Community`);
 
           <motion.div 
             variants={item}
-            className="p-8 md:p-12 glass-dark rounded-[40px] md:rounded-[64px] overflow-hidden group relative border border-white/5 shadow-2xl flex items-center justify-center min-h-[160px] md:min-h-[220px]"
+            className="p-8 md:p-10 bg-gradient-to-br from-emerald-950/40 to-stone-900/40 border border-emerald-500/10 dark:border-white/5 rounded-[40px] md:rounded-[64px] overflow-hidden group relative shadow-2xl flex flex-col justify-between min-h-[220px] text-left"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/20 to-transparent group-hover:scale-125 transition-transform duration-[3s]" />
-             <motion.div 
-               animate={{ scale: [1, 1.05, 1] }} 
-               transition={{ duration: 4, repeat: Infinity }}
-               className="relative z-10 text-center space-y-3 md:space-y-5"
-             >
-              <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.5em] text-brand-400/60 block">Sacred Realm</span>
-              <p className="text-4xl md:text-6xl font-black text-white tracking-[0.2em] drop-shadow-[0_0_20px_rgba(92,133,255,0.3)]">DIVINE</p>
-            </motion.div>
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent group-hover:scale-125 transition-transform duration-[3s]" />
+            <div className="relative z-10 space-y-3">
+              <span className="text-[9px] md:text-[10.5px] font-black uppercase tracking-[0.4em] text-emerald-400 block font-sans">COMMUNITY PORTAL</span>
+              <h3 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase font-sans">ZUCA WHATSAPP</h3>
+              <p className="text-stone-300 text-[11px] md:text-xs leading-relaxed font-semibold">
+                Receive scriptures, announcements, and connect with other Catholic Action members instantly.
+              </p>
+            </div>
+            
+            <motion.button 
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => window.open(whatsAppGroupLink, '_blank')}
+              className="relative z-10 mt-6 w-full py-4.5 bg-[#25D366] text-white font-black tracking-[0.3em] text-[10px] uppercase rounded-[20px] hover:bg-[#128C7E] transition-all shadow-xl shadow-[#25D366]/20 flex items-center justify-center gap-2.5 cursor-pointer"
+            >
+              <MessageCircle className="w-5 h-5 text-white animate-pulse" /> JOIN OUR CHAT
+            </motion.button>
           </motion.div>
         </div>
       </div>

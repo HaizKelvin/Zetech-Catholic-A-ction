@@ -168,7 +168,7 @@ ${item.link || 'Available via ZUCA Portal'}
 *ZUCA PORTAL:* ${window.location.origin}
 ✧────────────────✧`;
     const encodedText = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
   };
 
   const featuredMaterial = filteredMaterials[0];

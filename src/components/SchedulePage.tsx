@@ -230,7 +230,7 @@ ${window.location.origin}
 *──────────────────*
 _United in Spirit and Faith._ 🫂`;
     const encodedText = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
   };
 
   return (

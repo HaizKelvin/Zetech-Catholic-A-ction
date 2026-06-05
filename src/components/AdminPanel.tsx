@@ -34,6 +34,8 @@ export default function AdminPanel() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [announcement, setAnnouncement] = useState({ title: '', message: '' });
   const [shareStatus, setShareStatus] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  const [whatsAppGroupLink, setWhatsAppGroupLink] = useState('https://chat.whatsapp.com/JLH8fWq8d8H05Y6zW92bX');
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const displayedUsers = showAllUsers ? users : users.slice(0, 3);
 
@@ -64,6 +66,9 @@ export default function AdminPanel() {
         const data = d.data();
         setIsWhatsAppAutoSync(data.isWhatsAppAutoSync || false);
         setIsEmailAutoSync(data.isEmailAutoSync || false);
+        if (data.whatsAppGroupLink) {
+          setWhatsAppGroupLink(data.whatsAppGroupLink);
+        }
       }
     });
 
@@ -147,8 +152,8 @@ export default function AdminPanel() {
   const shareToWhatsApp = (text: string, phone?: string) => {
     const encodedText = encodeURIComponent(text);
     const url = phone 
-      ? `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedText}`
-      : `https://wa.me/?text=${encodedText}`;
+      ? `https://api.whatsapp.com/send?phone=${phone.replace(/\D/g, '')}&text=${encodedText}`
+      : `https://api.whatsapp.com/send?text=${encodedText}`;
     window.open(url, '_blank');
   };
 
@@ -767,6 +772,43 @@ Blessings from the ZUCA community! We celebrate your presence in our fellowship 
                   )}
                 </button>
               )}
+            </div>
+
+            {/* WhatsApp Group Link Configuration Card */}
+            <div className="glass-card p-6 md:p-12 border-white/5 rounded-[32px] md:rounded-[40px] space-y-6 text-left">
+              <div className="space-y-1">
+                <h3 className="font-bold text-lg md:text-xl text-stone-900 dark:text-white serif-display">WhatsApp Group Link</h3>
+                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-emerald-500">Community Access Node</p>
+              </div>
+              <p className="text-stone-500 dark:text-stone-400 text-[11px] leading-relaxed">
+                Configure the invite link for the official ZUCA WhatsApp Group. This allows members of ZUCA to join the group directly from the Overview dashboard.
+              </p>
+              <div className="space-y-4">
+                <input 
+                  type="text" 
+                  value={whatsAppGroupLink} 
+                  onChange={e => setWhatsAppGroupLink(e.target.value)} 
+                  className="w-full glass-card p-4 text-xs font-semibold text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500/20" 
+                  placeholder="https://chat.whatsapp.com/..." 
+                />
+                <button 
+                  onClick={async () => {
+                    try {
+                      setSavingSettings(true);
+                      await setDoc(doc(db, 'control', 'settings'), { whatsAppGroupLink }, { merge: true });
+                      alert("WhatsApp Group Link updated successfully!");
+                    } catch (error) {
+                      handleFirestoreError(error, OperationType.UPDATE, 'control/settings');
+                    } finally {
+                      setSavingSettings(false);
+                    }
+                  }}
+                  disabled={savingSettings}
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black rounded-xl tracking-widest text-[10px] uppercase shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {savingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Update Invite Link <ShieldCheck className="w-4 h-4" /></>}
+                </button>
+              </div>
             </div>
         </section>
       </div>

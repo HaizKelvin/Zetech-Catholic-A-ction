@@ -158,12 +158,17 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
       if (isGuest) {
         setMessages(prev => [...prev, newUserMessage]);
       } else {
-        await addDoc(collection(db, path), {
-          userId: auth.currentUser!.uid,
-          role: 'user',
-          text: userText,
-          timestamp: serverTimestamp()
-        });
+        try {
+          await addDoc(collection(db, path), {
+            userId: auth.currentUser!.uid,
+            role: 'user',
+            text: userText,
+            timestamp: serverTimestamp()
+          });
+        } catch (dbErr) {
+          console.warn("Could not save user message to chat history in Firestore:", dbErr);
+          setMessages(prev => [...prev, newUserMessage]);
+        }
       }
 
       // Constructing history for context
@@ -211,12 +216,17 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
       if (isGuest) {
         setMessages(prev => [...prev, newModelMessage]);
       } else {
-        await addDoc(collection(db, path), {
-          userId: auth.currentUser!.uid,
-          role: 'model',
-          text: data.text,
-          timestamp: serverTimestamp()
-        });
+        try {
+          await addDoc(collection(db, path), {
+            userId: auth.currentUser!.uid,
+            role: 'model',
+            text: data.text,
+            timestamp: serverTimestamp()
+          });
+        } catch (dbErr) {
+          console.warn("Could not save model response to chat history in Firestore:", dbErr);
+          setMessages(prev => [...prev, newModelMessage]);
+        }
       }
 
     } catch (error: any) {
@@ -236,12 +246,17 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
       if (isGuest) {
         setMessages(prev => [...prev, newErrorMessage]);
       } else {
-        await addDoc(collection(db, path), {
-          userId: auth.currentUser!.uid,
-          role: 'model',
-          text: errText,
-          timestamp: serverTimestamp()
-        });
+        try {
+          await addDoc(collection(db, path), {
+            userId: auth.currentUser!.uid,
+            role: 'model',
+            text: errText,
+            timestamp: serverTimestamp()
+          });
+        } catch (dbErr) {
+          console.warn("Could not save error response to chat history in Firestore:", dbErr);
+          setMessages(prev => [...prev, newErrorMessage]);
+        }
       }
     } finally {
       setIsLoading(false);
