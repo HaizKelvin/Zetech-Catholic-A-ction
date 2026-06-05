@@ -11,7 +11,7 @@ export default function Dashboard({ userName, onTabChange }: { userName: string,
   const [loading, setLoading] = useState(true);
   const [viewQr, setViewQr] = useState(false);
   const [customQr, setCustomQr] = useState<string | null>(null);
-  const [whatsAppGroupLink, setWhatsAppGroupLink] = useState('https://chat.whatsapp.com/JLH8fWq8d8H05Y6zW92bX');
+  const [whatsAppGroupLink, setWhatsAppGroupLink] = useState('https://chat.whatsapp.com/GxuvB559sZLIurYvXbxHmU');
 
   const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

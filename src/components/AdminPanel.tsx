@@ -34,7 +34,7 @@ export default function AdminPanel() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [announcement, setAnnouncement] = useState({ title: '', message: '' });
   const [shareStatus, setShareStatus] = useState<{type: 'success' | 'error', message: string} | null>(null);
-  const [whatsAppGroupLink, setWhatsAppGroupLink] = useState('https://chat.whatsapp.com/JLH8fWq8d8H05Y6zW92bX');
+  const [whatsAppGroupLink, setWhatsAppGroupLink] = useState('https://chat.whatsapp.com/GxuvB559sZLIurYvXbxHmU');
   const [savingSettings, setSavingSettings] = useState(false);
 
   const displayedUsers = showAllUsers ? users : users.slice(0, 3);
