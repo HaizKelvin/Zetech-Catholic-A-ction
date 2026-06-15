@@ -43,10 +43,92 @@ interface Activity {
   description: string;
   date: any; // Timestamp
   location: string;
-  type: 'Mass' | 'Meeting' | 'Social' | 'Other';
+  type: 'Mass' | 'Meeting' | 'Social' | 'Other' | 'Choir' | 'Jumuiya' | 'Mission' | 'Adoration' | 'Seminar';
   downloadUrl?: string;
   addedBy: string;
 }
+
+export const ACTIVITY_CONFIGS: Record<Activity['type'], {
+  label: string;
+  emoji: string;
+  badgeStyle: string;
+  glowStyle: string;
+  whatsappHeader: string;
+  verse: string;
+}> = {
+  Mass: {
+    label: 'Holy Mass & Liturgy',
+    emoji: '⛪',
+    badgeStyle: 'bg-amber-500/10 text-amber-500 border-amber-600/10 dark:bg-amber-500/20',
+    glowStyle: 'shadow-amber-500/20',
+    whatsappHeader: '⛪ *HOLY LITURGICAL MASS*',
+    verse: '"For my flesh is true food, and my blood is true drink." — John 6:55'
+  },
+  Choir: {
+    label: 'Choir Practice & Music',
+    emoji: '🎵',
+    badgeStyle: 'bg-violet-500/10 text-violet-500 border-violet-600/10 dark:bg-violet-500/20',
+    glowStyle: 'shadow-violet-500/20',
+    whatsappHeader: '🎵 *CHOIR PRACTICE REHEARSAL*',
+    verse: '"Sing to him, sing praises to him; tell of all his wondrous works!" — Psalm 105:2'
+  },
+  Jumuiya: {
+    label: 'Jumuiya Fellowship (SCC)',
+    emoji: '🙏',
+    badgeStyle: 'bg-rose-500/10 text-rose-500 border-rose-600/10 dark:bg-rose-500/20',
+    glowStyle: 'shadow-rose-500/20',
+    whatsappHeader: '🙏 *JUMUIYA FELLOWSHIP (SCC)*',
+    verse: '"For where two or three are gathered in my name, there am I among them." — Matthew 18:20'
+  },
+  Mission: {
+    label: 'Charity & Outreach Missions',
+    emoji: '🤝',
+    badgeStyle: 'bg-emerald-500/10 text-emerald-400 border-emerald-600/10 dark:bg-emerald-500/20',
+    glowStyle: 'shadow-emerald-500/20',
+    whatsappHeader: '🤝 *CHARITY OUTREACH & MISSION*',
+    verse: '"As you did it to one of the least of these my brothers, you did it to me." — Matthew 25:40'
+  },
+  Seminar: {
+    label: 'Spiritual Seminar & Talk',
+    emoji: '📖',
+    badgeStyle: 'bg-blue-500/10 text-blue-400 border-blue-600/10 dark:bg-blue-500/20',
+    glowStyle: 'shadow-blue-500/20',
+    whatsappHeader: '📖 *SPIRITUAL SEMINAR & TEACHING*',
+    verse: '"Let the word of Christ dwell in you richly, teaching and admonishing one another." — Colossians 3:16'
+  },
+  Adoration: {
+    label: 'Adoration & Confession',
+    emoji: '✨',
+    badgeStyle: 'bg-yellow-500/10 text-yellow-500 border-yellow-600/10 dark:bg-yellow-500/20',
+    glowStyle: 'shadow-yellow-500/20',
+    whatsappHeader: '✨ *HOLY ADORATION & CONFESSION*',
+    verse: '"Could you not watch with me one hour? Watch and pray." — Matthew 26:40-41'
+  },
+  Social: {
+    label: 'Agape & Sports Socials',
+    emoji: '🏆',
+    badgeStyle: 'bg-indigo-500/10 text-indigo-400 border-indigo-600/10 dark:bg-indigo-500/20',
+    glowStyle: 'shadow-indigo-500/20',
+    whatsappHeader: '🏆 *AGAPE, SPORTS & SOCIAL UNIT*',
+    verse: '"Behold, how good and pleasant it is when brothers dwell in unity!" — Psalm 133:1'
+  },
+  Meeting: {
+    label: 'Council Council Meeting',
+    emoji: '💼',
+    badgeStyle: 'bg-sky-500/10 text-sky-500 border-sky-600/10 dark:bg-sky-500/20',
+    glowStyle: 'shadow-sky-500/20',
+    whatsappHeader: '💼 *EXECUTIVE COUNCIL MEETING*',
+    verse: '"Commit your work to the Lord, and your plans will be established." — Proverbs 16:3'
+  },
+  Other: {
+    label: 'Community Events / Other',
+    emoji: '🕊️',
+    badgeStyle: 'bg-stone-500/10 text-stone-500 border-stone-600/10 dark:bg-stone-500/20',
+    glowStyle: 'shadow-stone-500/20',
+    whatsappHeader: '🕊️ *ZUCA RITUAL / SPECIAL EVENT*',
+    verse: '"Trust in the Lord with all your heart, and do not lean on your own understanding." — Proverbs 3:5'
+  }
+};
 
 export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user: any }) {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -59,7 +141,7 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     description: '',
     date: '',
     location: '',
-    type: 'Meeting' as 'Mass' | 'Meeting' | 'Social' | 'Other',
+    type: 'Meeting' as Activity['type'],
     downloadUrl: ''
   });
   const [isWhatsAppAutoSync, setIsWhatsAppAutoSync] = useState(false);
@@ -216,19 +298,30 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
     const dateStr = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const message = `*🔔 ZUCA: ${act.title.toUpperCase()}* ✨
-*──────────────────*
-📅 *${dayName}, ${dateStr}*
-⏰ *${timeStr}*
-📍 *${act.location}*
+    
+    // Fallback if act.type was not set correctly or matches old type
+    const config = ACTIVITY_CONFIGS[act.type as Activity['type']] || ACTIVITY_CONFIGS['Other'];
+    
+    const message = `🔔 *ZUCA LITURGICAL BULLETINS* ${config.emoji}
+${config.whatsappHeader}
+═╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤╤═
+📌 *EVENT:* ${act.title.toUpperCase()}
+📅 *DATE:* ${dayName}, ${dateStr}
+⏰ *TIME:* ${timeStr}
+📍 *VENUE:* ${act.location}
 
-📝 *INSIGHTS*
-${act.description.slice(0, 100)}...
+📖 *SACRED SCRIPTURE REFERENCE*
+_${config.verse}_
 
-🌟 *JOIN OUR FELLOWSHIP*
-${window.location.origin}
-*──────────────────*
-_United in Spirit and Faith._ 🫂`;
+📝 *INSIGHTS & ANNOUNCEMENT:*
+${act.description ? (act.description.length > 250 ? act.description.slice(0, 250) + "..." : act.description) : 'Come pray, collaborate, and share fellowship with other Catholic Action members.'}
+
+${act.downloadUrl ? `📚 *MATERIAL ATTACHMENT:*\n👉 ${act.downloadUrl}\n` : ''}
+🌌 *ENTER THE SANCTUARY PORTAL*
+👉 ${window.location.origin}
+═╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧╧═
+_United in Spirit and Faith._ 🙏🕊️`;
+
     const encodedText = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
   };
@@ -371,21 +464,21 @@ _United in Spirit and Faith._ 🫂`;
                     </div>
                     
                     <div className="space-y-1 md:space-y-1.5 overflow-hidden">
-                      {dayActivities.slice(0, 3).map(act => (
-                        <div 
-                          key={act.id} 
-                          className={`px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg text-[6px] md:text-[9px] font-bold truncate tracking-wide border shadow-sm ${
-                            isSelected
-                              ? 'bg-white/20 text-white border-white/30'
-                              : act.type === 'Mass' ? 'bg-amber-500/10 text-amber-500 border-amber-600/10' :
-                                act.type === 'Meeting' ? 'bg-blue-500/10 text-blue-500 border-blue-600/10' :
-                                act.type === 'Social' ? 'bg-indigo-500/10 text-indigo-500 border-indigo-600/10' :
-                                'bg-emerald-500/10 text-emerald-500 border-emerald-600/10'
-                          }`}
-                        >
-                          {act.title}
-                        </div>
-                      ))}
+                      {dayActivities.slice(0, 3).map(act => {
+                        const config = ACTIVITY_CONFIGS[act.type] || ACTIVITY_CONFIGS['Other'];
+                        return (
+                          <div 
+                            key={act.id} 
+                            className={`px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg text-[6px] md:text-[9px] font-bold truncate tracking-wide border shadow-sm ${
+                              isSelected
+                                ? 'bg-white/20 text-white border-white/30'
+                                : config.badgeStyle
+                            }`}
+                          >
+                            {config.emoji} {act.title}
+                          </div>
+                        );
+                      })}
                       {dayActivities.length > 3 && (
                          <div className={`text-[6px] md:text-[8px] font-black ml-1.5 uppercase tracking-widest opacity-60 ${isSelected ? 'text-white' : 'text-stone-400'}`}>
                            + {dayActivities.length - 3} More
@@ -476,14 +569,23 @@ _United in Spirit and Faith._ 🫂`;
                                 </motion.button>
                               </div>
                             )}
-                            <span className={`w-2.5 h-2.5 rounded-full shadow-md ${
-                              act.type === 'Mass' ? 'bg-amber-500 shadow-amber-500/20' :
-                              act.type === 'Meeting' ? 'bg-blue-500 shadow-blue-500/20' :
-                              act.type === 'Social' ? 'bg-indigo-500 shadow-indigo-500/20' :
-                              'bg-emerald-500 shadow-emerald-500/20'
-                            }`} />
+                            {(() => {
+                              const config = ACTIVITY_CONFIGS[act.type] || ACTIVITY_CONFIGS['Other'];
+                              return (
+                                <span className="text-sm">
+                                  {config.emoji}
+                                </span>
+                              );
+                            })()}
                           </div>
-                           <span className="text-[10px] font-black uppercase tracking-widest opacity-50">{act.type}</span>
+                          {(() => {
+                            const config = ACTIVITY_CONFIGS[act.type] || ACTIVITY_CONFIGS['Other'];
+                            return (
+                              <span className={`text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border ${config.badgeStyle}`}>
+                                {config.label}
+                              </span>
+                            );
+                          })()}
                         </div>
                         <h4 className="font-bold text-stone-900 dark:text-white leading-tight pr-4">{act.title}</h4>
                       </div>
@@ -648,14 +750,15 @@ _United in Spirit and Faith._ 🫂`;
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-stone-500 ml-4">Sacred Tier</label>
                     <select
-                      className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-emerald-500 transition-all text-sm text-white appearance-none"
+                      className="w-full px-6 py-4 bg-[#1c1917] border border-white/10 rounded-2xl outline-none focus:border-emerald-500 transition-all text-sm text-white"
                       value={newActivity.type}
                       onChange={e => setNewActivity({...newActivity, type: e.target.value as any})}
                     >
-                      <option value="Mass">Holy Mass</option>
-                      <option value="Meeting">Council Meeting</option>
-                      <option value="Social">Community Social</option>
-                      <option value="Other">Ritual/Other</option>
+                      {Object.entries(ACTIVITY_CONFIGS).map(([key, config]) => (
+                        <option key={key} value={key} className="bg-[#1c1917] text-white">
+                          {config.emoji} {config.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

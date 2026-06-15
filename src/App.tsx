@@ -550,91 +550,171 @@ Can you provide more insight, theological context, or a related prayer meditatio
   }
 
   if (!user) {
+    const SACRED_VERSES = [
+      { text: "For where two or three are gathered in my name, there am I among them.", source: "Matthew 18:20" },
+      { text: "I can do all things through Christ who strengthens me.", source: "Philippians 4:13" },
+      { text: "Commit your actions to the Lord, and your plans will succeed.", source: "Proverbs 16:3" },
+      { text: "But seek first the kingdom of God and his righteousness, and all else shall follow.", source: "Matthew 6:33" }
+    ];
+    // Dynamic index based on current time to keep it stable but fresh
+    const verseIndex = typeof window !== 'undefined' ? (new Date().getMinutes() % SACRED_VERSES.length) : 0;
+    const dailyVerse = SACRED_VERSES[verseIndex];
+
     return (
-      <div className="min-h-screen w-full relative flex items-center justify-center p-4 md:p-6 bg-[#001a33] font-sans selection:bg-zetech-gold/30 overflow-y-auto">
-        {/* Deep Atmospheric Background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#003366] via-[#001a33] to-[#000d1a]" />
-          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+      <div className="min-h-screen w-full relative flex items-center justify-center p-3 sm:p-6 bg-[#040813] font-sans selection:bg-zetech-gold/30 overflow-y-auto">
+        
+        {/* Ambient Divine Aura - Soft slow-moving orbs */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.15, 1],
+              opacity: [0.15, 0.25, 0.15],
+              x: [-50, 50, -50],
+              y: [-30, 30, -30]
+            }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#003366] rounded-full blur-[120px]"
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.1, 0.2, 0.1],
+              x: [50, -50, 50],
+              y: [40, -40, 40]
+            }}
+            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-[#ffcc00]/10 rounded-full blur-[140px]"
+          />
+          <div className="absolute inset-0 divine-pattern opacity-[0.03] mix-blend-overlay" />
         </div>
 
+        {/* Outer Split Card Container */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 w-full max-w-[440px] my-8"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10 w-full max-w-[940px] my-6 md:my-10 bg-neutral-900/40 backdrop-blur-2xl rounded-[40px] overflow-hidden border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] md:grid md:grid-cols-2"
         >
-          {/* Main Auth Card */}
-          <div className="bg-white rounded-[32px] overflow-hidden shadow-[0_40px_80px_-15px_rgba(0,0,0,0.6)] border border-white/10">
-            
-            {/* Header Image Section - The "Clear" Image at the Top */}
-            <div className="relative h-48 md:h-60 overflow-hidden">
-               <img 
-                 src="https://i.ibb.co/tMNKfnYM/Technology-Park-Mangu-Campus.png" 
-                 alt="Zetech University Technology Park" 
-                 className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-1000"
-                 onError={(e) => {
-                   (e.target as any).src = "https://images.unsplash.com/photo-1541339907198-e08756ebafe1?q=80&w=2670";
-                 }}
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/10" />
-               
-               {/* Floating Logo Badge */}
-               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
-                  <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-2xl border-4 border-zetech-gold relative z-20 group">
-                    <div className="absolute inset-0 rotate-45 border-2 border-zetech-gold/20 scale-110 rounded-2xl -z-10 group-hover:rotate-90 transition-transform duration-700" />
-                    <Church className="text-zetech-blue w-10 h-10 group-hover:scale-110 transition-transform duration-500" />
-                  </div>
-               </div>
+          {/* LEFT PANEL: Sacred Media & Inspiration Banner (Visible on layout flow) */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#002244] via-[#001020] to-[#010915] p-8 md:p-14 flex flex-col justify-between min-h-[300px] md:min-h-[600px] border-b md:border-b-0 md:border-r border-white/10">
+            {/* Ambient image background overlay */}
+            <div className="absolute inset-0 z-0">
+              <img 
+                src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=1200" 
+                alt="Sacred Architecture" 
+                className="w-full h-full object-cover opacity-20 mix-blend-luminosity scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#002244]/80 via-[#001020]/95 to-[#010915]" />
             </div>
 
-            {/* Form Section */}
-            <div className="p-8 md:p-10 pt-12">
-              <div className="text-center mb-8">
-                <h1 className="text-2xl font-black text-zetech-blue tracking-tight uppercase leading-none">
+            {/* Header Identity */}
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-tr from-zetech-blue to-[#004791] rounded-2xl flex items-center justify-center border border-white/15 shadow-lg relative group">
+                  <Church className="text-zetech-gold w-6 h-6 animate-pulse" />
+                  <div className="absolute inset-0 rotate-45 border border-zetech-gold/30 rounded-2xl scale-110 pointer-events-none group-hover:rotate-90 transition-transform duration-700" />
+                </div>
+                <div>
+                  <h2 className="text-xs font-black uppercase tracking-[0.4em] text-zetech-gold">Zetech University</h2>
+                  <p className="text-[10px] font-bold text-stone-400 tracking-[0.2em] uppercase">Catholic Action Alliance</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Scripture Oracle & Inspiration Area */}
+            <div className="relative z-10 my-8 space-y-5">
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="space-y-3 pl-4 border-l-2 border-zetech-gold"
+              >
+                <span className="text-[11px] font-bold text-zetech-gold/60 uppercase tracking-[0.3em] font-mono block">Daily Devotional Scripture</span>
+                <p className="text-xl md:text-2xl font-semibold text-white tracking-tight serif-display leading-snug">
+                  "{dailyVerse.text}"
+                </p>
+                <p className="text-xs font-mono font-bold text-zetech-gold/80 tracking-widest uppercase mt-2">
+                  — {dailyVerse.source}
+                </p>
+              </motion.div>
+            </div>
+
+            {/* Bottom Footer Credits */}
+            <div className="relative z-10 space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-zetech-gold" />
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-stone-400">THE DIVINE SANCTUARY</span>
+              </div>
+              <p className="text-[10px] text-stone-500 font-medium">
+                Enter to pray, learn, share testimonies, challenge biblical trivia, and sync seamlessly with the assembly.
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT PANEL: The Active Authentication Board */}
+          <div className="p-8 md:p-12 flex flex-col justify-between bg-neutral-950/80">
+            {/* Top Form Header with Adaptive Welcome message */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-emerald-500 bg-emerald-500/10 border border-emerald-500/15 px-3 py-1 rounded-full">
+                  Sanctified Node
+                </span>
+                <span className="text-[9px] font-bold text-stone-400">
+                  {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+              </div>
+              
+              <div className="mt-6">
+                <h1 className="text-3xl font-black text-white tracking-tight uppercase leading-none">
                   THE <span className="text-zetech-gold serif-display italic font-light lowercase">Sanctuary</span>
                 </h1>
-                <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400 mt-2">Zetech University Catholic Action</p>
-                            <AnimatePresence mode="wait">
+                <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-stone-500 mt-2 block">
+                  Covenanted Assembly Portal
+                </p>
+
+                <AnimatePresence mode="wait">
                   <motion.div
                     key={authMode + (resetSent ? '-sent' : '')}
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className="mt-6"
+                    className="mt-5"
                   >
-                    <h2 className="text-xl font-bold text-zetech-blue">
+                    <h2 className="text-lg font-black text-white tracking-tight">
                       {resetSent 
-                        ? 'Covenant Reset Sent' 
+                        ? 'Covenant Link Dispatched' 
                         : authMode === 'login' 
-                          ? 'Welcome Back' 
+                          ? 'Welcome back, Pilgrim' 
                           : authMode === 'signup' 
-                            ? 'Create Account' 
-                            : 'Restore Access'}
+                            ? 'Create Divine Covenant' 
+                            : 'Restore Sanctuary Link'}
                     </h2>
-                    <p className="text-stone-500 text-xs mt-1">
+                    <p className="text-stone-400 text-xs mt-1">
                       {resetSent 
-                        ? 'Check your university email (including spam/junk) for the sacred reset link.' 
+                        ? 'Check your university email inbox (and spam folder) for instructions.' 
                         : authMode === 'forgot' 
-                          ? 'Enter your email to receive a recovery link.' 
+                          ? 'Input your authenticated university email address to regenerate.' 
                           : authMode === 'login' 
-                            ? 'Peace be with you. Re-enter the sanctuary.' 
-                            : 'Join our spiritual collective today.'}
+                            ? 'Re-enter with peace. Synchronize with our community.' 
+                            : 'Join our spiritual collective assembly today.'}
                     </p>
                   </motion.div>
                 </AnimatePresence>
               </div>
+            </div>
 
+            {/* Forms section */}
+            <div className="space-y-5">
               {!resetSent ? (
                 <form onSubmit={authMode === 'forgot' ? handlePasswordReset : handleEmailAuth} className="space-y-4">
                   {authMode === 'signup' && (
                     <div className="relative group">
-                      <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
+                      <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 group-focus-within:text-zetech-gold transition-colors" />
                       <input
                         type="text"
                         required
-                        placeholder="Sacred Name"
-                        className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
+                        placeholder="Sacred Full Name"
+                        className="w-full pl-12 pr-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-zetech-gold/60 focus:bg-white/10 transition-all text-xs text-white font-medium outline-none placeholder:text-stone-500"
                         value={authForm.name}
                         onChange={(e) => setAuthForm({...authForm, name: e.target.value})}
                       />
@@ -642,26 +722,26 @@ Can you provide more insight, theological context, or a related prayer meditatio
                   )}
 
                   <div className="relative group">
-                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
+                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 group-focus-within:text-zetech-gold transition-colors" />
                     <input
                       type="email"
                       required
-                      placeholder="University Email"
-                      className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
+                      placeholder="University Email Address"
+                      className="w-full pl-12 pr-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-zetech-gold/60 focus:bg-white/10 transition-all text-xs text-white font-medium outline-none placeholder:text-stone-500"
                       value={authForm.email}
                       onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
                     />
                   </div>
 
                   {authMode !== 'forgot' && (
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <div className="relative group">
-                        <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-zetech-blue transition-colors" />
+                        <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 group-focus-within:text-zetech-gold transition-colors" />
                         <input
                           type="password"
                           required
                           placeholder="Secret Password"
-                          className="w-full pl-12 pr-5 py-4 rounded-xl bg-stone-50 border border-stone-200 focus:border-zetech-blue/50 focus:bg-white transition-all text-sm text-stone-900 font-medium outline-none"
+                          className="w-full pl-12 pr-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-zetech-gold/60 focus:bg-white/10 transition-all text-xs text-white font-medium outline-none placeholder:text-stone-500"
                           value={authForm.password}
                           onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
                         />
@@ -671,12 +751,35 @@ Can you provide more insight, theological context, or a related prayer meditatio
                           <button 
                             type="button" 
                             onClick={() => {setAuthMode('forgot'); setAuthError('');}}
-                            className="text-[10px] font-bold text-zetech-blue/60 hover:text-zetech-blue uppercase tracking-wider"
+                            className="text-[9px] font-bold text-zetech-gold/60 hover:text-zetech-gold uppercase tracking-wider transition-colors"
                           >
-                            Forgot?
+                            ForgotPassword?
                           </button>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Terms Checkbox integrated professionally for Signup */}
+                  {authMode === 'signup' && (
+                    <div className="p-3 bg-white/[0.02] rounded-2xl border border-white/5 flex items-start gap-3">
+                      <input 
+                        type="checkbox" 
+                        id="terms"
+                        className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 border-white/10 bg-transparent cursor-pointer"
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                      />
+                      <label htmlFor="terms" className="text-[10px] text-stone-400 leading-normal cursor-pointer">
+                        I recognize the sacred covenant & accept the {' '}
+                        <button 
+                          type="button"
+                          onClick={() => setShowPolicyModal(true)}
+                          className="text-zetech-gold underline hover:text-white"
+                        >
+                          Terms & Conditions
+                        </button> of ZUCA.
+                      </label>
                     </div>
                   )}
 
@@ -684,10 +787,10 @@ Can you provide more insight, theological context, or a related prayer meditatio
                     <motion.div 
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-center gap-2 text-red-600 text-[10px] font-bold"
+                      className="p-3.5 rounded-2xl bg-red-950/20 border border-red-500/10 flex items-center gap-2.5 text-red-400 text-[10px] font-bold"
                     >
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      {authError}
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                      <span>{authError}</span>
                     </motion.div>
                   )}
 
@@ -695,47 +798,33 @@ Can you provide more insight, theological context, or a related prayer meditatio
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-5 rounded-2xl bg-zetech-blue/5 border border-zetech-blue/10 mb-6"
+                      className="p-4 rounded-3xl bg-white/[0.02] border border-white/10 space-y-2.5"
                     >
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 rounded-lg bg-zetech-blue/10 flex items-center justify-center">
-                          <ShieldCheck className="w-3.5 h-3.5 text-zetech-blue" />
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-lg bg-zetech-gold/10 flex items-center justify-center">
+                          <ShieldCheck className="w-3 h-3 text-zetech-gold" />
                         </div>
-                        <h4 className="text-[10px] font-black text-zetech-blue uppercase tracking-[0.2em]">Sacred Recovery Guidelines</h4>
+                        <h4 className="text-[9px] font-black text-zetech-gold uppercase tracking-[0.2em]">Sacred Recovery Rules</h4>
                       </div>
-                      <ul className="space-y-2.5 text-[10.5px] text-stone-600 font-medium leading-relaxed">
-                        <li className="flex gap-2 underline decoration-zetech-gold/30">
-                          <span className="text-zetech-gold">◈</span>
-                          <span>Use your official <span className="font-bold text-zetech-blue">@zetech.ac.ke</span> email address.</span>
-                        </li>
-                        <li className="flex gap-2">
-                          <span className="text-zetech-gold">◈</span>
-                          <span>Check your <span className="font-bold">Spam/Junk</span> folder if the link is not in your Inbox.</span>
-                        </li>
-                        <li className="flex gap-2">
-                          <span className="text-zetech-gold">◈</span>
-                          <span>The link is sensitive and expires in <span className="font-bold">60 minutes</span>.</span>
-                        </li>
-                        <li className="flex gap-2">
-                          <span className="text-zetech-gold">◈</span>
-                          <span>Sender: <span className="font-bold italic">ZUCA Action</span> (via zuca2430@gmail.com).</span>
-                        </li>
-                      </ul>
+                      <p className="text-[10px] text-stone-400 leading-relaxed">
+                        Ensure you submit your official <span className="font-bold text-white">@zetech.ac.ke</span> email account. Re-verification sent links are valid for one hour.
+                      </p>
                     </motion.div>
                   )}
 
                   <motion.button
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ y: -1.5, scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                     disabled={authLoading}
                     type="submit"
-                    className="w-full bg-zetech-blue text-white py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[11px] shadow-lg shadow-zetech-blue/20 mt-4 flex items-center justify-center gap-2 hover:bg-[#002b55] transition-all"
+                    className="w-full bg-gradient-to-r from-zetech-blue to-[#004fa9] text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] shadow-lg shadow-zetech-blue/30 mt-5 flex items-center justify-center gap-2 hover:from-[#002f5e] hover:to-[#004182] transition-all cursor-pointer"
                   >
                     {authLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                       <>
-                        {authMode === 'login' ? 'ENTER SANCTUARY' : authMode === 'signup' ? 'JOIN ASSEMBLY' : 'SEND RESET LINK'} <ArrowRight className="w-4 h-4" />
+                        {authMode === 'login' ? 'ENTER SANCTUARY' : authMode === 'signup' ? 'JOIN ASSEMBLY' : 'SEND RESET LINK'} 
+                        <ArrowRight className="w-4 h-4" />
                       </>
                     )}
                   </motion.button>
@@ -744,57 +833,75 @@ Can you provide more insight, theological context, or a related prayer meditatio
                     <button 
                       type="button"
                       onClick={() => setAuthMode('login')}
-                      className="w-full text-center text-stone-400 font-bold tracking-wider block text-[10px] uppercase hover:text-zetech-blue transition-colors mt-2"
+                      className="w-full text-center text-stone-500 font-bold tracking-widest block text-[9px] uppercase hover:text-white transition-colors mt-3"
                     >
-                      Back to Login
+                      Return to Sign In
                     </button>
                   )}
                 </form>
               ) : (
-                <div className="space-y-6 text-center">
-                  <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-100">
-                    <Mail className="w-8 h-8 text-emerald-500" />
+                <div className="space-y-6 text-center py-6">
+                  <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+                    <Mail className="w-8 h-8 text-emerald-400 animate-bounce" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-black text-white text-base">Dispatched Safely</h3>
+                    <p className="text-xs text-stone-400 px-6">The recovery credentials are on the way. Confirm alignment within your client inbox.</p>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {setResetSent(false); setAuthMode('login');}}
-                    className="w-full bg-zetech-blue text-white py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[11px] shadow-lg"
+                    className="w-full bg-white text-stone-900 py-3.5 rounded-2xl font-black uppercase tracking-[0.22em] text-[10px] shadow-lg hover:bg-stone-100 transition-colors cursor-pointer"
                   >
-                    RETURN TO SANCTUARY
+                    Return to Login
                   </motion.button>
                 </div>
               )}
 
-              <div className="mt-8 space-y-4">
+              {/* Social Login Separator */}
+              <div className="mt-6 space-y-4">
                 <div className="relative">
-                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-stone-100"></div></div>
-                  <div className="relative flex justify-center text-[8px] uppercase font-black tracking-widest"><span className="bg-white px-3 text-stone-400">Social Access</span></div>
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/5"></div>
+                  </div>
+                  <div className="relative flex justify-center text-[8px] uppercase font-black tracking-widest">
+                    <span className="bg-neutral-950 px-3 text-stone-500">Fast Assembly Access</span>
+                  </div>
                 </div>
 
                 <button
                   onClick={handleLogin}
                   disabled={authLoading}
-                  className="w-full py-3.5 rounded-xl border border-stone-200 hover:bg-stone-50 transition-all text-[10px] font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2 text-stone-600"
+                  className="w-full py-3.5 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.07] transition-all text-[10px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2.5 text-stone-300 cursor-pointer"
                 >
                   <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-4 h-4" alt="Google" />
                   Continue with Google
                 </button>
 
                 <button 
-                  onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                  className="w-full text-center text-stone-400 font-bold tracking-wider block text-[10px] uppercase hover:text-zetech-blue transition-colors"
+                  onClick={() => {
+                    setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                    setAuthError('');
+                  }}
+                  className="w-full text-center text-stone-500 font-black tracking-widest block text-[9.5px] uppercase hover:text-zetech-gold transition-colors mt-2"
                 >
-                  {authMode === 'login' ? "New member? Sign up" : "Already a member? Login"}
+                  {authMode === 'login' ? "NEW HARVEST? JOIN NOW" : "ALREADY ENROLLED? SANCTIFY"}
                 </button>
               </div>
             </div>
-          </div>
 
-          <p className="text-center mt-12 text-white/30 text-[10px] font-bold uppercase tracking-[0.4em]">
-            &copy; {new Date().getFullYear()} ZUCA • INVENT YOUR FUTURE
-          </p>
+            {/* Bottom mini footnote */}
+            <div className="text-center mt-6 text-[8px] text-stone-600 font-bold uppercase tracking-[0.25em]">
+              Zetech University Catholic Action group &copy; {new Date().getFullYear()}
+            </div>
+          </div>
         </motion.div>
+
+        {/* Small terms link directly on footer */}
+        <p className="absolute bottom-4 text-center text-stone-600 text-[9px] uppercase tracking-[0.3em] z-10 font-bold">
+          Faith • Unity • Action • Invent Your Future
+        </p>
       </div>
     );
   }

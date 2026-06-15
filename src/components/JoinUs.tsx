@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, addDoc, query, onSnapshot, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { OperationType } from '../types';
-import { handleFirestoreError } from '../utils';
+import { handleFirestoreError, compressImage } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   UserPlus, 
@@ -24,27 +24,115 @@ import {
   Eye,
   Trash2,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Camera,
+  Palette,
+  Settings,
+  Sliders,
+  Type
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
-interface RegisteredMember {
+export interface RegisteredMember {
   id: string;
   fullName: string;
   admissionNumber: string;
   phoneNumber: string;
   schoolEmail: string;
+  photoUrl?: string; // Base64 compressed photo
+  cardTheme?: string; // Theme slug
   createdAt: any;
   joinDate?: string;
 }
+
+export const CARD_THEMES: Record<string, {
+  name: string;
+  emoji: string;
+  background: string;
+  borderStyle: string;
+  accentText: string;
+  badgeStyle: string;
+  sealColor: string;
+  textColor: string;
+  labelColor: string;
+}> = {
+  classic: {
+    name: 'Sanctuary Navy (Classic)',
+    emoji: '👑',
+    background: 'linear-gradient(135deg, #021222 0%, #003366 100%)',
+    borderStyle: 'border-3 border-amber-500',
+    accentText: 'text-amber-500',
+    badgeStyle: 'bg-amber-500/10 text-amber-500 border-amber-500/25 font-bold',
+    sealColor: 'text-amber-500/5',
+    textColor: 'text-white',
+    labelColor: 'text-amber-500'
+  },
+  emerald: {
+    name: 'Divine Emerald (Grace)',
+    emoji: '🌿',
+    background: 'linear-gradient(135deg, #04140a 0%, #0e3d28 100%)',
+    borderStyle: 'border-3 border-emerald-400',
+    accentText: 'text-emerald-400',
+    badgeStyle: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/25 font-bold',
+    sealColor: 'text-emerald-400/5',
+    textColor: 'text-white',
+    labelColor: 'text-emerald-400'
+  },
+  crimson: {
+    name: 'Vatican Crimson (Royal)',
+    emoji: '⛪',
+    background: 'linear-gradient(135deg, #180003 0%, #4a000c 100%)',
+    borderStyle: 'border-3 border-yellow-500',
+    accentText: 'text-yellow-500',
+    badgeStyle: 'bg-yellow-500/15 text-yellow-500 border-yellow-500/25 font-bold',
+    sealColor: 'text-yellow-500/5',
+    textColor: 'text-white',
+    labelColor: 'text-yellow-500'
+  },
+  violet: {
+    name: 'Royal Violet (Sovereign)',
+    emoji: '✨',
+    background: 'linear-gradient(135deg, #0d011c 0%, #250247 100%)',
+    borderStyle: 'border-3 border-amber-400',
+    accentText: 'text-amber-400',
+    badgeStyle: 'bg-amber-400/15 text-amber-400 border-amber-400/25 font-bold',
+    sealColor: 'text-amber-400/5',
+    textColor: 'text-white',
+    labelColor: 'text-amber-400'
+  },
+  obsidian: {
+    name: 'Midnight Obsidian (Steel)',
+    emoji: '🌑',
+    background: 'linear-gradient(135deg, #080a0e 0%, #1e2430 100%)',
+    borderStyle: 'border-3 border-stone-400',
+    accentText: 'text-stone-300',
+    badgeStyle: 'bg-white/10 text-white border-white/20 font-bold',
+    sealColor: 'text-white/5',
+    textColor: 'text-white',
+    labelColor: 'text-stone-300'
+  },
+  whitegold: {
+    name: 'Angelic Ivory (Light)',
+    emoji: '🕊️',
+    background: 'linear-gradient(135deg, #fbfaf5 0%, #ece9e0 100%)',
+    borderStyle: 'border-3 border-stone-850',
+    accentText: 'text-stone-800',
+    badgeStyle: 'bg-stone-800/10 text-stone-800 border-stone-800/25 font-bold',
+    sealColor: 'text-stone-800/5',
+    textColor: 'text-stone-900',
+    labelColor: 'text-stone-800 font-bold'
+  }
+};
 
 export default function JoinUs() {
   const [formData, setFormData] = useState({
     fullName: '',
     admissionNumber: '',
     phoneNumber: '',
-    schoolEmail: ''
+    schoolEmail: '',
+    photoUrl: '', // base64 compressed string
+    cardTheme: 'classic'
   });
   
   const [loading, setLoading] = useState(false);
@@ -54,6 +142,11 @@ export default function JoinUs() {
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
   const [previewMember, setPreviewMember] = useState<RegisteredMember | null>(null);
   const [exportingMember, setExportingMember] = useState<RegisteredMember | null>(null);
+  
+  // Custom high quality export configuration
+  const [exportQuality, setExportQuality] = useState<'standard' | 'high' | 'ultra'>('high');
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'png' | 'jpeg'>('pdf');
+
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Real-time listener for registrations (sorted client-side to prevent Firestore composite index request crashes)
@@ -80,6 +173,8 @@ export default function JoinUs() {
           admissionNumber: data.admissionNumber || '',
           phoneNumber: data.phoneNumber || '',
           schoolEmail: data.schoolEmail || '',
+          photoUrl: data.photoUrl || '',
+          cardTheme: data.cardTheme || 'classic',
           createdAt: rawDate,
           joinDate: displayDate
         } as RegisteredMember;
@@ -120,6 +215,8 @@ export default function JoinUs() {
         admissionNumber: formData.admissionNumber.trim().toUpperCase(),
         phoneNumber: formData.phoneNumber.trim(),
         schoolEmail: formData.schoolEmail.trim().toLowerCase(),
+        photoUrl: formData.photoUrl || '',
+        cardTheme: formData.cardTheme || 'classic',
         createdAt: serverTimestamp()
       });
       
@@ -129,6 +226,8 @@ export default function JoinUs() {
         admissionNumber: formData.admissionNumber.trim().toUpperCase(),
         phoneNumber: formData.phoneNumber.trim(),
         schoolEmail: formData.schoolEmail.trim().toLowerCase(),
+        photoUrl: formData.photoUrl || '',
+        cardTheme: formData.cardTheme || 'classic',
         createdAt: new Date(),
         joinDate: new Date().toLocaleDateString('en-GB', {
           day: 'numeric',
@@ -145,7 +244,9 @@ export default function JoinUs() {
         fullName: '',
         admissionNumber: '',
         phoneNumber: '',
-        schoolEmail: ''
+        schoolEmail: '',
+        photoUrl: '',
+        cardTheme: 'classic'
       });
 
       setNotification({ type: 'success', message: 'First Year student enrolled!' });
@@ -159,9 +260,9 @@ export default function JoinUs() {
     }
   };
 
-  const triggerExport = async (member: RegisteredMember, format: 'pdf' | 'png') => {
+  const triggerExport = async (member: RegisteredMember, format: 'pdf' | 'png' | 'jpeg' = 'pdf', resolutionScale = 3.5) => {
     try {
-      setNotification({ type: 'info', message: `Preparing high-quality ${format.toUpperCase()} card...` });
+      setNotification({ type: 'info', message: `Preparing high-quality ${format.toUpperCase()} (${resolutionScale}x scale) card...` });
       
       // Update state to render offscreen card (fallback)
       setExportingMember(member);
@@ -179,7 +280,7 @@ export default function JoinUs() {
       
       const canvas = await html2canvas(element, {
         backgroundColor: null, // Keeps the custom gradient transparency intact
-        scale: 3.5, // High DPI print resolution
+        scale: resolutionScale, // Customizable DPI print resolution scale
         useCORS: true,
         logging: false,
         allowTaint: true, // Prevents cross-origin taint errors
@@ -189,19 +290,21 @@ export default function JoinUs() {
         windowHeight: 220
       });
       
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const imgData = canvas.toDataURL(mimeType, 1.0);
+      const safeSuffix = format === 'pdf' ? 'pdf' : format;
       const safeFileName = `ZUCA_MEMBER_${member.fullName.toUpperCase().trim().replace(/\s+/g, '_')}`;
       
-      if (format === 'png') {
+      if (format !== 'pdf') {
         const link = document.createElement('a');
-        link.download = `${safeFileName}.png`;
+        link.download = `${safeFileName}.${safeSuffix}`;
         link.href = imgData;
         link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        setNotification({ type: 'success', message: 'Card saved as Image (PNG)!' });
+        setNotification({ type: 'success', message: `Card saved as Image (${format.toUpperCase()})!` });
       } else {
         // High quality standard landscape credit card dimensions [85.6mm x 54mm]
         const pdf = new jsPDF({
@@ -288,73 +391,87 @@ export default function JoinUs() {
         style={{ bottom: '-1000px', right: '-1000px', width: '350px', height: '220px' }}
         aria-hidden="true"
       >
-        {exportingMember && (
-          <div 
-            id="export-card-node"
-            className="w-[350px] h-[220px] text-white p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden"
-            style={{ 
-              fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
-              background: "linear-gradient(135deg, #001a36 0%, #002d5c 100%)",
-              border: "3px solid #d4af37",
-              boxShadow: "inset 0 0 20px rgba(0,0,0,0.4)"
-            }}
-          >
-            {/* Soft decorative background watermark cross */}
-            <div className="absolute right-[12px] bottom-[30px] text-[130px] font-light text-[#d4af37]/5 pointer-events-none select-none font-sans leading-none">
-              ✝
-            </div>
+        {exportingMember && (() => {
+          const t = CARD_THEMES[exportingMember.cardTheme || 'classic'] || CARD_THEMES.classic;
+          return (
+            <div 
+              id="export-card-node"
+              className={`w-[350px] h-[220px] ${t.textColor} p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden`}
+              style={{ 
+                fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+                background: t.background,
+                boxShadow: "inset 0 0 20px rgba(0,0,0,0.35)"
+              }}
+            >
+              {/* Dynamic Theme Border */}
+              <div className={`absolute inset-0 rounded-2xl pointer-events-none ${t.borderStyle}`} />
 
-            {/* Top Header Section */}
-            <div className="border-b border-[#d4af37]/30 pb-[6px] flex justify-between items-start text-left relative z-10">
-              <div>
-                <h3 className="text-[11px] font-black tracking-[0.14em] uppercase text-[#d4af37] leading-tight">ZETECH UNIVERSITY</h3>
-                <p className="text-[7.5px] font-extrabold text-white/95 uppercase tracking-[0.12em] leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
+              {/* Soft decorative background watermark cross */}
+              <div className={`absolute right-[12px] bottom-[30px] text-[130px] font-light ${t.sealColor} pointer-events-none select-none font-sans leading-none`}>
+                ✝
               </div>
-              <div className="text-[7px] font-mono font-black border border-[#d4af37]/60 rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none text-[#d4af37] bg-white/5">
-                YEAR 2026/2027
-              </div>
-            </div>
 
-            {/* Grid values of absolute clarity */}
-            <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
-              {/* Member Info Fields */}
-              <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
-                <div className="leading-none">
-                  <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">MEMBER NAME</span>
-                  <span className="text-[11px] font-black text-white uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{exportingMember.fullName}</span>
+              {/* Top Header Section */}
+              <div className="border-b pb-[6px] flex justify-between items-start text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                <div>
+                  <h3 className={`text-[11px] font-black tracking-[0.14em] uppercase ${t.labelColor} leading-tight`}>ZETECH UNIVERSITY</h3>
+                  <p className="text-[7.5px] font-extrabold uppercase tracking-[0.12em] leading-none mt-0.5 opacity-90">Catholic Action Fraternity (ZUCA)</p>
                 </div>
-                
-                <div className="leading-none">
-                  <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">ADMISSION NO</span>
-                  <span className="text-[10px] font-bold text-white uppercase font-mono tracking-wide mt-0.5 block">{exportingMember.admissionNumber}</span>
-                </div>
-
-                <div className="leading-none">
-                  <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">WHATSAPP & EMAIL</span>
-                  <span className="text-[8px] font-bold text-white/80 font-mono truncate max-w-[200px] block mt-0.5">{exportingMember.phoneNumber} • {exportingMember.schoolEmail}</span>
+                <div className={`text-[7px] font-mono font-black border rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none ${t.badgeStyle}`}>
+                  YEAR 2026/2027
                 </div>
               </div>
 
-              {/* Photo & Seal Column */}
-              <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
-                <div className="w-[56px] h-[56px] rounded-lg border border-[#d4af37]/40 bg-[#001021]/60 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner">
-                  {/* Subtle golden cross inside avatar placeholder */}
-                  <span className="text-[20px] text-[#d4af37]/40 font-light leading-none">✝</span>
-                  <span className="text-[5px] font-extrabold text-[#d4af37]/80 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
-                  <div className="absolute inset-0 border border-white/5 rounded-lg pointer-events-none" />
+              {/* Grid values of absolute clarity */}
+              <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
+                {/* Member Info Fields */}
+                <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
+                  <div className="leading-none">
+                    <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>MEMBER NAME</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{exportingMember.fullName}</span>
+                  </div>
+                  
+                  <div className="leading-none">
+                    <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>ADMISSION NO</span>
+                    <span className="text-[10px] font-bold uppercase font-mono tracking-wide mt-0.5 block">{exportingMember.admissionNumber}</span>
+                  </div>
+
+                  <div className="leading-none">
+                    <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>WHATSAPP & EMAIL</span>
+                    <span className="text-[8px] font-bold font-mono truncate max-w-[200px] block mt-0.5 opacity-80">{exportingMember.phoneNumber} • {exportingMember.schoolEmail}</span>
+                  </div>
+                </div>
+
+                {/* Photo Column */}
+                <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
+                  <div className="w-[56px] h-[56px] rounded-lg border bg-black/20 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                    {exportingMember.photoUrl ? (
+                      <img 
+                        src={exportingMember.photoUrl} 
+                        alt="Profile photo" 
+                        className="w-full h-full object-cover object-center"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <>
+                        <span className={`text-[20px] ${t.labelColor} font-light leading-none`}>✝</span>
+                        <span className="text-[5px] font-extrabold opacity-70 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Pure typographic Footer stamp style block */}
-            <div className="border-t border-[#d4af37]/30 pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10">
-              <span className="uppercase text-white/50 tracking-wide">MEMBER ID: #{exportingMember.id.slice(-8).toUpperCase()}</span>
-              <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
-              </span>
+              {/* Pure typographic Footer stamp style block */}
+              <div className="border-t pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                <span className="uppercase opacity-60 tracking-wide">MEMBER ID: #{exportingMember.id.slice(-8).toUpperCase()}</span>
+                <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Modern High-Conversion Header Banner */}
@@ -481,6 +598,104 @@ export default function JoinUs() {
                 </div>
               </div>
 
+              {/* BRAND NEW: Photo Upload & Theme Selector (Modern Premium Addition) */}
+              <div className="border-t border-stone-100 dark:border-white/5 pt-6 space-y-6">
+                <h4 className="text-xs font-black text-stone-950 dark:text-stone-300 uppercase tracking-widest flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-amber-500 animate-[spin_6s_linear_infinite]" /> Card Customization Options
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Photo Upload Box */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-[#003366] dark:text-brand-400 flex items-center gap-1.5">
+                      <Camera className="w-3.5 h-3.5 text-amber-500" /> Passport Portrait (Optional)
+                    </label>
+                    
+                    <div className="flex items-center gap-4 p-4 rounded-xl border border-stone-200 dark:border-white/5 bg-stone-50/50 dark:bg-stone-950/40">
+                      <div className="relative w-16 h-16 rounded-xl border-2 border-dashed border-stone-300 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0 bg-stone-100/50 dark:bg-stone-900/50">
+                        {formData.photoUrl ? (
+                          <>
+                            <img src={formData.photoUrl} alt="Thumbnail preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, photoUrl: '' }))}
+                              className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[9px] font-black uppercase tracking-widest"
+                            >
+                              Reset
+                            </button>
+                          </>
+                        ) : (
+                          <Camera className="w-5 h-5 text-stone-400 dark:text-stone-600" />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 space-y-1.5 text-left">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          id="member-photo-picker"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                setNotification({ type: 'info', message: 'Optimizing photo...' });
+                                const compressedB64 = await compressImage(file, 220, 220, 0.75);
+                                setFormData(prev => ({ ...prev, photoUrl: compressedB64 }));
+                                setNotification({ type: 'success', message: 'Portrait optimized!' });
+                                setTimeout(() => setNotification(null), 2000);
+                              } catch (err) {
+                                console.error('Image compression failed', err);
+                                setNotification({ type: 'error', message: 'Image configuration failed' });
+                                setTimeout(() => setNotification(null), 3000);
+                              }
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('member-photo-picker')?.click()}
+                          className="font-black text-[10px] text-white bg-[#003366] hover:bg-brand-900 px-3.5 py-2 rounded-lg uppercase tracking-wider block transition-colors cursor-pointer shadow-sm"
+                        >
+                          {formData.photoUrl ? 'Change Photo' : 'Upload photo'}
+                        </button>
+                        <span className="text-[9px] text-stone-400 block font-medium leading-tight">JPEG/PNG, compressed on your browser instantly.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Themes Selection Box */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-[#003366] dark:text-brand-400 flex items-center gap-1.5">
+                      <Palette className="w-3.5 h-3.5 text-amber-500" /> Select Card Theme & Style
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1">
+                      {Object.entries(CARD_THEMES).map(([slug, t]) => (
+                        <button
+                          key={slug}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, cardTheme: slug }))}
+                          className={`flex items-center gap-1.5 p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                            formData.cardTheme === slug 
+                              ? 'border-[#003366] dark:border-amber-400 bg-[#003366]/5 dark:bg-amber-400/5 shadow-sm scale-[0.98]' 
+                              : 'border-stone-200 dark:border-white/5 bg-transparent opacity-85 hover:opacity-100 hover:bg-stone-50/50 hover:dark:bg-white/5'
+                          }`}
+                        >
+                          <span className="text-xs shrink-0">{t.emoji}</span>
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-black text-stone-900 dark:text-white truncate block uppercase leading-none">{slug}</span>
+                          </div>
+                          {formData.cardTheme === slug && (
+                            <Check className="w-3 h-3 text-[#003366] dark:text-amber-400 shrink-0 ml-auto" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Submit Button */}
               <motion.button
                 whileHover={{ scale: 1.01, y: -2 }}
@@ -505,118 +720,132 @@ export default function JoinUs() {
 
           {/* LAST REGISTERED QUICK PREVIEW PANEL */}
           <AnimatePresence mode="wait">
-            {lastRegistered && (
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                className="bg-emerald-500/[0.04] dark:bg-emerald-500/5 border-2 border-dashed border-emerald-500/20 p-6 rounded-[28px] text-left relative"
-              >
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                  <div>
-                    <h4 className="text-sm font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-tight">Active Enrollment Feedback</h4>
-                    <p className="text-[10px] text-emerald-600 dark:text-emerald-500 font-extrabold uppercase tracking-wider">Student successfully registered. Card is fully prepared below.</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button 
-                      onClick={() => triggerExport(lastRegistered, 'pdf')} 
-                      className="px-3 py-1.5 bg-[#003366] hover:bg-[#002244] text-white text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
-                      title="Download as printable PDF"
-                    >
-                      <Download className="w-3 h-3" /> PDF
-                    </button>
-                    <button 
-                      onClick={() => triggerExport(lastRegistered, 'png')} 
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
-                      title="Save as PNG image"
-                    >
-                      <Download className="w-3 h-3" /> PNG Image
-                    </button>
-                    <button 
-                      onClick={() => setLastRegistered(null)}
-                      className="p-1.5 hover:bg-stone-200 dark:hover:bg-white/10 rounded-lg text-stone-500 cursor-pointer transition-all"
-                      title="Dismiss"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* THE CLEAR AND CONCISE MEMBERSHIP CARD DISPLAY (LANDSCAPE, Swiss Modernist Style, NO IMAGES) */}
-                <div className="flex justify-center py-4 bg-white/45 dark:bg-stone-900/40 rounded-2xl border border-stone-200/40 dark:border-white/5 shadow-inner">
-                  
-                  {/* Target node layout template for exact high-dpi screenshot */}
-                  <div className="relative p-2">
-                    <div 
-                      id={`printable-card-${lastRegistered.id}`}
-                      className="w-[350px] h-[220px] text-white p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden shadow-2xl"
-                      style={{ 
-                        fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
-                        background: "linear-gradient(135deg, #001a36 0%, #002d5c 100%)",
-                        border: "3px solid #d4af37",
-                        boxShadow: "inset 0 0 20px rgba(0,0,0,0.4)"
-                      }}
-                    >
-                      {/* Soft decorative background watermark cross */}
-                      <div className="absolute right-[12px] bottom-[30px] text-[130px] font-light text-[#d4af37]/5 pointer-events-none select-none font-sans leading-none">
-                        ✝
-                      </div>
-
-                      {/* Top Header Section */}
-                      <div className="border-b border-[#d4af37]/30 pb-[6px] flex justify-between items-start text-left relative z-10">
-                        <div>
-                          <h3 className="text-[11px] font-black tracking-[0.14em] uppercase text-[#d4af37] leading-tight">ZETECH UNIVERSITY</h3>
-                          <p className="text-[7.5px] font-extrabold text-white/95 uppercase tracking-[0.12em] leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
-                        </div>
-                        <div className="text-[7px] font-mono font-black border border-[#d4af37]/60 rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none text-[#d4af37] bg-white/5">
-                          YEAR 2026/2027
-                        </div>
-                      </div>
-
-                      {/* Grid values of absolute clarity */}
-                      <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
-                        {/* Member Info Fields */}
-                        <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
-                          <div className="leading-none">
-                            <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">MEMBER NAME</span>
-                            <span className="text-[11px] font-black text-white uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{lastRegistered.fullName}</span>
-                          </div>
-                          
-                          <div className="leading-none">
-                            <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">ADMISSION NO</span>
-                            <span className="text-[10px] font-bold text-white uppercase font-mono tracking-wide mt-0.5 block">{lastRegistered.admissionNumber}</span>
-                          </div>
-
-                          <div className="leading-none">
-                            <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">WHATSAPP & EMAIL</span>
-                            <span className="text-[8px] font-bold text-white/80 font-mono truncate max-w-[200px] block mt-0.5">{lastRegistered.phoneNumber} • {lastRegistered.schoolEmail}</span>
-                          </div>
-                        </div>
-
-                        {/* Photo & Seal Column */}
-                        <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
-                          <div className="w-[56px] h-[56px] rounded-lg border border-[#d4af37]/40 bg-[#001021]/60 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner">
-                            {/* Subtle golden cross inside avatar placeholder */}
-                            <span className="text-[20px] text-[#d4af37]/40 font-light leading-none">✝</span>
-                            <span className="text-[5px] font-extrabold text-[#d4af37]/80 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
-                            <div className="absolute inset-0 border border-white/5 rounded-lg pointer-events-none" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Typographic Footer stamp style block */}
-                      <div className="border-t border-[#d4af37]/30 pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10">
-                        <span className="uppercase text-white/50 tracking-wide">MEMBER ID: #{lastRegistered.id.slice(-8).toUpperCase()}</span>
-                        <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
-                          <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
-                        </span>
-                      </div>
+            {lastRegistered && (() => {
+              const t = CARD_THEMES[lastRegistered.cardTheme || 'classic'] || CARD_THEMES.classic;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  className="bg-emerald-500/[0.04] dark:bg-emerald-500/5 border-2 border-dashed border-emerald-500/20 p-6 rounded-[28px] text-left relative"
+                >
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div>
+                      <h4 className="text-sm font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-tight">Active Enrollment Feedback</h4>
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-500 font-extrabold uppercase tracking-wider">Student successfully registered. Card is fully prepared below.</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button 
+                        onClick={() => triggerExport(lastRegistered, 'pdf', 3.5)} 
+                        className="px-3 py-1.5 bg-[#003366] hover:bg-[#002244] text-white text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                        title="Download as printable PDF"
+                      >
+                        <Download className="w-3 h-3" /> PDF
+                      </button>
+                      <button 
+                        onClick={() => triggerExport(lastRegistered, 'png', 3.5)} 
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                        title="Save as PNG image"
+                      >
+                        <Download className="w-3 h-3" /> PNG Image
+                      </button>
+                      <button 
+                        onClick={() => setLastRegistered(null)}
+                        className="p-1.5 hover:bg-stone-200 dark:hover:bg-white/10 rounded-lg text-stone-500 cursor-pointer transition-all"
+                        title="Dismiss"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
 
-                </div>
-              </motion.div>
-            )}
+                  {/* THE CLEAR AND CONCISE MEMBERSHIP CARD DISPLAY (LANDSCAPE, Swiss Modernist Style, NO IMAGES) */}
+                  <div className="flex justify-center py-4 bg-white/45 dark:bg-stone-900/40 rounded-2xl border border-stone-200/40 dark:border-white/5 shadow-inner">
+                    
+                    {/* Target node layout template for exact high-dpi screenshot */}
+                    <div className="relative p-2">
+                       <div 
+                        id={`printable-card-${lastRegistered.id}`}
+                        className={`w-[350px] h-[220px] ${t.textColor} p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden shadow-2xl`}
+                        style={{ 
+                          fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+                          background: t.background,
+                          boxShadow: "inset 0 0 20px rgba(0,0,0,0.35)"
+                        }}
+                      >
+                        {/* Dynamic Theme Border */}
+                        <div className={`absolute inset-0 rounded-2xl pointer-events-none ${t.borderStyle}`} />
+
+                        {/* Soft decorative background watermark cross */}
+                        <div className={`absolute right-[12px] bottom-[30px] text-[130px] font-light ${t.sealColor} pointer-events-none select-none font-sans leading-none`}>
+                          ✝
+                        </div>
+
+                        {/* Top Header Section */}
+                        <div className="border-b pb-[6px] flex justify-between items-start text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                          <div>
+                            <h3 className={`text-[11px] font-black tracking-[0.14em] uppercase ${t.labelColor} leading-tight`}>ZETECH UNIVERSITY</h3>
+                            <p className="text-[7.5px] font-extrabold uppercase tracking-[0.12em] leading-none mt-0.5 opacity-90">Catholic Action Fraternity (ZUCA)</p>
+                          </div>
+                          <div className={`text-[7px] font-mono font-black border rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none ${t.badgeStyle}`}>
+                            YEAR 2026/2027
+                          </div>
+                        </div>
+
+                        {/* Grid values of absolute clarity */}
+                        <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
+                          {/* Member Info Fields */}
+                          <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
+                            <div className="leading-none">
+                              <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>MEMBER NAME</span>
+                              <span className="text-[11px] font-black uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{lastRegistered.fullName}</span>
+                            </div>
+                            
+                            <div className="leading-none">
+                              <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>ADMISSION NO</span>
+                              <span className="text-[10px] font-bold uppercase font-mono tracking-wide mt-0.5 block">{lastRegistered.admissionNumber}</span>
+                            </div>
+
+                            <div className="leading-none">
+                              <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>WHATSAPP & EMAIL</span>
+                              <span className="text-[8px] font-bold font-mono truncate max-w-[200px] block mt-0.5 opacity-80">{lastRegistered.phoneNumber} • {lastRegistered.schoolEmail}</span>
+                            </div>
+                          </div>
+
+                          {/* Photo Column */}
+                          <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
+                            <div className="w-[56px] h-[56px] rounded-lg border bg-black/20 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                              {lastRegistered.photoUrl ? (
+                                <img 
+                                  src={lastRegistered.photoUrl} 
+                                  alt="Profile photo" 
+                                  className="w-full h-full object-cover object-center"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <>
+                                  <span className={`text-[20px] ${t.labelColor} font-light leading-none`}>✝</span>
+                                  <span className="text-[5px] font-extrabold opacity-70 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Typographic Footer stamp style block */}
+                        <div className="border-t pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                          <span className="uppercase opacity-60 tracking-wide">MEMBER ID: #{lastRegistered.id.slice(-8).toUpperCase()}</span>
+                          <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </motion.div>
+              );
+            })()}
           </AnimatePresence>
         </div>
 
@@ -738,108 +967,167 @@ export default function JoinUs() {
                {/* Landscape Card Rendering Node Holder */}
               <div className="bg-stone-100 dark:bg-stone-950 p-4 rounded-2xl border border-stone-100 dark:border-white/5 inline-block mx-auto relative group shadow-inner">
                 
-                <div 
-                  id={`printable-card-${previewMember.id}`}
-                  className="w-[350px] h-[220px] text-white p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden shadow-2xl"
-                  style={{ 
-                    fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
-                    background: "linear-gradient(135deg, #001a36 0%, #002d5c 100%)",
-                    border: "3px solid #d4af37",
-                    boxShadow: "inset 0 0 20px rgba(0,0,0,0.4)"
-                  }}
-                >
-                  {/* Soft decorative background watermark cross */}
-                  <div className="absolute right-[12px] bottom-[30px] text-[130px] font-light text-[#d4af37]/5 pointer-events-none select-none font-sans leading-none">
-                    ✝
-                  </div>
+                {(() => {
+                  const t = CARD_THEMES[previewMember.cardTheme || 'classic'] || CARD_THEMES.classic;
+                  return (
+                    <div 
+                      id={`printable-card-${previewMember.id}`}
+                      className={`w-[350px] h-[220px] ${t.textColor} p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden shadow-2xl`}
+                      style={{ 
+                        fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+                        background: t.background,
+                        boxShadow: "inset 0 0 20px rgba(0,0,0,0.35)"
+                      }}
+                    >
+                      {/* Dynamic Theme Border */}
+                      <div className={`absolute inset-0 rounded-2xl pointer-events-none ${t.borderStyle}`} />
 
-                  {/* Top Header Section */}
-                  <div className="border-b border-[#d4af37]/30 pb-[6px] flex justify-between items-start text-left relative z-10">
-                    <div>
-                      <h3 className="text-[11px] font-black tracking-[0.14em] uppercase text-[#d4af37] leading-tight">ZETECH UNIVERSITY</h3>
-                      <p className="text-[7.5px] font-extrabold text-white/95 uppercase tracking-[0.12em] leading-none mt-0.5">Catholic Action Fraternity (ZUCA)</p>
-                    </div>
-                    <div className="text-[7px] font-mono font-black border border-[#d4af37]/60 rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none text-[#d4af37] bg-white/5">
-                      YEAR 2026/2027
-                    </div>
-                  </div>
-
-                  {/* Grid values of absolute clarity */}
-                  <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
-                    {/* Member Info Fields */}
-                    <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
-                      <div className="leading-none">
-                        <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">MEMBER NAME</span>
-                        <span className="text-[11px] font-black text-white uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{previewMember.fullName}</span>
-                      </div>
-                      
-                      <div className="leading-none">
-                        <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">ADMISSION NO</span>
-                        <span className="text-[10px] font-bold text-white uppercase font-mono tracking-wide mt-0.5 block">{previewMember.admissionNumber}</span>
+                      {/* Soft decorative background watermark cross */}
+                      <div className={`absolute right-[12px] bottom-[30px] text-[130px] font-light ${t.sealColor} pointer-events-none select-none font-sans leading-none`}>
+                        ✝
                       </div>
 
-                      <div className="leading-none">
-                        <span className="text-[6px] font-extrabold text-[#d4af37] uppercase tracking-[0.18em] block font-mono">WHATSAPP & EMAIL</span>
-                        <span className="text-[8px] font-bold text-white/80 font-mono truncate max-w-[200px] block mt-0.5">{previewMember.phoneNumber} • {previewMember.schoolEmail}</span>
+                      {/* Top Header Section */}
+                      <div className="border-b pb-[6px] flex justify-between items-start text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                        <div>
+                          <h3 className={`text-[11px] font-black tracking-[0.14em] uppercase ${t.labelColor} leading-tight`}>ZETECH UNIVERSITY</h3>
+                          <p className="text-[7.5px] font-extrabold uppercase tracking-[0.12em] leading-none mt-0.5 opacity-90">Catholic Action Fraternity (ZUCA)</p>
+                        </div>
+                        <div className={`text-[7px] font-mono font-black border rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none ${t.badgeStyle}`}>
+                          YEAR 2026/2027
+                        </div>
+                      </div>
+
+                      {/* Grid values of absolute clarity */}
+                      <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
+                        {/* Member Info Fields */}
+                        <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
+                          <div className="leading-none">
+                            <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>MEMBER NAME</span>
+                            <span className="text-[11px] font-black uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{previewMember.fullName}</span>
+                          </div>
+                          
+                          <div className="leading-none">
+                            <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>ADMISSION NO</span>
+                            <span className="text-[10px] font-bold uppercase font-mono tracking-wide mt-0.5 block">{previewMember.admissionNumber}</span>
+                          </div>
+
+                          <div className="leading-none">
+                            <span className={`text-[6px] font-extrabold uppercase tracking-[0.18em] block font-mono ${t.labelColor}`}>WHATSAPP & EMAIL</span>
+                            <span className="text-[8px] font-bold font-mono truncate max-w-[200px] block mt-0.5 opacity-80">{previewMember.phoneNumber} • {previewMember.schoolEmail}</span>
+                          </div>
+                        </div>
+
+                        {/* Photo Column */}
+                        <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
+                          <div className="w-[56px] h-[56px] rounded-lg border bg-black/20 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                            {previewMember.photoUrl ? (
+                              <img 
+                                src={previewMember.photoUrl} 
+                                alt="Profile photo" 
+                                className="w-full h-full object-cover object-center"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <>
+                                <span className={`text-[20px] ${t.labelColor} font-light leading-none`}>✝</span>
+                                <span className="text-[5px] font-extrabold opacity-70 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Typographic Footer stamp style block */}
+                      <div className="border-t pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.15)' }}>
+                        <span className="uppercase opacity-60 tracking-wide">MEMBER ID: #{previewMember.id.slice(-8).toUpperCase()}</span>
+                        <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
+                          <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
+                        </span>
                       </div>
                     </div>
-
-                    {/* Photo & Seal Column */}
-                    <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
-                      <div className="w-[56px] h-[56px] rounded-lg border border-[#d4af37]/40 bg-[#001021]/60 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner">
-                        {/* Subtle golden cross inside avatar placeholder */}
-                        <span className="text-[20px] text-[#d4af37]/40 font-light leading-none">✝</span>
-                        <span className="text-[5px] font-extrabold text-[#d4af37]/80 uppercase tracking-widest mt-1 font-mono">PILGRIM</span>
-                        <div className="absolute inset-0 border border-white/5 rounded-lg pointer-events-none" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Typographic Footer stamp style block */}
-                  <div className="border-t border-[#d4af37]/30 pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10">
-                    <span className="uppercase text-white/50 tracking-wide">MEMBER ID: #{previewMember.id.slice(-8).toUpperCase()}</span>
-                    <span className="text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
-                      <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> COVENANT MEMBER
-                    </span>
-                  </div>
-                </div>
+                  );
+                })()}
 
               </div>
 
               {/* Action Buttons inside Modal */}
-              <div className="flex flex-col gap-2.5">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Resolution Scale (DPI Quality)</span>
+                  <div className="flex gap-1.5">
+                    {(['standard', 'high', 'ultra'] as const).map((quality) => (
+                      <button
+                        key={quality}
+                        type="button"
+                        onClick={() => setExportQuality(quality)}
+                        className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-md border transition-all cursor-pointer ${
+                          exportQuality === quality
+                            ? 'bg-[#003366] text-white border-transparent'
+                            : 'bg-transparent text-stone-500 border-stone-200 dark:border-white/10 hover:bg-stone-50 hover:dark:bg-white/5'
+                        }`}
+                      >
+                        {quality === 'standard' ? 'Compact' : quality === 'high' ? 'HD Print' : 'Ultra HD'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
                   <motion.button 
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => triggerExport(previewMember, 'pdf')}
-                    className="bg-[#003366] hover:bg-[#002244] text-white py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      const dpi = exportQuality === 'standard' ? 1.5 : exportQuality === 'ultra' ? 5.0 : 3.5;
+                      triggerExport(previewMember, 'pdf', dpi);
+                    }}
+                    className="bg-[#003366] hover:bg-[#002244] text-white py-3 rounded-xl font-black uppercase tracking-wider text-[9px] shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer transition-all"
                   >
-                    <Download className="w-4 h-4 text-white" /> Download PDF
+                    <Download className="w-3.5 h-3.5" />
+                    <span>PDF Print</span>
                   </motion.button>
                   <motion.button 
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => triggerExport(previewMember, 'png')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      const dpi = exportQuality === 'standard' ? 1.5 : exportQuality === 'ultra' ? 5.0 : 3.5;
+                      triggerExport(previewMember, 'png', dpi);
+                    }}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black uppercase tracking-wider text-[9px] shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer transition-all"
                   >
-                    <Download className="w-4 h-4 text-white" /> Save as PNG
+                    <Download className="w-3.5 h-3.5" />
+                    <span>PNG Lossless</span>
+                  </motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      const dpi = exportQuality === 'standard' ? 1.5 : exportQuality === 'ultra' ? 5.0 : 3.5;
+                      triggerExport(previewMember, 'jpeg', dpi);
+                    }}
+                    className="bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-black uppercase tracking-wider text-[9px] shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer transition-all"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>JPEG Quality</span>
                   </motion.button>
                 </div>
-                <motion.button 
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => handleDeleteRegistration(previewMember.id)}
-                  className="w-full border-2 border-rose-500/30 hover:border-transparent text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white py-3 rounded-xl font-black uppercase tracking-widest text-[9px] shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all mt-1 bg-transparent"
-                >
-                  <Trash2 className="w-3.5 h-3.5" /> Delete Registration Card
-                </motion.button>
-                <button 
-                  onClick={() => setPreviewMember(null)}
-                  className="w-full py-2 hover:bg-stone-100 dark:hover:bg-white/5 transition-all text-[10px] text-stone-500 font-extrabold uppercase tracking-widest cursor-pointer mt-1"
-                >
-                  Back to Registration
-                </button>
+
+                <div className="flex flex-col gap-2 pt-2 border-t border-stone-150 dark:border-white/5">
+                  <motion.button 
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => handleDeleteRegistration(previewMember.id)}
+                    className="w-full border border-rose-500/20 hover:border-transparent text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white py-3 rounded-xl font-black uppercase tracking-widest text-[9px] shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all bg-transparent"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Delete Registration Card
+                  </motion.button>
+                  <button 
+                    onClick={() => setPreviewMember(null)}
+                    className="w-full py-2 hover:bg-stone-100 dark:hover:bg-white/5 transition-all text-[10px] text-stone-500 font-extrabold uppercase tracking-widest cursor-pointer"
+                  >
+                    Back to Registration
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

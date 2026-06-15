@@ -142,6 +142,8 @@
         "admissionNumber": { "type": "string" },
         "phoneNumber": { "type": "string" },
         "schoolEmail": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "cardTheme": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["fullName", "admissionNumber", "phoneNumber", "schoolEmail", "createdAt"]
@@ -169,7 +171,7 @@
         "description": { "type": "string" },
         "date": { "type": "string", "format": "date-time" },
         "location": { "type": "string" },
-        "type": { "type": "string", "enum": ["Mass", "Meeting", "Social", "Other"] },
+        "type": { "type": "string", "enum": ["Mass", "Meeting", "Social", "Other", "Choir", "Jumuiya", "Mission", "Adoration", "Seminar"] },
         "downloadUrl": { "type": "string" },
         "addedBy": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }

@@ -23,8 +23,22 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isAiConfigured, setIsAiConfigured] = useState<boolean | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Check backend Gemini health
+  useEffect(() => {
+    fetch('/api/chat/health')
+      .then(res => res.json())
+      .then(data => {
+        setIsAiConfigured(!!data.keyConfigured);
+      })
+      .catch(err => {
+        console.warn("Could not fetch chat health:", err);
+        setIsAiConfigured(false);
+      });
+  }, []);
 
   // Initialize Speech Recognition
   useEffect(() => {
@@ -289,11 +303,11 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
                   </div>
                   <div>
                     <h3 className="font-black text-base tracking-tight leading-tight uppercase">Sanctuary <span className="text-zetech-gold serif-display italic font-light lowercase">Spirit</span></h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex gap-0.5">
-                         {[1,2].map(i => <div key={i} className="w-1 h-2.5 bg-zetech-gold/20 rounded-full" />)}
-                      </div>
-                      <span className="text-[8px] text-zetech-gold/80 uppercase tracking-[0.3em] font-black italic">Active</span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${isAiConfigured === true ? 'bg-emerald-400 animate-pulse' : isAiConfigured === false ? 'bg-amber-400' : 'bg-stone-400 animate-bounce'}`} />
+                      <span className="text-[7.5px] text-zetech-gold/90 uppercase tracking-[0.2em] font-black">
+                        {isAiConfigured === true ? 'AI Connected' : isAiConfigured === false ? 'Local Spirit' : 'Syncing...'}
+                      </span>
                     </div>
                   </div>
                 </div>
