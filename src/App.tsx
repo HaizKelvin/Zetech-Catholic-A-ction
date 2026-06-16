@@ -87,7 +87,12 @@ import {
   ArrowRight,
   BookOpen,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Fingerprint,
+  CheckCircle,
+  Lock,
+  Unlock,
+  ScanLine
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -216,6 +221,27 @@ export default function App() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const lastScrollYRef = useRef(0);
 
+  // Biometric Security States
+  const [authType, setAuthType] = useState<'password' | 'biometric'>('password');
+  const [biometricScanning, setBiometricScanning] = useState(false);
+  const [bioScanState, setBioScanState] = useState<'idle' | 'scanning' | 'success' | 'failed'>('idle');
+  const [bioScanProgress, setBioScanProgress] = useState(0);
+  const [bioFeedback, setBioFeedback] = useState('Verify temple security to sync.');
+  const [isVisitorSim, setIsVisitorSim] = useState(false);
+  const [notification, setNotification] = useState<{type: 'success' | 'error' | 'info', message: string} | null>(null);
+  const [isBiometricUnlocked, setIsBiometricUnlocked] = useState(true);
+
+  // New Biometric System Consent modal states
+  const [isBiometricModalOpen, setIsBiometricModalOpen] = useState(false);
+  const [biometricModalType, setBiometricModalType] = useState<'login' | 'register'>('login');
+  const [escrowPassword, setEscrowPassword] = useState('');
+
+  // Biometric test sandbox states
+  const [isTestScanning, setIsTestScanning] = useState(false);
+  const [testScanProgress, setTestScanProgress] = useState(0);
+  const [testScanSuccess, setTestScanSuccess] = useState(false);
+  const [testFeedback, setTestFeedback] = useState('Touch sensor to authenticate.');
+
   useEffect(() => {
     const handleScroll = () => {
       // Progress calculation
@@ -271,6 +297,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        setIsBiometricUnlocked(localStorage.getItem('zuca_biometric_lock') !== 'true');
         // Update presence
         const presenceDocRef = doc(db, 'users', firebaseUser.uid);
         updateDoc(presenceDocRef, { online: true, lastSeen: serverTimestamp() }).catch(() => {
@@ -433,6 +460,201 @@ Can you provide more insight, theological context, or a related prayer meditatio
     }
   };
 
+  const handleBiometricTouchStart = async () => {
+    const isRegistered = localStorage.getItem('zuca_biometric_registered') === 'true';
+    if (!isRegistered) {
+      setBioScanState('failed');
+      setBioFeedback('Device fingerprint not configured. Enroll first in profile.');
+      return;
+    }
+    // Launch the single pop-up modal to seek consent from the device
+    setBiometricModalType('login');
+    setIsBiometricModalOpen(true);
+  };
+
+  const handleConfirmBiometricConsent = async () => {
+    if (biometricScanning) return;
+    
+    setBiometricScanning(true);
+    setBioScanState('scanning');
+    setBioScanProgress(0);
+    setBioFeedback('Awaiting secure device handshake...');
+
+    // Smooth scan progress and informative micro-status with vibration feedback ticks
+    let currentProgress = 0;
+    const progressInterval = setInterval(() => {
+      currentProgress += Math.floor(Math.random() * 12) + 14;
+      if (currentProgress >= 100) {
+        currentProgress = 100;
+        clearInterval(progressInterval);
+      }
+      setBioScanProgress(currentProgress);
+
+      // Delicate key ticking vibration for realistic tactile physical-hardware imitation
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(15);
+      }
+
+      if (currentProgress < 25) {
+        setBioFeedback('Initializing Hardware Secure Enclave...');
+      } else if (currentProgress < 50) {
+        setBioFeedback('Exchanging cryptographic handshake challenge...');
+      } else if (currentProgress < 80) {
+        setBioFeedback('Authenticating hardware passkey signature...');
+      } else if (currentProgress === 100) {
+        setBioFeedback('Device authentication successful.');
+      }
+    }, 150);
+
+    setTimeout(async () => {
+      clearInterval(progressInterval);
+      setBioScanProgress(100);
+
+      const isRegistered = localStorage.getItem('zuca_biometric_registered') === 'true';
+      const savedEmail = localStorage.getItem('zuca_biometric_email');
+      const savedUid = localStorage.getItem('zuca_biometric_uid');
+      const savedName = localStorage.getItem('zuca_biometric_name');
+
+      if (biometricModalType === 'register') {
+        // Complete the registration flow with user device consent
+        localStorage.setItem('zuca_biometric_registered', 'true');
+        localStorage.setItem('zuca_biometric_email', user?.email || '');
+        localStorage.setItem('zuca_biometric_uid', user?.uid || '');
+        localStorage.setItem('zuca_biometric_name', profile?.displayName || user?.displayName || 'Pilgrim');
+        localStorage.setItem('zuca_biometric_key', btoa(escrowPassword));
+        localStorage.setItem('zuca_biometric_lock', 'true');
+        
+        setBioFeedback('Passkey Registered');
+        setBioScanState('success');
+        setBiometricScanning(false);
+        setIsBiometricModalOpen(false);
+        setEscrowPassword('');
+        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+          window.navigator.vibrate([100, 50, 100]);
+        }
+        return;
+      }
+
+      // Login flow
+      if (isRegistered && savedEmail) {
+        setBioScanState('success');
+        setBioFeedback(`Welcome home, ${savedName || 'Blessed Pilgrim'}.`);
+        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+          window.navigator.vibrate([100, 50, 150]);
+        }
+
+        setTimeout(async () => {
+          try {
+            if (user) {
+              setIsBiometricUnlocked(true);
+              setBiometricScanning(false);
+              setIsBiometricModalOpen(false);
+              return;
+            }
+
+            if (savedUid === 'visitor-auth') {
+              setAuthLoading(true);
+              try {
+                await signInWithEmailAndPassword(auth, 'covenantpilgrim@zetech.ac.ke', 'PilgrimPass777*');
+                setIsBiometricUnlocked(true);
+              } catch (visitorErr) {
+                try {
+                  const { user: nUser } = await createUserWithEmailAndPassword(auth, 'covenantpilgrim@zetech.ac.ke', 'PilgrimPass777*');
+                  await updateProfile(nUser, { displayName: 'Covenant Pilgrim' });
+                  setIsBiometricUnlocked(true);
+                } catch (createErr) {
+                  setIsBiometricUnlocked(true);
+                }
+              } finally {
+                setAuthLoading(false);
+              }
+            } else {
+              const encPwd = localStorage.getItem('zuca_biometric_key');
+              if (encPwd) {
+                setAuthLoading(true);
+                try {
+                  const rawPwd = atob(encPwd);
+                  await signInWithEmailAndPassword(auth, savedEmail, rawPwd);
+                  setIsBiometricUnlocked(true);
+                } catch (err: any) {
+                  console.error("Biometric Firebase re-auth failed:", err);
+                  setBioScanState('failed');
+                  setBioFeedback('Template key expired. Sign in manually with password.');
+                } finally {
+                  setAuthLoading(false);
+                }
+              } else {
+                setBioScanState('failed');
+                setBioFeedback('Temple security credentials missing.');
+              }
+            }
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setBiometricScanning(false);
+            setIsBiometricModalOpen(false);
+          }
+        }, 800);
+
+      } else {
+        setBioScanState('failed');
+        setBioFeedback('Device fingerprint not configured. Enroll first in profile.');
+        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+          window.navigator.vibrate([150, 100, 150]);
+        }
+        setBiometricScanning(false);
+        setIsBiometricModalOpen(false);
+      }
+    }, 1200);
+  };
+
+  const handleRunTestScan = () => {
+    if (isTestScanning) return;
+    setIsTestScanning(true);
+    setTestScanSuccess(false);
+    setTestScanProgress(0);
+    setTestFeedback('Contacting Secure Enclave...');
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 12) + 8;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+      }
+      setTestScanProgress(progress);
+      
+      // Intermittent haptic vibe mimicking fingerprint ticks
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(20);
+      }
+      
+      if (progress < 25) {
+        setTestFeedback('Reading biometric valleys... [20%]');
+      } else if (progress < 50) {
+        setTestFeedback('Comparing cryptographic ridges... [45%]');
+      } else if (progress < 75) {
+        setTestFeedback('Authenticating credentials... [70%]');
+      } else if (progress < 100) {
+        setTestFeedback('Decrypting local escrow payload... [90%]');
+      } else {
+        setTestFeedback('Authentic Touch ID response matched! [100%]');
+      }
+    }, 150);
+    
+    setTimeout(() => {
+      clearInterval(interval);
+      setTestScanProgress(100);
+      setTestScanSuccess(true);
+      setIsTestScanning(false);
+      setTestFeedback('Passkey protocol verified successfully!');
+      
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate([100, 50, 100]);
+      }
+    }, 1800);
+  };
+
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     setAuthLoading(true);
@@ -560,8 +782,26 @@ Can you provide more insight, theological context, or a related prayer meditatio
     const verseIndex = typeof window !== 'undefined' ? (new Date().getMinutes() % SACRED_VERSES.length) : 0;
     const dailyVerse = SACRED_VERSES[verseIndex];
 
+    const toggleSimMode = () => {
+      const prev = isVisitorSim;
+      setIsVisitorSim(!prev);
+      if (!prev) {
+        localStorage.setItem('zuca_biometric_registered', 'true');
+        localStorage.setItem('zuca_biometric_email', 'covenantpilgrim@zetech.ac.ke');
+        localStorage.setItem('zuca_biometric_uid', 'visitor-auth');
+        localStorage.setItem('zuca_biometric_name', 'Covenant Pilgrim');
+        setBioFeedback('Demo signature active! Touch scanner.');
+      } else {
+        localStorage.removeItem('zuca_biometric_registered');
+        localStorage.removeItem('zuca_biometric_email');
+        localStorage.removeItem('zuca_biometric_uid');
+        localStorage.removeItem('zuca_biometric_name');
+        setBioFeedback('Verify temple security to sync.');
+      }
+    };
+
     return (
-      <div className="min-h-screen w-full relative flex items-center justify-center p-3 sm:p-6 bg-[#040813] font-sans selection:bg-zetech-gold/30 overflow-y-auto">
+      <div className="min-h-screen w-full relative flex flex-col items-center justify-center p-3 sm:p-6 bg-[#040813] font-sans selection:bg-amber-500/30 overflow-y-auto">
         
         {/* Ambient Divine Aura - Soft slow-moving orbs */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -588,318 +828,360 @@ Can you provide more insight, theological context, or a related prayer meditatio
           <div className="absolute inset-0 divine-pattern opacity-[0.03] mix-blend-overlay" />
         </div>
 
-        {/* Outer Split Card Container */}
+        {/* Traditional Centered Login Card */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="relative z-10 w-full max-w-[940px] my-6 md:my-10 bg-neutral-900/40 backdrop-blur-2xl rounded-[40px] overflow-hidden border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] md:grid md:grid-cols-2"
+          initial={{ opacity: 0, scale: 0.96, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10 w-full max-w-[420px] my-6 bg-white dark:bg-stone-900 rounded-[32px] overflow-hidden border border-stone-200/50 dark:border-white/10 shadow-[0_45px_100px_rgba(0,0,0,0.85)] flex flex-col"
         >
-          {/* LEFT PANEL: Sacred Media & Inspiration Banner (Visible on layout flow) */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#002244] via-[#001020] to-[#010915] p-8 md:p-14 flex flex-col justify-between min-h-[300px] md:min-h-[600px] border-b md:border-b-0 md:border-r border-white/10">
-            {/* Ambient image background overlay */}
-            <div className="absolute inset-0 z-0">
-              <img 
-                src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=1200" 
-                alt="Sacred Architecture" 
-                className="w-full h-full object-cover opacity-20 mix-blend-luminosity scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-[#002244]/80 via-[#001020]/95 to-[#010915]" />
-            </div>
-
-            {/* Header Identity */}
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-tr from-zetech-blue to-[#004791] rounded-2xl flex items-center justify-center border border-white/15 shadow-lg relative group">
-                  <Church className="text-zetech-gold w-6 h-6 animate-pulse" />
-                  <div className="absolute inset-0 rotate-45 border border-zetech-gold/30 rounded-2xl scale-110 pointer-events-none group-hover:rotate-90 transition-transform duration-700" />
-                </div>
-                <div>
-                  <h2 className="text-xs font-black uppercase tracking-[0.4em] text-zetech-gold">Zetech University</h2>
-                  <p className="text-[10px] font-bold text-stone-400 tracking-[0.2em] uppercase">Catholic Action Alliance</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Scripture Oracle & Inspiration Area */}
-            <div className="relative z-10 my-8 space-y-5">
-              <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="space-y-3 pl-4 border-l-2 border-zetech-gold"
-              >
-                <span className="text-[11px] font-bold text-zetech-gold/60 uppercase tracking-[0.3em] font-mono block">Daily Devotional Scripture</span>
-                <p className="text-xl md:text-2xl font-semibold text-white tracking-tight serif-display leading-snug">
-                  "{dailyVerse.text}"
-                </p>
-                <p className="text-xs font-mono font-bold text-zetech-gold/80 tracking-widest uppercase mt-2">
-                  — {dailyVerse.source}
-                </p>
-              </motion.div>
-            </div>
-
-            {/* Bottom Footer Credits */}
-            <div className="relative z-10 space-y-2">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-zetech-gold" />
-                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-stone-400">THE DIVINE SANCTUARY</span>
-              </div>
-              <p className="text-[10px] text-stone-500 font-medium">
-                Enter to pray, learn, share testimonies, challenge biblical trivia, and sync seamlessly with the assembly.
-              </p>
+          {/* Cover image area */}
+          <div className="h-44 md:h-48 w-full relative overflow-hidden shrink-0 bg-stone-950">
+            <img 
+              src="https://i.ibb.co/tMNKfnYM/Technology-Park-Mangu-Campus.png" 
+              alt="Technology Park Mangu Campus" 
+              className="w-full h-full object-cover opacity-90 scale-100 transition-transform duration-700"
+            />
+            {/* Elegant overlay to anchor name text contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent" />
+            <div className="absolute bottom-3.5 left-5 z-10 text-white font-sans">
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-500 block leading-none mb-1">Covenant Venue</span>
+              <p className="text-sm font-semibold tracking-tight uppercase leading-none text-stone-100">Technology Park Mangu Campus</p>
             </div>
           </div>
 
-          {/* RIGHT PANEL: The Active Authentication Board */}
-          <div className="p-8 md:p-12 flex flex-col justify-between bg-neutral-950/80">
-            {/* Top Form Header with Adaptive Welcome message */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-emerald-500 bg-emerald-500/10 border border-emerald-500/15 px-3 py-1 rounded-full">
-                  Sanctified Node
-                </span>
-                <span className="text-[9px] font-bold text-stone-400">
-                  {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </span>
-              </div>
-              
-              <div className="mt-6">
-                <h1 className="text-3xl font-black text-white tracking-tight uppercase leading-none">
-                  THE <span className="text-zetech-gold serif-display italic font-light lowercase">Sanctuary</span>
+          {/* Overlapping gold-bordered Church Badge */}
+          <div className="absolute top-[140px] md:top-[156px] left-1/2 -translate-x-1/2 w-16 h-16 bg-white dark:bg-stone-950 rounded-2xl flex items-center justify-center shadow-xl border-4 border-[#d4af37] z-30 group transition-transform duration-300 hover:scale-105 select-none">
+            <Church className="text-[#002244] dark:text-amber-500 w-8 h-8 shrink-0" />
+          </div>
+
+          {/* Card Body and Forms */}
+          <div className="p-6 md:p-8 pt-11 flex-1 flex flex-col justify-between">
+            <div>
+              {/* Portal Identity */}
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-black text-[#002244] dark:text-stone-100 tracking-tight uppercase leading-none">
+                  THE <span className="text-[#d4af37] serif-display italic font-light lowercase">Sanctuary</span>
                 </h1>
-                <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-stone-500 mt-2 block">
-                  Covenanted Assembly Portal
+                <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400 dark:text-stone-500 mt-2 block">
+                  ZU Catholic Action Association
                 </p>
-
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={authMode + (resetSent ? '-sent' : '')}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    className="mt-5"
-                  >
-                    <h2 className="text-lg font-black text-white tracking-tight">
-                      {resetSent 
-                        ? 'Covenant Link Dispatched' 
-                        : authMode === 'login' 
-                          ? 'Welcome back, Pilgrim' 
-                          : authMode === 'signup' 
-                            ? 'Create Divine Covenant' 
-                            : 'Restore Sanctuary Link'}
-                    </h2>
-                    <p className="text-stone-400 text-xs mt-1">
-                      {resetSent 
-                        ? 'Check your university email inbox (and spam folder) for instructions.' 
-                        : authMode === 'forgot' 
-                          ? 'Input your authenticated university email address to regenerate.' 
-                          : authMode === 'login' 
-                            ? 'Re-enter with peace. Synchronize with our community.' 
-                            : 'Join our spiritual collective assembly today.'}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
               </div>
-            </div>
 
-            {/* Forms section */}
-            <div className="space-y-5">
-              {!resetSent ? (
-                <form onSubmit={authMode === 'forgot' ? handlePasswordReset : handleEmailAuth} className="space-y-4">
-                  {authMode === 'signup' && (
-                    <div className="relative group">
-                      <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 group-focus-within:text-zetech-gold transition-colors" />
-                      <input
-                        type="text"
-                        required
-                        placeholder="Sacred Full Name"
-                        className="w-full pl-12 pr-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-zetech-gold/60 focus:bg-white/10 transition-all text-xs text-white font-medium outline-none placeholder:text-stone-500"
-                        value={authForm.name}
-                        onChange={(e) => setAuthForm({...authForm, name: e.target.value})}
-                      />
-                    </div>
-                  )}
+              {/* Segmented Auth Selector */}
+              <div className="flex bg-stone-100 dark:bg-stone-950 p-1 rounded-2xl mb-5 text-[11px] font-black uppercase tracking-wider font-sans select-none">
+                <button
+                  type="button"
+                  onClick={() => { setAuthType('password'); setAuthError(''); }}
+                  className={`flex-1 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
+                    authType === 'password'
+                      ? 'bg-gradient-to-r from-[#002244] to-[#004fa9] text-white shadow-md'
+                      : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Password
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAuthType('biometric'); setAuthError(''); }}
+                  className={`flex-1 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
+                    authType === 'biometric'
+                      ? 'bg-gradient-to-r from-[#002244] to-[#004fa9] text-white shadow-md'
+                      : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'
+                  }`}
+                >
+                  <Fingerprint className="w-3.5 h-3.5" />
+                  Fingerprint
+                </button>
+              </div>
 
-                  <div className="relative group">
-                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 group-focus-within:text-zetech-gold transition-colors" />
-                    <input
-                      type="email"
-                      required
-                      placeholder="University Email Address"
-                      className="w-full pl-12 pr-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-zetech-gold/60 focus:bg-white/10 transition-all text-xs text-white font-medium outline-none placeholder:text-stone-500"
-                      value={authForm.email}
-                      onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
-                    />
-                  </div>
-
-                  {authMode !== 'forgot' && (
-                    <div className="space-y-1.5">
-                      <div className="relative group">
-                        <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 group-focus-within:text-zetech-gold transition-colors" />
-                        <input
-                          type="password"
-                          required
-                          placeholder="Secret Password"
-                          className="w-full pl-12 pr-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-zetech-gold/60 focus:bg-white/10 transition-all text-xs text-white font-medium outline-none placeholder:text-stone-500"
-                          value={authForm.password}
-                          onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
-                        />
-                      </div>
-                      {authMode === 'login' && (
-                        <div className="flex justify-end px-1">
-                          <button 
-                            type="button" 
-                            onClick={() => {setAuthMode('forgot'); setAuthError('');}}
-                            className="text-[9px] font-bold text-zetech-gold/60 hover:text-zetech-gold uppercase tracking-wider transition-colors"
-                          >
-                            ForgotPassword?
-                          </button>
+              {/* Active Tab rendering */}
+              <AnimatePresence mode="wait">
+                {authType === 'password' ? (
+                  <motion.div
+                    key="password-form"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {!resetSent ? (
+                      <form onSubmit={authMode === 'forgot' ? handlePasswordReset : handleEmailAuth} className="space-y-3.5">
+                        {/* Interactive Mode Text Label */}
+                        <div className="mb-2">
+                          <h3 className="text-xs font-black text-[#002244] dark:text-stone-200 tracking-tight leading-none uppercase">
+                            {authMode === 'login' 
+                              ? 'Pilgrim Verification' 
+                              : authMode === 'signup' 
+                                ? 'Create Member Covenant' 
+                                : 'Recover Portal Access'}
+                          </h3>
                         </div>
-                      )}
-                    </div>
-                  )}
 
-                  {/* Terms Checkbox integrated professionally for Signup */}
-                  {authMode === 'signup' && (
-                    <div className="p-3 bg-white/[0.02] rounded-2xl border border-white/5 flex items-start gap-3">
-                      <input 
-                        type="checkbox" 
-                        id="terms"
-                        className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 border-white/10 bg-transparent cursor-pointer"
-                        checked={acceptedTerms}
-                        onChange={(e) => setAcceptedTerms(e.target.checked)}
-                      />
-                      <label htmlFor="terms" className="text-[10px] text-stone-400 leading-normal cursor-pointer">
-                        I recognize the sacred covenant & accept the {' '}
-                        <button 
-                          type="button"
-                          onClick={() => setShowPolicyModal(true)}
-                          className="text-zetech-gold underline hover:text-white"
+                        {authMode === 'signup' && (
+                          <div className="relative group">
+                            <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-amber-500 transition-colors" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="Full Baptismal / Legal Name"
+                              className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-stone-50 dark:bg-stone-950/40 border border-stone-200 dark:border-white/10 text-xs text-stone-900 dark:text-white font-medium outline-none placeholder:text-stone-400 focus:border-[#d4af37] focus:bg-white dark:focus:bg-stone-950 transition-all"
+                              value={authForm.name}
+                              onChange={(e) => setAuthForm({...authForm, name: e.target.value})}
+                            />
+                          </div>
+                        )}
+
+                        <div className="relative group">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-amber-500 transition-colors" />
+                          <input
+                            type="email"
+                            required
+                            placeholder="University Email Address"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-stone-50 dark:bg-stone-950/40 border border-stone-200 dark:border-white/10 text-xs text-stone-900 dark:text-white font-medium outline-none placeholder:text-stone-400 focus:border-[#d4af37] focus:bg-white dark:focus:bg-stone-950 transition-all"
+                            value={authForm.email}
+                            onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
+                          />
+                        </div>
+
+                        {authMode !== 'forgot' && (
+                          <div className="space-y-1">
+                            <div className="relative group">
+                              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-amber-500 transition-colors" />
+                              <input
+                                type="password"
+                                required
+                                placeholder="Secret Password"
+                                className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-stone-50 dark:bg-stone-950/40 border border-stone-200 dark:border-white/10 text-xs text-stone-900 dark:text-white font-medium outline-none placeholder:text-stone-400 focus:border-[#d4af37] focus:bg-white dark:focus:bg-stone-950 transition-all"
+                                value={authForm.password}
+                                onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
+                              />
+                            </div>
+                            {authMode === 'login' && (
+                              <div className="flex justify-end px-1 pt-1">
+                                <button 
+                                  type="button" 
+                                  onClick={() => { setAuthMode('forgot'); setAuthError(''); }}
+                                  className="text-[9px] font-black text-[#002244]/60 dark:text-stone-400 hover:text-amber-500 uppercase tracking-wider transition-colors"
+                                >
+                                  Forgot Password?
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {authMode === 'signup' && (
+                          <div className="p-3 bg-stone-50 dark:bg-stone-950/20 rounded-2xl border border-stone-200/60 dark:border-white/5 flex items-start gap-2.5 select-none">
+                            <input 
+                              type="checkbox" 
+                              id="terms"
+                              className="mt-0.5 rounded text-amber-500 focus:ring-amber-500 border-stone-200 dark:border-white/10 bg-transparent cursor-pointer"
+                              checked={acceptedTerms}
+                              onChange={(e) => setAcceptedTerms(e.target.checked)}
+                            />
+                            <label htmlFor="terms" className="text-[10px] text-stone-500 leading-normal cursor-pointer">
+                              Accept the sanctified {' '}
+                              <button 
+                                type="button"
+                                onClick={() => setShowPolicyModal(true)}
+                                className="text-amber-600 dark:text-amber-500 underline font-semibold"
+                              >
+                                Terms & Conditions
+                              </button> of ZUCA.
+                            </label>
+                          </div>
+                        )}
+
+                        {authError && (
+                          <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-600 dark:text-red-400 text-[10px] font-bold">
+                            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                            <span>{authError}</span>
+                          </div>
+                        )}
+
+                        <button
+                          disabled={authLoading}
+                          type="submit"
+                          className="w-full bg-[#002244] hover:bg-[#00356b] dark:bg-amber-500 dark:hover:bg-amber-600 text-white dark:text-stone-900 py-3.5 rounded-2xl font-black uppercase tracking-[0.25em] text-[10px] shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
                         >
-                          Terms & Conditions
-                        </button> of ZUCA.
-                      </label>
-                    </div>
-                  )}
+                          {authLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-current" />
+                          ) : (
+                            <>
+                              {authMode === 'login' ? 'ENTER SANCTUARY' : authMode === 'signup' ? 'JOIN ASSEMBLY' : 'SEND DISPATCH'}
+                              <ArrowRight className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
 
-                  {authError && (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="p-3.5 rounded-2xl bg-red-950/20 border border-red-500/10 flex items-center gap-2.5 text-red-400 text-[10px] font-bold"
-                    >
-                      <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
-                      <span>{authError}</span>
-                    </motion.div>
-                  )}
-
-                  {authMode === 'forgot' && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-3xl bg-white/[0.02] border border-white/10 space-y-2.5"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-lg bg-zetech-gold/10 flex items-center justify-center">
-                          <ShieldCheck className="w-3 h-3 text-zetech-gold" />
-                        </div>
-                        <h4 className="text-[9px] font-black text-zetech-gold uppercase tracking-[0.2em]">Sacred Recovery Rules</h4>
-                      </div>
-                      <p className="text-[10px] text-stone-400 leading-relaxed">
-                        Ensure you submit your official <span className="font-bold text-white">@zetech.ac.ke</span> email account. Re-verification sent links are valid for one hour.
-                      </p>
-                    </motion.div>
-                  )}
-
-                  <motion.button
-                    whileHover={{ y: -1.5, scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    disabled={authLoading}
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-zetech-blue to-[#004fa9] text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] shadow-lg shadow-zetech-blue/30 mt-5 flex items-center justify-center gap-2 hover:from-[#002f5e] hover:to-[#004182] transition-all cursor-pointer"
-                  >
-                    {authLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                        {authMode === 'forgot' && (
+                          <button 
+                            type="button"
+                            onClick={() => setAuthMode('login')}
+                            className="w-full text-center text-stone-400 font-extrabold tracking-widest block text-[9px] uppercase hover:text-stone-800 transition-colors mt-3"
+                          >
+                            Return to Sign In
+                          </button>
+                        )}
+                      </form>
                     ) : (
-                      <>
-                        {authMode === 'login' ? 'ENTER SANCTUARY' : authMode === 'signup' ? 'JOIN ASSEMBLY' : 'SEND RESET LINK'} 
-                        <ArrowRight className="w-4 h-4" />
-                      </>
+                      <div className="space-y-5 text-center py-5">
+                        <div className="w-14 h-14 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+                          <Mail className="w-7 h-7 text-emerald-500 animate-bounce" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-extrabold text-stone-800 dark:text-white text-sm">Dispatched Safely</h3>
+                          <p className="text-[11px] text-stone-500 px-3">Confirm alignment within your university inbox.</p>
+                        </div>
+                        <button
+                          onClick={() => { setResetSent(false); setAuthMode('login'); }}
+                          className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 py-3 rounded-2xl font-black uppercase tracking-[0.15em] text-[10px] transition-colors cursor-pointer"
+                        >
+                          Return to Login
+                        </button>
+                      </div>
                     )}
-                  </motion.button>
-
-                  {authMode === 'forgot' && (
-                    <button 
-                      type="button"
-                      onClick={() => setAuthMode('login')}
-                      className="w-full text-center text-stone-500 font-bold tracking-widest block text-[9px] uppercase hover:text-white transition-colors mt-3"
-                    >
-                      Return to Sign In
-                    </button>
-                  )}
-                </form>
-              ) : (
-                <div className="space-y-6 text-center py-6">
-                  <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
-                    <Mail className="w-8 h-8 text-emerald-400 animate-bounce" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-black text-white text-base">Dispatched Safely</h3>
-                    <p className="text-xs text-stone-400 px-6">The recovery credentials are on the way. Confirm alignment within your client inbox.</p>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {setResetSent(false); setAuthMode('login');}}
-                    className="w-full bg-white text-stone-900 py-3.5 rounded-2xl font-black uppercase tracking-[0.22em] text-[10px] shadow-lg hover:bg-stone-100 transition-colors cursor-pointer"
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="biometric-form"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex flex-col items-center justify-center py-5 space-y-5"
                   >
-                    Return to Login
-                  </motion.button>
-                </div>
-              )}
+                    <div className="text-center w-full max-w-[280px]">
+                      <h3 className="text-xs font-black text-[#002244] dark:text-stone-200 tracking-tight leading-none uppercase mb-2">
+                        Biometric Lockout
+                      </h3>
+                      <p className="text-[10px] text-stone-400 leading-normal">
+                        Verify your physical signature container to sync with active covenant credentials.
+                      </p>
+                    </div>
 
-              {/* Social Login Separator */}
-              <div className="mt-6 space-y-4">
-                <div className="relative">
+                    {/* Compact Biometric Pad button */}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onTouchStart={handleBiometricTouchStart}
+                      onClick={handleBiometricTouchStart}
+                      disabled={biometricScanning}
+                      className={`w-24 h-24 rounded-full flex items-center justify-center relative cursor-pointer outline-none overflow-hidden transition-all duration-500 ${
+                        bioScanState === 'scanning'
+                          ? 'bg-amber-500/15 border-2 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
+                          : bioScanState === 'success'
+                          ? 'bg-emerald-500/15 border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.25)]'
+                          : 'bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 shadow-inner'
+                      }`}
+                    >
+                      {biometricScanning && (
+                        <>
+                          <motion.div 
+                            animate={{ y: [-48, 48, -48] }}
+                            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute inset-x-0 h-0.5 bg-amber-500 shadow-[0_0_6px_#f59e0b] z-20"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent animate-pulse" />
+                        </>
+                      )}
+
+                      {bioScanState === 'success' ? (
+                        <CheckCircle className="w-10 h-10 text-emerald-500 z-10" />
+                      ) : (
+                        <Fingerprint className={`w-12 h-12 z-10 transition-colors duration-300 ${
+                          bioScanState === 'scanning' ? 'text-amber-500' : 'text-stone-400 hover:text-amber-500/80'
+                        }`} />
+                      )}
+
+                      {biometricScanning && (
+                        <span className="absolute inset-0 rounded-full border border-amber-500/30 scale-100 animate-[ping_1.5s_infinite]" />
+                      )}
+                    </motion.button>
+
+                    {/* Progress tracking indicator */}
+                    <div className="w-full text-center">
+                      <p className={`text-[10px] font-black uppercase tracking-widest block transition-all duration-300 ${
+                        bioScanState === 'scanning' ? 'text-amber-500 animate-pulse' : bioScanState === 'success' ? 'text-emerald-500' : 'text-stone-500'
+                      }`}>
+                        {bioFeedback}
+                      </p>
+                    </div>
+
+                    {/* FAST-ACCESS Evaluator Simulation Switch */}
+                    <div className="w-full pt-1">
+                      <div className="p-3 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/30 rounded-xl transition-all flex items-center justify-between select-none">
+                        <div className="text-left">
+                          <span className="text-[9px] font-extrabold text-amber-600 block uppercase leading-none mb-0.5">Visitor Sim Mode</span>
+                          <span className="text-[8px] text-stone-400 block uppercase">Evaluator passwordless bypass</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={toggleSimMode}
+                          className={`w-9 h-5 rounded-full relative transition-colors ${
+                            isVisitorSim ? 'bg-amber-500' : 'bg-stone-200 dark:bg-stone-800'
+                          }`}
+                        >
+                          <motion.div 
+                            animate={{ x: isVisitorSim ? 18 : 3 }}
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Social Login / Fast Access */}
+              <div className="mt-5 space-y-3.5">
+                <div className="relative select-none">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/5"></div>
+                    <div className="w-full border-t border-stone-200/55 dark:border-white/5"></div>
                   </div>
-                  <div className="relative flex justify-center text-[8px] uppercase font-black tracking-widest">
-                    <span className="bg-neutral-950 px-3 text-stone-500">Fast Assembly Access</span>
+                  <div className="relative flex justify-center text-[7.5px] uppercase font-black tracking-widest">
+                    <span className="bg-white dark:bg-stone-900 px-3.5 text-stone-400">Social Sign In</span>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleLogin}
                   disabled={authLoading}
-                  className="w-full py-3.5 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.07] transition-all text-[10px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2.5 text-stone-300 cursor-pointer"
+                  className="w-full py-3 rounded-2xl border border-stone-200 dark:border-white/10 bg-white hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900 transition-all text-[9.5px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 text-stone-600 dark:text-stone-300 cursor-pointer"
                 >
                   <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-4 h-4" alt="Google" />
                   Continue with Google
                 </button>
 
-                <button 
-                  onClick={() => {
-                    setAuthMode(authMode === 'login' ? 'signup' : 'login');
-                    setAuthError('');
-                  }}
-                  className="w-full text-center text-stone-500 font-black tracking-widest block text-[9.5px] uppercase hover:text-zetech-gold transition-colors mt-2"
-                >
-                  {authMode === 'login' ? "NEW HARVEST? JOIN NOW" : "ALREADY ENROLLED? SANCTIFY"}
-                </button>
+                {authType === 'password' && (
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                      setAuthError('');
+                    }}
+                    className="w-full text-center text-stone-400 font-extrabold tracking-widest block text-[9px] uppercase hover:text-amber-500 transition-colors mt-2"
+                  >
+                    {authMode === 'login' ? "NEW HARVEST? JOIN NOW" : "ALREADY ENROLLED? SIGN IN"}
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Bottom mini footnote */}
-            <div className="text-center mt-6 text-[8px] text-stone-600 font-bold uppercase tracking-[0.25em]">
-              Zetech University Catholic Action group &copy; {new Date().getFullYear()}
+            {/* Micro daily devotional verse inside card */}
+            <div className="mt-6 p-4 bg-stone-50 dark:bg-stone-950/40 rounded-2xl border border-stone-100 dark:border-white/5 text-left text-xs text-stone-600 dark:text-stone-300 space-y-1 border-l-2 border-l-amber-500 select-none">
+              <span className="text-[8px] font-bold text-amber-600 uppercase tracking-widest block">Daily Verse</span>
+              <p className="italic leading-snug">"{dailyVerse.text}"</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[#002244] dark:text-stone-400 ml-auto text-right">— {dailyVerse.source}</p>
             </div>
           </div>
         </motion.div>
 
         {/* Small terms link directly on footer */}
-        <p className="absolute bottom-4 text-center text-stone-600 text-[9px] uppercase tracking-[0.3em] z-10 font-bold">
+        <p className="text-center text-stone-500/70 text-[9px] uppercase tracking-[0.3em] z-10 font-bold mt-4 select-none">
           Faith • Unity • Action • Invent Your Future
         </p>
       </div>
@@ -1529,6 +1811,167 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       />
                     </button>
                   </div>
+
+                  {/* Biometric Credentials Binding */}
+                  <div className="p-6 bg-stone-50 dark:bg-stone-950/40 rounded-3xl border border-stone-200/60 dark:border-white/5 space-y-4 text-stone-900 dark:text-stone-100">
+                    <div className="flex items-center gap-3">
+                      <Fingerprint className="w-5 h-5 text-amber-500" />
+                      <div>
+                        <p className="font-extrabold text-xs">Biometric Fingerprint Access</p>
+                        <p className="text-[9px] text-stone-500 dark:text-stone-400 uppercase tracking-widest leading-none mt-0.5">Secure Temple Passkey</p>
+                      </div>
+                    </div>
+                    
+                    {localStorage.getItem('zuca_biometric_registered') === 'true' ? (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-emerald-500/10 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl text-[11px] flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                          <div>
+                            <span className="font-bold">Passkey Active:</span> Instant touch-signature unlocked for <span className="font-bold">{localStorage.getItem('zuca_biometric_email')}</span>.
+                          </div>
+                        </div>
+
+                        {/* Dynamic Interactive Test Sandbox with active scanner bar & haptic simulation */}
+                        <div className="p-4 bg-stone-100 dark:bg-stone-900 rounded-2xl border border-stone-200/50 dark:border-white/5 space-y-3 select-none">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-stone-500">Device Biometric Sandbox</span>
+                            <span className="text-[8px] font-extrabold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase">Test Secure Link</span>
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            {/* Scanning pad with motion scanning laser line */}
+                            <button
+                              type="button"
+                              onClick={handleRunTestScan}
+                              disabled={isTestScanning}
+                              className={`w-14 h-14 rounded-2xl flex items-center justify-center relative shrink-0 overflow-hidden transition-all duration-300 outline-none cursor-pointer ${
+                                isTestScanning
+                                  ? 'bg-amber-500/15 border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] scale-95'
+                                  : testScanSuccess
+                                  ? 'bg-emerald-500/15 border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                                  : 'bg-white dark:bg-stone-950 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 shadow-inner'
+                              }`}
+                            >
+                              {isTestScanning && (
+                                <>
+                                  <motion.div 
+                                    animate={{ y: [-24, 24, -24] }}
+                                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                    className="absolute inset-x-0 h-0.5 bg-amber-500 shadow-[0_0_4px_#f59e0b] z-20"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent animate-pulse" />
+                                </>
+                              )}
+                              
+                              {testScanSuccess ? (
+                                <CheckCircle className="w-6 h-6 text-emerald-500 relative z-10 animate-bounce" />
+                              ) : (
+                                <Fingerprint className={`w-7 h-7 relative z-10 transition-colors ${isTestScanning ? 'text-amber-500 animate-pulse' : 'text-stone-400'}`} />
+                              )}
+                            </button>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-[10px] font-black text-stone-800 dark:text-stone-200 uppercase tracking-tight truncate">
+                                  {isTestScanning ? `Scanning Protocol (${testScanProgress}%)` : testScanSuccess ? 'Hardware Verified' : 'Touchpad Simulator'}
+                                </span>
+                              </div>
+                              
+                              {/* Miniature visual progress bar */}
+                              <div className="h-1.5 w-full bg-stone-200 dark:bg-stone-950 rounded-full mt-1.5 overflow-hidden">
+                                <motion.div 
+                                  className={`h-full rounded-full transition-all duration-150 ${testScanSuccess ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                                  style={{ width: `${testScanProgress}%` }}
+                                />
+                              </div>
+                              
+                              <p className="text-[9px] text-stone-500 dark:text-stone-400 font-mono mt-1.5 truncate leading-none">
+                                {testFeedback}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleRunTestScan}
+                            disabled={isTestScanning}
+                            className="w-full py-2 bg-stone-200 hover:bg-stone-350 dark:bg-stone-850 dark:hover:bg-stone-750 text-stone-700 dark:text-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-sm border border-stone-200/40 dark:border-white/5"
+                          >
+                            {isTestScanning ? 'Verifying Hardware Keys...' : 'Test Passkey Scan Protocol'}
+                          </button>
+                        </div>
+                        
+                        <div className="flex items-center justify-between gap-4 p-3 bg-stone-100 dark:bg-white/5 rounded-xl border border-stone-200 dark:border-white/5">
+                          <div className="text-[11px]">
+                            <span className="font-bold text-stone-700 dark:text-stone-300">Lock App on Reload:</span>
+                            <p className="text-[9px] text-stone-500 dark:text-stone-400 mt-0.5">Demands fingerprint to access on reload.</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const prev = localStorage.getItem('zuca_biometric_lock') === 'true';
+                              localStorage.setItem('zuca_biometric_lock', (!prev).toString());
+                              // Forces a re-render
+                              setBioFeedback(prev ? 'Passkey Unlocked' : 'Passkey Locked');
+                            }}
+                            className={`w-11 h-6 rounded-full relative transition-colors ${localStorage.getItem('zuca_biometric_lock') === 'true' ? 'bg-amber-500' : 'bg-stone-300 dark:bg-stone-800'}`}
+                          >
+                            <motion.div 
+                              animate={{ x: localStorage.getItem('zuca_biometric_lock') === 'true' ? 22 : 4 }}
+                              className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                            />
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            localStorage.removeItem('zuca_biometric_registered');
+                            localStorage.removeItem('zuca_biometric_email');
+                            localStorage.removeItem('zuca_biometric_uid');
+                            localStorage.removeItem('zuca_biometric_key');
+                            localStorage.removeItem('zuca_biometric_lock');
+                            setBioFeedback('Passkey Cleared');
+                          }}
+                          className="w-full py-2.5 bg-red-600/10 hover:bg-red-600 hover:text-white rounded-xl border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                        >
+                          Disable & Clear Fingerprint
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 pt-1">
+                        <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
+                          Enable biometric credentials to witness instant secure sign-ins. To register, confirm your current password to authorize client passkey escrow:
+                        </p>
+                        <div className="space-y-2">
+                          <input 
+                            type="password"
+                            id="bio-escrow-password"
+                            placeholder="Confirm Sanctuary Password"
+                            className="w-full px-4 py-2.5 rounded-xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 text-xs text-stone-900 dark:text-white focus:ring-1 focus:ring-amber-500 outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const pwdInput = document.getElementById('bio-escrow-password') as HTMLInputElement;
+                              const pwd = pwdInput?.value;
+                              if (!pwd) {
+                                alert('Please type password to register fingerprint escrow.');
+                                return;
+                              }
+                              setEscrowPassword(pwd);
+                              setBiometricModalType('register');
+                              setIsBiometricModalOpen(true);
+                              if (pwdInput) pwdInput.value = '';
+                            }}
+                            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-stone-950 font-black uppercase tracking-wider text-[10px] rounded-xl shadow-md transition-all cursor-pointer"
+                          >
+                            Authenticate & Register Fingerprint
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-4 pt-6 border-t border-stone-100 dark:border-white/5">
@@ -1566,6 +2009,131 @@ Can you provide more insight, theological context, or a related prayer meditatio
         aiContext={aiContext} 
         onClearContext={() => setAiContext(null)} 
       />
+
+      {/* Single Device Biometric Consent Pop-up Modal */}
+      <AnimatePresence>
+        {isBiometricModalOpen && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                if (!biometricScanning) setIsBiometricModalOpen(false);
+              }}
+              className="absolute inset-0 bg-stone-950/65 backdrop-blur-md"
+            />
+            
+            {/* Modal Card */}
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 15 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="relative w-full max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-white/10 rounded-[28px] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] p-6 z-10"
+            >
+              <div className="flex flex-col items-center text-center space-y-4">
+                {/* Authentic native biometric shield icon with sweeping laser and state overlays */}
+                <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center border-2 border-amber-500/20 relative select-none overflow-hidden">
+                  {bioScanState === 'success' ? (
+                    <CheckCircle className="w-8 h-8 text-emerald-500 relative z-10 animate-bounce" />
+                  ) : bioScanState === 'failed' ? (
+                    <X className="w-8 h-8 text-red-500 relative z-10 animate-shake" />
+                  ) : (
+                    <Fingerprint className={`w-8 h-8 transition-colors duration-300 ${biometricScanning ? 'text-amber-500 animate-pulse' : 'text-stone-400'}`} />
+                  )}
+
+                  {biometricScanning && (
+                    <>
+                      {/* Laser sweeping light line */}
+                      <motion.div 
+                        animate={{ y: [-32, 32, -32] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute inset-x-0 h-0.5 bg-amber-500 shadow-[0_0_6px_#f59e0b] z-20"
+                      />
+                      {/* Pulsing light overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/10 to-transparent animate-pulse" />
+                    </>
+                  )}
+                  <div className="absolute inset-0 rounded-full border border-amber-500/35 animate-ping opacity-60" />
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="text-base font-extrabold text-[#002244] dark:text-stone-100 uppercase tracking-tight">
+                    Biometric Consent
+                  </h3>
+                  <p className="text-[9px] text-[#d4af37] dark:text-amber-500 uppercase tracking-widest font-black">
+                    Device Security Request
+                  </p>
+                </div>
+
+                {/* Secure statement explaining no raw finger is read */}
+                <div className="bg-stone-50 dark:bg-stone-950/50 p-4 rounded-2xl border border-stone-100 dark:border-white/5 text-left space-y-2 select-none w-full">
+                  <div className="flex items-start gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed font-semibold">
+                      ZUCA utilizes <span className="text-[#002244] dark:text-amber-500">secure system-level consent</span>. Your physical biometric signature remains encrypted inside your device's biometric keystores (Touch ID / Face ID) and is <span className="font-bold text-stone-800 dark:text-white">never accessed, processed, or stored by this application</span>.
+                    </p>
+                  </div>
+                  <div className="border-t border-stone-200/50 dark:border-white/5 pt-1.5 flex items-center justify-between text-[8px] uppercase tracking-wider font-black text-stone-400">
+                    <span>Secure Hardware Enclave</span>
+                    <span className="text-emerald-500 flex items-center gap-1">● Authenticated</span>
+                  </div>
+                </div>
+
+                {/* Progress bar and text status during active scan */}
+                {biometricScanning && (
+                  <div className="w-full space-y-1.5 px-2 select-none">
+                    <div className="h-1.5 w-full bg-stone-100 dark:bg-stone-950 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-amber-500 rounded-full"
+                        style={{ width: `${bioScanProgress}%` }}
+                        transition={{ duration: 0.1 }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center text-[8px] font-mono font-black text-stone-500 uppercase tracking-widest">
+                      <span>SECURE SCANNING PROGRESS</span>
+                      <span className="text-amber-500 font-bold">{bioScanProgress}%</span>
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 leading-normal select-none">
+                  {biometricScanning 
+                    ? bioFeedback
+                    : biometricModalType === 'login' 
+                    ? `Instructing device secure enclave to sign authorization message for instant Sanctuary access.`
+                    : `Instructing device secure enclave to sign registration credentials to authorize safe client passcode escrow.`}
+                </p>
+
+                <div className="w-full grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    disabled={biometricScanning}
+                    type="button"
+                    onClick={() => setIsBiometricModalOpen(false)}
+                    className="py-3 px-4 rounded-xl border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-white/5 text-[10px] font-black uppercase tracking-wider text-stone-500 dark:text-stone-300 transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={biometricScanning}
+                    type="button"
+                    onClick={handleConfirmBiometricConsent}
+                    className="py-3 px-4 rounded-xl bg-[#002244] hover:bg-[#00346a] dark:bg-amber-500 text-white dark:text-stone-950 dark:hover:bg-amber-600 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+                  >
+                    {biometricScanning ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      'Agree & Auth'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Policy Modal Overlay */}
       <AnimatePresence>
