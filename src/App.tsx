@@ -460,7 +460,19 @@ Can you provide more insight, theological context, or a related prayer meditatio
     }
   };
 
-  const handleBiometricTouchStart = async () => {
+  const lastBiometricTriggerRef = useRef<number>(0);
+
+  const handleBiometricTouchStart = async (e?: React.SyntheticEvent) => {
+    if (e) {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      e.stopPropagation();
+    }
+    const now = Date.now();
+    if (now - lastBiometricTriggerRef.current < 500) return;
+    lastBiometricTriggerRef.current = now;
+
     const isRegistered = localStorage.getItem('zuca_biometric_registered') === 'true';
     if (!isRegistered) {
       // Auto-enroll a Virtual Demo Passkey so the user is never blocked!
@@ -469,11 +481,17 @@ Can you provide more insight, theological context, or a related prayer meditatio
       localStorage.setItem('zuca_biometric_uid', 'visitor-auth');
       localStorage.setItem('zuca_biometric_name', 'Covenant Pilgrim');
       setIsVisitorSim(true);
-      setBioFeedback('Virtual Demo Passkey enrolled! Let us verify now.');
     }
-    // Launch the single pop-up modal to seek consent from the device
+    
+    // Smooth transition to modal + auto scanner engagement
+    setBioFeedback('Instructing hardware secure enclave to verify passkey signature...');
     setBiometricModalType('login');
     setIsBiometricModalOpen(true);
+
+    // Auto-trigger scanning sequence so the user sees passive feedback and scans instantly!
+    setTimeout(() => {
+      handleConfirmBiometricConsent();
+    }, 150);
   };
 
   const handleConfirmBiometricConsent = async () => {
@@ -1089,6 +1107,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      onTouchStart={handleBiometricTouchStart}
                       onClick={handleBiometricTouchStart}
                       disabled={biometricScanning}
                       className={`w-24 h-24 rounded-full flex items-center justify-center relative cursor-pointer outline-none overflow-hidden transition-all duration-500 ${
@@ -1864,6 +1883,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                             {/* Scanning pad with motion scanning laser line */}
                             <button
                               type="button"
+                              onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); handleRunTestScan(); }}
                               onClick={handleRunTestScan}
                               disabled={isTestScanning}
                               className={`w-14 h-14 rounded-2xl flex items-center justify-center relative shrink-0 overflow-hidden transition-all duration-300 outline-none cursor-pointer ${
@@ -1915,6 +1935,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
 
                           <button
                             type="button"
+                            onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); handleRunTestScan(); }}
                             onClick={handleRunTestScan}
                             disabled={isTestScanning}
                             className="w-full py-2 bg-stone-200 hover:bg-stone-350 dark:bg-stone-850 dark:hover:bg-stone-750 text-stone-700 dark:text-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-sm border border-stone-200/40 dark:border-white/5"
@@ -1978,12 +1999,15 @@ Can you provide more insight, theological context, or a related prayer meditatio
                               const pwdInput = document.getElementById('bio-escrow-password') as HTMLInputElement;
                               const pwd = pwdInput?.value;
                               if (!pwd) {
-                                alert('Please type password to register fingerprint escrow.');
+                                setBioFeedback('Please type your password first.');
                                 return;
                               }
                               setEscrowPassword(pwd);
                               setBiometricModalType('register');
                               setIsBiometricModalOpen(true);
+                              setTimeout(() => {
+                                handleConfirmBiometricConsent();
+                              }, 200);
                               if (pwdInput) pwdInput.value = '';
                             }}
                             className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-stone-950 font-black uppercase tracking-wider text-[10px] rounded-xl shadow-md transition-all cursor-pointer"
