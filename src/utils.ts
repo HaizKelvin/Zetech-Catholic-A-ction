@@ -281,7 +281,21 @@ export const cn = (...inputs: any[]) => {
   return inputs.filter(Boolean).join(' ');
 };
 
-export function compressImage(file: File, maxWidth = 360, maxHeight = 360, quality = 0.72): Promise<string> {
+export function getPasswordStrength(password: string): { score: number; label: string; color: string; percent: number } {
+  if (!password) return { score: 0, label: 'None', color: 'bg-stone-200 dark:bg-stone-800', percent: 0 };
+  let points = 0;
+  if (password.length >= 6) points += 1;
+  if (password.length >= 8) points += 1;
+  if (/[A-Z]/.test(password)) points += 1;
+  if (/[0-9]/.test(password)) points += 1;
+  if (/[^A-Za-z0-9]/.test(password)) points += 1;
+
+  if (points <= 1) return { score: 1, label: 'Weak', color: 'bg-red-500 text-red-500', percent: 25 };
+  if (points <= 3) return { score: 2, label: 'Good', color: 'bg-amber-500 text-amber-500', percent: 65 };
+  return { score: 3, label: 'Strong', color: 'bg-emerald-500 text-emerald-500', percent: 100 };
+}
+
+export function compressImage(file: File, maxWidth = 400, maxHeight = 400, quality = 0.78): Promise<string> {
   return new Promise((resolve, reject) => {
     if (!file || !(file instanceof Blob)) {
       return reject(new Error('Invalid file provided for image compression'));
@@ -300,27 +314,33 @@ export function compressImage(file: File, maxWidth = 360, maxHeight = 360, quali
         let width = img.width;
         let height = img.height;
 
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round(height * (maxWidth / width));
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round(width * (maxHeight / height));
-            height = maxHeight;
-          }
-        }
+        // Square cropping from center for avatar balance
+        const minDim = Math.min(width, height);
+        const startX = (width - minDim) / 2;
+        const startY = (height - minDim) / 2;
 
-        canvas.width = Math.max(1, width);
-        canvas.height = Math.max(1, height);
+        const targetDim = Math.min(maxWidth, minDim);
+        canvas.width = targetDim;
+        canvas.height = targetDim;
+
         const ctx = canvas.getContext('2d');
         if (!ctx) {
           return resolve(result);
         }
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, targetDim, targetDim);
+
+        ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, targetDim, targetDim);
+
+        // Try WebP first for ultra-light storage in Firestore, fallback to JPEG
+        try {
+          const webpUrl = canvas.toDataURL('image/webp', quality);
+          if (webpUrl.startsWith('data:image/webp')) {
+            return resolve(webpUrl);
+          }
+        } catch (_) {}
 
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
         resolve(dataUrl);

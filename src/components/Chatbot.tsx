@@ -24,20 +24,28 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isAiConfigured, setIsAiConfigured] = useState<boolean | null>(null);
+  const [liveModelName, setLiveModelName] = useState<string>('gemini-2.5-flash');
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
   // Check backend Gemini health
-  useEffect(() => {
+  const checkHealth = () => {
     fetch('/api/chat/health')
       .then(res => res.json())
       .then(data => {
-        setIsAiConfigured(!!data.keyConfigured);
+        setIsAiConfigured(!!data.connected || !!data.keyConfigured);
+        if (data.liveModel && data.liveModel !== 'none') {
+          setLiveModelName(data.liveModel);
+        }
       })
       .catch(err => {
         console.warn("Could not fetch chat health:", err);
         setIsAiConfigured(false);
       });
+  };
+
+  useEffect(() => {
+    checkHealth();
   }, []);
 
   // Initialize Speech Recognition
@@ -205,7 +213,13 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
 
         if (response.ok) {
           const data = await response.json();
-          replyText = data.text;
+          if (data && data.text) {
+            replyText = data.text;
+            if (data.source === 'gemini-api') {
+              setIsAiConfigured(true);
+              if (data.model) setLiveModelName(data.model);
+            }
+          }
         } else {
           console.warn("Server API returned status", response.status);
         }
@@ -289,33 +303,44 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
             initial={{ opacity: 0, scale: 0.98, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98, y: 10 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="mb-4 w-[calc(100vw-2rem)] md:w-[290px] h-[50vh] md:h-[360px] bg-white dark:bg-stone-950 rounded-[24px] shadow-[0_20px_60px_-15px_rgba(0,51,102,0.3)] border border-stone-200/60 dark:border-white/10 overflow-hidden flex flex-col translate-x-0 will-change-transform"
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="mb-4 w-[calc(100vw-1.5rem)] sm:w-[380px] h-[540px] max-h-[82vh] bg-white dark:bg-stone-950 rounded-[28px] shadow-[0_25px_70px_-15px_rgba(0,34,68,0.4)] border border-stone-200/80 dark:border-stone-800 overflow-hidden flex flex-col translate-x-0 will-change-transform z-50"
           >
-            {/* Header - Enhanced legit look */}
-            <div className="p-4 md:p-5 bg-gradient-to-br from-[#003366] to-[#001a33] text-white relative overflow-hidden shrink-0">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-zetech-gold/10 blur-[100px] -mr-32 -mt-32 rounded-full pointer-events-none animate-pulse-gentle" />
-               <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-zetech-gold/5 blur-[60px] rounded-full pointer-events-none" />
+            {/* Header */}
+            <div className="p-4 sm:p-4.5 bg-gradient-to-br from-[#002244] via-[#003366] to-[#001a33] text-white relative overflow-hidden shrink-0 border-b border-white/10">
+               <div className="absolute top-0 right-0 w-48 h-48 bg-amber-400/10 blur-[80px] -mr-20 -mt-20 rounded-full pointer-events-none" />
+               <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-blue-500/10 blur-[50px] rounded-full pointer-events-none" />
               
               <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-[20px] bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-3xl shrink-0 group shadow-inner">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-md shrink-0 shadow-inner">
                     <div className="relative">
-                       <Bot className="w-6 h-6 text-zetech-gold group-hover:scale-110 transition-transform duration-300" />
-                       <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#003366]" />
+                       <Bot className="w-5 h-5 text-amber-300" />
+                       <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#002244] ${isAiConfigured === true ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-black text-base tracking-tight leading-tight uppercase">Sanctuary <span className="text-zetech-gold serif-display italic font-light lowercase">Spirit</span></h3>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-sm text-white tracking-tight">Sanctuary Spirit</h3>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/15 font-semibold text-amber-200 uppercase tracking-wide">AI</span>
+                    </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <div className={`w-1.5 h-1.5 rounded-full ${isAiConfigured === true ? 'bg-emerald-400 animate-pulse' : isAiConfigured === false ? 'bg-amber-400' : 'bg-stone-400 animate-bounce'}`} />
-                      <span className="text-[7.5px] text-zetech-gold/90 uppercase tracking-[0.2em] font-black">
-                        {isAiConfigured === true ? 'AI Connected' : isAiConfigured === false ? 'Local Spirit' : 'Syncing...'}
+                      <div className={`w-1.5 h-1.5 rounded-full ${isAiConfigured === true ? 'bg-emerald-400 animate-pulse' : isAiConfigured === false ? 'bg-amber-400' : 'bg-blue-300 animate-ping'}`} />
+                      <span className="text-[10px] text-stone-200/90 font-medium">
+                        {isAiConfigured === true ? `Connected • ${liveModelName}` : isAiConfigured === false ? 'Spiritual Companion' : 'Connecting to API...'}
                       </span>
                     </div>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-1">
+                  <button 
+                    onClick={checkHealth}
+                    className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-stone-300 hover:text-white"
+                    title="Check AI API status"
+                  >
+                    <Loader2 className={`w-3.5 h-3.5 ${isAiConfigured === null ? 'animate-spin' : ''}`} />
+                  </button>
                   <button 
                     onClick={async () => {
                        if (confirm('Clear our conversation to refresh the soul?')) {
@@ -324,54 +349,57 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
                           } else {
                             const path = `users/${auth.currentUser?.uid}/chatHistory`;
                             for (const msg of messages) {
-                              await deleteDoc(doc(db, path, msg.id));
+                              await deleteDoc(doc(db, path, msg.id)).catch(() => {});
                             }
+                            setMessages([]);
                           }
                        }
                     }}
-                    className="p-2 hover:bg-white/10 rounded-xl transition-all text-white/40 hover:text-red-300"
-                    title="Clear Soul"
+                    className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-stone-300 hover:text-red-300"
+                    title="Clear Conversation"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={() => setIsOpen(false)}
-                    className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all active:scale-95 border border-white/10"
+                    className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all active:scale-95 text-white"
+                    title="Close"
                   >
-                    <X className="w-4 h-4 text-white" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Messages - More refined typography */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-stone-50/30 dark:bg-stone-950/40 custom-scrollbar relative">
-              <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
-              
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3.5 bg-stone-50/70 dark:bg-stone-950/60 custom-scrollbar relative">
               {messages.length === 0 && !isLoading && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-6 relative z-10">
-                  <div className="w-20 h-20 rounded-[32px] bg-white dark:bg-stone-900 flex items-center justify-center mb-6 shadow-xl border border-stone-100 dark:border-white/5 relative group">
-                    <div className="absolute inset-0 bg-zetech-gold/5 rounded-[32px] scale-110 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Bot className="w-10 h-10 text-zetech-blue drop-shadow-lg relative z-10" />
+                <div className="h-full flex flex-col items-center justify-center text-center p-4 relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-white dark:bg-stone-900 flex items-center justify-center mb-3 shadow-md border border-stone-200/60 dark:border-stone-800">
+                    <Bot className="w-7 h-7 text-[#003366] dark:text-sky-400" />
                   </div>
-                  <h4 className="text-xl serif-display font-light text-stone-900 dark:text-stone-100 mb-2 italic">Peace be with you</h4>
-                  <p className="text-[12px] font-medium text-stone-50 dark:text-stone-400 leading-relaxed max-w-[200px] mx-auto opacity-0 h-0 overflow-hidden md:h-auto md:opacity-100">
-                    I am your spiritual guide. Ask for wisdom or a prayer.
+                  <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 mb-1">Peace be with you</h4>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 max-w-[260px] leading-relaxed mb-4">
+                    I am the ZUCA Sanctuary companion, powered by Gemini AI to share Catholic prayers, scriptures, and community schedules.
                   </p>
                   
-                  {/* Enhanced Legit Suggestions */}
-                  <div className="mt-6 grid grid-cols-1 gap-2 w-full max-w-[260px]">
+                  {/* Suggestions */}
+                  <div className="grid grid-cols-1 gap-1.5 w-full max-w-[280px]">
                     {[
-                      "Legit prayer for exams",
-                      "Scripture for hope",
+                      "When is Jumuiya fellowship & Mass?",
+                      "Catholic prayer for exams & clarity",
+                      "Novena prayer to St. Jude",
+                      "Scripture for anxiety & inner peace"
                     ].map((hint) => (
                       <button
                         key={hint}
-                        onClick={() => setInput(hint)}
-                        className="px-4 py-2.5 bg-white dark:bg-stone-900 border border-stone-200/60 dark:border-white/5 rounded-[16px] text-[9px] font-black uppercase tracking-widest text-zetech-blue dark:text-stone-400 hover:bg-[#003366] hover:text-white hover:border-[#003366] hover:-translate-y-0.5 transition-all text-left shadow-sm flex items-center justify-between group"
+                        onClick={() => {
+                          setInput(hint);
+                        }}
+                        className="px-3 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 hover:bg-[#002244] hover:text-white hover:border-[#002244] transition-all text-left shadow-xs flex items-center justify-between group cursor-pointer"
                       >
-                        {hint}
-                        <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                        <span className="line-clamp-1">{hint}</span>
+                        <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-1" />
                       </button>
                     ))}
                   </div>
@@ -380,72 +408,70 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
 
               {messages.map((msg, idx) => (
                 <motion.div 
-                  initial={{ opacity: 0, y: 5 }}
+                  initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.15 }}
                   key={msg.id || idx} 
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10`}
                 >
-                  <div className={`flex gap-3 max-w-[90%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`px-4.5 py-3.5 rounded-[22px] text-[13.5px] leading-[1.5] shadow-md transition-all ${
+                  <div className={`flex gap-2 max-w-[88%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`px-3.5 py-2.5 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-xs transition-all ${
                       msg.role === 'user' 
-                        ? 'bg-[#003366] text-white dark:bg-brand-600 rounded-tr-none font-medium' 
-                        : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-100 dark:border-white/10 rounded-tl-none font-serif italic selection:bg-zetech-gold/20 selection:text-zetech-blue border-l-4 border-l-zetech-gold text-sm'
+                        ? 'bg-[#002244] text-white dark:bg-blue-700 rounded-tr-xs font-medium' 
+                        : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-800 rounded-tl-xs border-l-4 border-l-amber-500 font-sans'
                     }`}>
-                      <div className="markdown-body prose prose-stone dark:prose-invert max-w-none prose-p:my-0.5 prose-headings:my-1 prose-strong:text-zetech-blue prose-strong:font-black">
+                      <div className="markdown-body prose prose-stone dark:prose-invert max-w-none text-xs sm:text-[13px] prose-p:my-1 prose-headings:my-1.5 prose-strong:text-[#002244] dark:prose-strong:text-sky-300 prose-strong:font-bold">
                         <Markdown>{msg.text}</Markdown>
                       </div>
                     </div>
                   </div>
                 </motion.div>
               ))}
+
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-white dark:bg-stone-900 px-4 py-3 rounded-[18px] rounded-tl-none shadow-md border border-stone-100 dark:border-stone-800 flex items-center gap-2">
-                    <Loader2 className="w-3.5 h-3.5 text-zetech-gold animate-spin" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-stone-400">Spirit Reflecting...</span>
+                  <div className="bg-white dark:bg-stone-900 px-3.5 py-2 rounded-2xl rounded-tl-xs shadow-xs border border-stone-200 dark:border-stone-800 flex items-center gap-2">
+                    <Loader2 className="w-3.5 h-3.5 text-amber-500 animate-spin" />
+                    <span className="text-xs font-medium text-stone-500 dark:text-stone-400">Sanctuary Spirit reflecting...</span>
                   </div>
                 </div>
               )}
               <div ref={scrollRef} />
             </div>
 
-            {/* Input Area - More legit feel */}
-            <div className="p-3 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-white/10 shrink-0">
-              <form onSubmit={handleSend} className="flex gap-3">
+            {/* Input Area */}
+            <div className="p-3 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-stone-800 shrink-0">
+              <form onSubmit={handleSend} className="flex gap-2">
                 <div className="flex-1 relative flex items-center">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder={isListening ? "Listening..." : "Whisper..."}
-                    className="w-full px-4 py-2.5 pr-10 bg-stone-50 dark:bg-white/5 border border-stone-200/60 dark:border-white/10 rounded-[18px] outline-none text-[13px] transition-all focus:ring-4 focus:ring-zetech-blue/5 focus:border-[#003366]/40 shadow-inner placeholder:text-stone-400 font-medium"
+                    placeholder={isListening ? "Listening..." : "Ask scripture, prayer, schedule..."}
+                    className="w-full px-3.5 py-2.5 pr-9 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl outline-none text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
                   />
                   <button
                     type="button"
                     onClick={toggleListening}
-                    className={`absolute right-2.5 p-2 rounded-[14px] transition-all ${
+                    className={`absolute right-2 p-1.5 rounded-lg transition-all cursor-pointer ${
                       isListening 
-                        ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' 
-                        : 'text-stone-400 hover:text-zetech-blue hover:bg-stone-100'
+                        ? 'bg-red-500 text-white animate-pulse' 
+                        : 'text-stone-400 hover:text-blue-600 dark:hover:text-stone-200'
                     }`}
+                    title="Voice input"
                   >
-                    {isListening ? <MicOff className="w-4.5 h-4.5 animate-pulse" /> : <Mic className="w-4.5 h-4.5" />}
+                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                   </button>
                 </div>
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="bg-[#003366] text-white p-2.5 rounded-[18px] hover:translate-y-[-2px] active:translate-y-[0px] disabled:opacity-50 transition-all shadow-[0_8px_16px_-8px_rgba(0,51,102,0.4)] flex items-center justify-center shrink-0 disabled:grayscale group"
+                  className="bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white p-2.5 rounded-xl disabled:opacity-40 transition-all shadow-sm flex items-center justify-center shrink-0 cursor-pointer"
+                  title="Send"
                 >
-                  <Send className="w-5.5 h-5.5 group-hover:rotate-12 transition-transform" />
+                  <Send className="w-4 h-4" />
                 </button>
               </form>
-              <div className="flex items-center justify-center gap-4 mt-4">
-                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-stone-100 dark:to-white/5" />
-                 <p className="text-[7px] text-stone-400 font-black uppercase tracking-[0.4em]">ZUCA Action</p>
-                 <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-stone-100 dark:to-white/5" />
-              </div>
             </div>
           </motion.div>
         )}

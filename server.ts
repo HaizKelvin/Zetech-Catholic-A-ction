@@ -15,7 +15,7 @@ app.use(express.json());
 let genAI: GoogleGenAI | null = null;
 function getGemini() {
   if (!genAI) {
-    const key = process.env.GEMINI_API_KEY;
+    const key = process.env.GEMINI_API_KEY || process.env.API_KEY;
     if (!key) {
       throw new Error("GEMINI_API_KEY environment variable is required");
     }
@@ -40,7 +40,7 @@ function generateSpiritualFallback(userMessage: string, userName: string): strin
     return `Peace be with you, ${name}. The Holy Mass is the sacred source and summit of our Christian life. Our Sunday Mass is celebrated at 9:00 AM. Let us receive Christ with reverence. (Matthew 26:26)`;
   }
   if (msg.includes("choir") || msg.includes("sing") || msg.includes("music") || msg.includes("rehearsal") || msg.includes("practice")) {
-    return `Blessings, ${name}! High chanting or singing praise is praying twice. ZUCA Choir rehearsals take place on Thursdays at 4:30 PM, and Saturdays & Sundays at 3:00 PM. (Psalm 100:2)`;
+    return `Blessings, ${name}! Singing praise is praying twice. ZUCA Choir rehearsals take place on Thursdays at 4:30 PM, and Saturdays & Sundays at 3:00 PM. (Psalm 100:2)`;
   }
   if (msg.includes("jumuiya") || msg.includes("meeting") || msg.includes("wednesday") || msg.includes("tuesday") || msg.includes("room") || msg.includes("school") || msg.includes("class") || msg.includes("gather") || msg.includes("pg 6") || msg.includes("pg6")) {
     return `Dearest ${name}, Jumuiya fellowship and shared reflection take place in Room PG 6 every Wednesday at 4:20 PM at the main school campus. Come and be blessed! (Matthew 18:20)`;
@@ -82,9 +82,9 @@ COMMUNITY INFO & SCHEDULE:
 - Community: Zetech University Catholic Action (ZUCA).
 
 TONE: Warm, encouraging, spiritually wise, and respectful.
-STYLE: Direct and concise (2-3 sentences maximum).
-MANDATORY: Include ONE inspiring Scripture reference (Book Chapter:Verse).
-USER NAME: Address user as "${userName || 'Friend'}".`;
+STYLE: Direct, beautifully structured, and concise (2-4 sentences).
+MANDATORY: Always include at least ONE inspiring Scripture reference (e.g. John 14:27, Psalm 23:1, Matthew 6:33).
+USER NAME: Address user warmly as "${userName || 'Friend'}".`;
 
     // Clean and alternate history
     const contents: any[] = [];
@@ -123,54 +123,100 @@ USER NAME: Address user as "${userName || 'Friend'}".`;
       });
     }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.7-flash",
-      contents,
-      config: {
-        systemInstruction,
-      }
-    });
+    // Attempt generation with gemini-2.5-flash or gemini-3.7-flash
+    let responseText = "";
+    let usedModel = "gemini-2.5-flash";
 
-    const aiText = response.text || generateSpiritualFallback(message || "", userName || "Pilgrim Friend");
-    res.json({ text: aiText });
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents,
+        config: {
+          systemInstruction,
+        }
+      });
+      responseText = response.text || "";
+    } catch (modelErr: any) {
+      console.warn("Primary model attempt, trying gemini-3.7-flash:", modelErr?.message);
+      usedModel = "gemini-3.7-flash";
+      const response = await ai.models.generateContent({
+        model: "gemini-3.7-flash",
+        contents,
+        config: {
+          systemInstruction,
+        }
+      });
+      responseText = response.text || "";
+    }
+
+    const finalAiText = responseText.trim() || generateSpiritualFallback(message || "", userName || "Pilgrim Friend");
+    res.json({ 
+      text: finalAiText, 
+      source: 'gemini-api', 
+      model: usedModel,
+      success: true 
+    });
   } catch (error: any) {
     console.warn("Gemini API request note, utilizing spiritual guide response:", error?.message || error);
     const fallbackText = generateSpiritualFallback(message || "", userName || "Pilgrim Friend");
-    res.json({ text: fallbackText, error: error?.message });
+    res.json({ 
+      text: fallbackText, 
+      source: 'fallback', 
+      error: error?.message || 'API Key not connected or rate limited',
+      success: false 
+    });
   }
 });
 
 app.get("/api/chat/health", async (req, res) => {
   try {
-    const key = process.env.GEMINI_API_KEY;
-    const isKeySet = !!key;
+    const key = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    const isKeySet = !!key && key.trim().length > 0;
     const keyLength = key ? key.length : 0;
-    const keyPrefix = key ? key.slice(0, 6) : "none";
+    const keyPrefix = isKeySet ? `${key.slice(0, 4)}...${key.slice(-4)}` : "none";
 
-    let testResult = "Not attempted";
+    let testResult = "Not configured";
+    let liveModel = "none";
+    let connected = false;
+
     if (isKeySet) {
       try {
         const ai = getGemini();
         const response = await ai.models.generateContent({
-          model: "gemini-3.7-flash",
-          contents: "Hello, reply with one word: 'Sanctuary'",
+          model: "gemini-2.5-flash",
+          contents: "Hello, respond with one word: 'Connected'",
         });
-        testResult = response.text ? response.text.trim() : "Empty response";
+        testResult = response.text ? response.text.trim() : "Online";
+        liveModel = "gemini-2.5-flash";
+        connected = true;
       } catch (e: any) {
-        testResult = `Error calling Gemini: ${e.message}`;
+        try {
+          const ai = getGemini();
+          const response = await ai.models.generateContent({
+            model: "gemini-3.7-flash",
+            contents: "Hello, respond with one word: 'Connected'",
+          });
+          testResult = response.text ? response.text.trim() : "Online";
+          liveModel = "gemini-3.7-flash";
+          connected = true;
+        } catch (e2: any) {
+          testResult = `Error calling Gemini: ${e2.message}`;
+        }
       }
     }
 
     res.json({
       status: "ready",
       keyConfigured: isKeySet,
+      connected,
+      liveModel,
       keyLength,
       keyPrefix,
-      testResult,
-      time: new Date().toISOString()
+      testResponse: testResult,
+      timestamp: new Date().toISOString()
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ status: "error", error: error.message });
   }
 });
 

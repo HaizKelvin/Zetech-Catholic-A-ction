@@ -29,7 +29,16 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { UserProfile, UserRole, OperationType, AppNotification } from './types';
-import { handleFirestoreError, compressImage, formatAuthError, checkFirebaseConnection, FormattedAuthError, validateEmailPattern, isValidEmail } from './utils';
+import { 
+  handleFirestoreError, 
+  compressImage, 
+  formatAuthError, 
+  checkFirebaseConnection, 
+  FormattedAuthError, 
+  validateEmailPattern, 
+  isValidEmail,
+  getPasswordStrength
+} from './utils';
 import { NotificationManager } from './lib/notifications';
 
 // Components
@@ -211,7 +220,13 @@ export default function App() {
   const [authView, setAuthView] = useState<'signin' | 'signup' | 'forgot'>('signin');
   const [authActionLoading, setAuthActionLoading] = useState<'signin' | 'signup' | 'google' | 'twitter' | 'reset' | 'instant-admin' | 'instant-demo' | null>(null);
   const [signInForm, setSignInForm] = useState({ identifier: '', password: '' });
-  const [signUpForm, setSignUpForm] = useState({ name: '', phone: '', email: '', admissionNumber: '', password: '' });
+  const [signUpForm, setSignUpForm] = useState({ 
+    name: '', 
+    phone: '', 
+    email: '', 
+    admissionNumber: '', 
+    password: ''
+  });
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
@@ -899,7 +914,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
     try {
       const { user: newUser } = await createUserWithEmailAndPassword(auth, primaryEmail, signUpForm.password);
       if (signUpForm.name.trim()) {
-        await updateProfile(newUser, { displayName: signUpForm.name.trim() });
+        await updateProfile(newUser, { displayName: signUpForm.name.trim() }).catch(() => {});
       }
 
       // Persist full profile to Firestore immediately
@@ -907,7 +922,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
       await setDoc(userDocRef, {
         uid: newUser.uid,
         email: primaryEmail,
-        displayName: signUpForm.name.trim(),
+        displayName: signUpForm.name.trim() || 'Blessed Member',
+        photoURL: '',
         contactNumber: signUpForm.phone.trim(),
         phoneNumber: phoneCheck.cleanDigits,
         phone: signUpForm.phone.trim(),
@@ -923,7 +939,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
         ...(prev || {}),
         uid: newUser.uid,
         email: primaryEmail,
-        displayName: signUpForm.name.trim(),
+        displayName: signUpForm.name.trim() || 'Blessed Member',
+        photoURL: '',
         contactNumber: signUpForm.phone.trim(),
         phoneNumber: phoneCheck.cleanDigits,
         phone: signUpForm.phone.trim(),
@@ -1416,28 +1433,60 @@ Can you provide more insight, theological context, or a related prayer meditatio
                         />
                       </div>
 
-                      {/* Password Input */}
-                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
-                        <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                          signUpForm.password ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
-                        }`} />
-                        <input
-                          type={showSignUpPassword ? 'text' : 'password'}
-                          required
-                          disabled={authLoading}
-                          placeholder="Password (min 6 characters) *"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
-                          value={signUpForm.password}
-                          onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
-                        />
-                        <button
-                          type="button"
-                          disabled={authLoading}
-                          onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
-                        >
-                          {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
+                      {/* Password Input & Strength Meter */}
+                      <div className={`space-y-1.5 transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                        <div className="relative">
+                          <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                            signUpForm.password ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                          }`} />
+                          <input
+                            type={showSignUpPassword ? 'text' : 'password'}
+                            required
+                            disabled={authLoading}
+                            placeholder="Password (min 6 characters) *"
+                            className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
+                            value={signUpForm.password}
+                            onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
+                          />
+                          <button
+                            type="button"
+                            disabled={authLoading}
+                            onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
+                          >
+                            {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+
+                        {/* Password Strength Indicator */}
+                        {signUpForm.password && (
+                          <div className="px-1 space-y-1">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-stone-400 font-medium">Security Strength:</span>
+                              <span className={`font-bold ${
+                                getPasswordStrength(signUpForm.password).score === 3 
+                                  ? 'text-emerald-500' 
+                                  : getPasswordStrength(signUpForm.password).score === 2 
+                                    ? 'text-amber-500' 
+                                    : 'text-red-500'
+                              }`}>
+                                {getPasswordStrength(signUpForm.password).label}
+                              </span>
+                            </div>
+                            <div className="w-full h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full transition-all duration-300 ${
+                                  getPasswordStrength(signUpForm.password).score === 3 
+                                    ? 'bg-emerald-500' 
+                                    : getPasswordStrength(signUpForm.password).score === 2 
+                                      ? 'bg-amber-500' 
+                                      : 'bg-red-500'
+                                }`}
+                                style={{ width: `${getPasswordStrength(signUpForm.password).percent}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Terms checkbox */}
