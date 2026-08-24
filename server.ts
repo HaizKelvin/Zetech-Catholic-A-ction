@@ -36,29 +36,35 @@ function generateSpiritualFallback(userMessage: string, userName: string): strin
   const msg = userMessage.toLowerCase();
   const name = userName || "Friend";
   
-  if (msg.includes("mass") || msg.includes("service") || msg.includes("sacrament") || msg.includes("eucharist") || msg.includes("liturgy")) {
-    return `Peace be with you, ${name}. The Holy Mass is the sacred source and summit of our faith journey. Let us attend and receive the Eucharist with deep, pure hearts. (Matthew 26:26)`;
+  if (msg.includes("mass") || msg.includes("service") || msg.includes("sacrament") || msg.includes("eucharist") || msg.includes("liturgy") || msg.includes("sunday")) {
+    return `Peace be with you, ${name}. The Holy Mass is the sacred source and summit of our Christian life. Our Sunday Mass is celebrated at 9:00 AM. Let us receive Christ with reverence. (Matthew 26:26)`;
   }
   if (msg.includes("choir") || msg.includes("sing") || msg.includes("music") || msg.includes("rehearsal") || msg.includes("practice")) {
-    return `Blessings, ${name}! High chanting or singing is praying twice to the Lord. Our choir family meets on Thursdays at 4:30 PM, and Saturdays & Sundays at 3:00 PM. (Psalm 100:2)`;
+    return `Blessings, ${name}! High chanting or singing praise is praying twice. ZUCA Choir rehearsals take place on Thursdays at 4:30 PM, and Saturdays & Sundays at 3:00 PM. (Psalm 100:2)`;
   }
-  if (msg.includes("jumuiya") || msg.includes("meeting") || msg.includes("wednesday") || msg.includes("tuesday") || msg.includes("room") || msg.includes("school") || msg.includes("class") || msg.includes("gather") || msg.includes("pg 6")) {
-    return `Dearest ${name}, please remember we now meet for Jumuiya fellowship and shared prayers at PG 6 Room every Wednesday at 4:20 PM at the school. Come join other pilgrims! (Matthew 18:20)`;
+  if (msg.includes("jumuiya") || msg.includes("meeting") || msg.includes("wednesday") || msg.includes("tuesday") || msg.includes("room") || msg.includes("school") || msg.includes("class") || msg.includes("gather") || msg.includes("pg 6") || msg.includes("pg6")) {
+    return `Dearest ${name}, Jumuiya fellowship and shared reflection take place in Room PG 6 every Wednesday at 4:20 PM at the main school campus. Come and be blessed! (Matthew 18:20)`;
   }
-  if (msg.includes("pray") || msg.includes("intention") || msg.includes("petition") || msg.includes("altar")) {
-    return `I am praying with you, ${name}. Rest assured that your heartfelt intentions are fully presented before our Lord's holy altar. (Philippians 4:6)`;
+  if (msg.includes("rosary") || msg.includes("mary") || msg.includes("mother") || msg.includes("decade") || msg.includes("hail mary")) {
+    return `May Our Lady of the Holy Rosary wrap you in her mantle of peace, ${name}. Praying the Rosary connects us deeply with Christ's mysteries through Mary's intercession. (Luke 1:28)`;
   }
-  if (msg.includes("confession") || msg.includes("sin") || msg.includes("forgive") || msg.includes("mercy")) {
-    return `God's divine mercy is an infinite ocean, ${name}. Never hesitate to approach the beautiful Sacrament of Reconciliation for complete renewal. (1 John 1:9)`;
+  if (msg.includes("pray") || msg.includes("intention") || msg.includes("petition") || msg.includes("altar") || msg.includes("help")) {
+    return `I am praying with you, ${name}. Rest assured that your heartfelt petitions are placed before our Lord's altar. Cast all your anxieties on Him, for He cares for you. (Philippians 4:6)`;
   }
-  if (msg.includes("hello") || msg.includes("hi") || msg.includes("hey") || msg.includes("jambo")) {
-    return `A very warm welcome to you, ${name}! The Sanctuary Spirit greets you on this blessed day. How can I guide your collegiate faith journey today? (John 14:27)`;
+  if (msg.includes("confession") || msg.includes("sin") || msg.includes("forgive") || msg.includes("mercy") || msg.includes("reconciliation")) {
+    return `God's divine mercy is boundless, ${name}. The Sacrament of Reconciliation restores and heals our hearts. Approach the Lord with trust. (1 John 1:9)`;
   }
-  if (msg.includes("who are you") || msg.includes("what is your name")) {
-    return `I am the Sanctuary Spirit, the digital guide of Zetech University Catholic Action, here to accompany you through scriptures and spiritual support. (Proverbs 3:5-6)`;
+  if (msg.includes("exam") || msg.includes("study") || msg.includes("stress") || msg.includes("academics") || msg.includes("cat") || msg.includes("grade")) {
+    return `Trust in the Holy Spirit to grant you wisdom, clarity, and peace in your studies and exams, ${name}. Saint Thomas Aquinas and St. Joseph of Cupertino, pray for our students! (James 1:5)`;
+  }
+  if (msg.includes("hello") || msg.includes("hi") || msg.includes("hey") || msg.includes("jambo") || msg.includes("habari")) {
+    return `A very warm welcome to you, ${name}! The Sanctuary Spirit greets you in Christ's peace. How can I assist your spiritual or university journey today? (John 14:27)`;
+  }
+  if (msg.includes("who are you") || msg.includes("what is your name") || msg.includes("sanctuary")) {
+    return `I am the Sanctuary Spirit, the digital companion of Zetech University Catholic Action (ZUCA), here to provide Catholic scriptures, prayers, and community schedules. (Proverbs 3:5-6)`;
   }
   
-  return `Keep walking in faith, ${name}. Let your university journey be guided by prayers, genuine academic effort, and loving charity towards all. (Proverbs 3:5-6)`;
+  return `May the peace of Christ reign in your heart, ${name}. Let your university journey be anchored in faithful prayer, academic diligence, and brotherly love. (Proverbs 3:5-6)`;
 }
 
 app.post("/api/chat", async (req, res) => {
@@ -66,18 +72,19 @@ app.post("/api/chat", async (req, res) => {
   
   try {
     const ai = getGemini();
-    const systemInstruction = `You are the "Sanctuary Spirit", a spiritual guide for the ZUCA community. 
-Provide authentic, direct, and concise Catholic guidance.
+    const systemInstruction = `You are the "Sanctuary Spirit", the spiritual guide and AI companion for the Zetech University Catholic Action (ZUCA) community. 
+Provide authentic, compassionate, and concise Catholic guidance, prayers, and scripture.
 
-IMPORTANT SCHEDULE INFO:
-- Jumuiya fellowship is every Wednesday at 4:20 PM in PG 6 Room at the school.
-- Choir practices are on Thursdays at 4:30 PM, Saturdays at 3:00 PM, and Sundays at 3:00 PM.
-- Sunday Holy Mass is at 9:00 AM.
+COMMUNITY INFO & SCHEDULE:
+- Jumuiya fellowship: Every Wednesday at 4:20 PM in Room PG 6 at the school campus.
+- Choir rehearsals: Thursdays at 4:30 PM, Saturdays at 3:00 PM, Sundays at 3:00 PM.
+- Sunday Holy Mass: 9:00 AM.
+- Community: Zetech University Catholic Action (ZUCA).
 
-TONE: Warm, respectful, spiritually wise.
-RESPONSE STYLE: EXTREMELY BRIEF (1-2 sentences).
-MANDATORY: Include ONE Scripture verse (Book Chapter:Verse).
-REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`;
+TONE: Warm, encouraging, spiritually wise, and respectful.
+STYLE: Direct and concise (2-3 sentences maximum).
+MANDATORY: Include ONE inspiring Scripture reference (Book Chapter:Verse).
+USER NAME: Address user as "${userName || 'Friend'}".`;
 
     // Clean and alternate history
     const contents: any[] = [];
@@ -117,17 +124,17 @@ REFER TO USER AS: ${userName ? `"${userName}"` : '"Friend"'}.`;
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.6-flash",
       contents,
       config: {
         systemInstruction,
       }
     });
 
-    const aiText = response.text || "My reflection is currently interrupted, fellow pilgrim. Let us pause for a moment in prayer.";
+    const aiText = response.text || generateSpiritualFallback(message || "", userName || "Pilgrim Friend");
     res.json({ text: aiText });
   } catch (error: any) {
-    console.warn("Gemini API call failed, falling back to spiritual guidance generator:", error.message);
+    console.warn("Gemini API request note, utilizing spiritual guide response:", error?.message || error);
     const fallbackText = generateSpiritualFallback(message || "", userName || "Pilgrim Friend");
     res.json({ text: fallbackText });
   }
@@ -145,7 +152,7 @@ app.get("/api/chat/health", async (req, res) => {
       try {
         const ai = getGemini();
         const response = await ai.models.generateContent({
-          model: "gemini-3.5-flash",
+          model: "gemini-3.6-flash",
           contents: "Hello, reply with one word: 'Sanctuary'",
         });
         testResult = response.text ? response.text.trim() : "Empty response";

@@ -24,7 +24,7 @@ Welcome to Sanctuary Fellowship, your digital companion for spiritual growth and
 1. GETTING STARTED
 ------------------
 - Sign Up/Login: Securely access your account using Google Authentication.
-- Profile Setup: Customize your profile with a name and spiritual avatar to be recognized in the fellowship.
+- Profile Setup: Customize your profile with your name and profile portrait photo to be recognized in the fellowship.
 
 2. DAILY DEVOTIONALS (DASHBOARD)
 --------------------------------

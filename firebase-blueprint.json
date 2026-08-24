@@ -8,7 +8,7 @@
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email", "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", "maxLength": 120, "minLength": 5 },
         "displayName": { "type": "string", "maxLength": 100 },
-        "photoURL": { "type": "string", "description": "URL to profile picture.", "maxLength": 2000 },
+        "photoURL": { "type": "string", "description": "URL to profile picture or base64 image.", "maxLength": 600000 },
         "bio": { "type": "string", "description": "A short spiritual bio.", "maxLength": 500 },
         "isSubscribed": { "type": "boolean", "description": "Whether the user wants to receive automatic email updates." },
         "role": { "type": "string", "enum": ["admin", "member"] },

@@ -57,8 +57,8 @@ export function formatAuthError(error: any): FormattedAuthError {
     message.includes('took too long to respond')
   ) {
     return {
-      title: 'Connection / Domain Notice',
-      message: 'The Google OAuth popup domain could not be reached. You can sign in or create an account instantly using the Email & Password form above, which connects directly to Google Cloud without popup domain dependencies.',
+      title: 'Connection / Network Notice',
+      message: 'The network connection was interrupted. Please check your internet connection or use the Phone Number / Email form below, which connects directly to Firebase.',
       isConnectionError: true,
       canRetry: true,
       code
@@ -72,8 +72,8 @@ export function formatAuthError(error: any): FormattedAuthError {
     code === 'auth/user-not-found'
   ) {
     return {
-      title: 'Incorrect Email or Password',
-      message: 'The email address or password you entered is incorrect. Please verify and try again, or reset your password.',
+      title: 'Incorrect Credentials',
+      message: 'The phone number, email address, or password entered does not match our records. Please verify and try again, or create a new student account.',
       isConnectionError: false,
       canRetry: true,
       code
@@ -83,8 +83,8 @@ export function formatAuthError(error: any): FormattedAuthError {
   // Account exists
   if (code === 'auth/email-already-in-use') {
     return {
-      title: 'Email Already Registered',
-      message: 'An account with this email address already exists. Please sign in instead or reset your password.',
+      title: 'Account Already Exists',
+      message: 'An account with this email or phone number already exists. Please switch to the Sign In tab.',
       isConnectionError: false,
       canRetry: false,
       code
@@ -114,10 +114,10 @@ export function formatAuthError(error: any): FormattedAuthError {
   }
 
   // Popup blocked
-  if (code === 'auth/popup-blocked') {
+  if (code === 'auth/popup-blocked' || message.includes('popup-blocked')) {
     return {
-      title: 'Sign-In Popup Blocked',
-      message: 'The sign-in popup was blocked by your browser. Please allow popups or open this website in a new browser tab.',
+      title: 'Google Popup Blocked in Preview',
+      message: 'The browser or iframe blocked the Google sign-in window. To use Google Sign-In, please allow popups or open this app in a new browser tab. Alternatively, use your Phone Number or Email below for instant access.',
       isConnectionError: true,
       canRetry: true,
       code
@@ -125,10 +125,10 @@ export function formatAuthError(error: any): FormattedAuthError {
   }
 
   // Popup closed by user
-  if (code === 'auth/popup-closed-by-user') {
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
     return {
-      title: 'Sign-In Cancelled',
-      message: 'The authentication window was closed before completion.',
+      title: 'Google Sign-In Cancelled',
+      message: 'The Google authentication popup was closed before completing. Please try again or use Phone / Email registration.',
       isConnectionError: false,
       canRetry: true,
       code
@@ -138,8 +138,8 @@ export function formatAuthError(error: any): FormattedAuthError {
   // Account exists with different credential
   if (code === 'auth/account-exists-with-different-credential') {
     return {
-      title: 'Account Already Exists',
-      message: 'An account already exists with the same email address using a different sign-in provider (e.g., Google or Email). Please sign in with that method.',
+      title: 'Account Exists with Different Method',
+      message: 'An account already exists with this email using password sign-in. Please sign in using your Password.',
       isConnectionError: false,
       canRetry: false,
       code
@@ -148,10 +148,9 @@ export function formatAuthError(error: any): FormattedAuthError {
 
   // Unauthorized domain
   if (code === 'auth/unauthorized-domain') {
-    const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
     return {
-      title: 'Unauthorized Firebase Domain',
-      message: `The domain "${host}" is not authorized in your Firebase Console. Please add it to Firebase Console > Authentication > Settings > Authorized domains.`,
+      title: 'Google OAuth Domain Notice',
+      message: 'Google Sign-In requires adding this preview domain to Firebase Authorized Domains. You can immediately create an account or sign in using your Phone Number or Email below with zero setup!',
       isConnectionError: true,
       canRetry: false,
       code
@@ -161,8 +160,8 @@ export function formatAuthError(error: any): FormattedAuthError {
   // Operation not allowed
   if (code === 'auth/operation-not-allowed') {
     return {
-      title: 'Sign-In Provider Needs Activation',
-      message: 'This sign-in provider (Google, Twitter/X, or Email/Password) is currently disabled in your Firebase project. You can enable it in Firebase Console > Authentication > Sign-in method, or use Guest Demo / Email.',
+      title: 'Google Provider Disabled in Firebase',
+      message: 'Google Sign-In is not currently enabled in this project’s Firebase Auth settings. Please use your Phone Number or Email to sign up and join instantly.',
       isConnectionError: true,
       canRetry: false,
       code
@@ -266,13 +265,20 @@ export const cn = (...inputs: any[]) => {
   return inputs.filter(Boolean).join(' ');
 };
 
-export function compressImage(file: File, maxWidth = 400, maxHeight = 400, quality = 0.6): Promise<string> {
+export function compressImage(file: File, maxWidth = 360, maxHeight = 360, quality = 0.72): Promise<string> {
   return new Promise((resolve, reject) => {
+    if (!file || !(file instanceof Blob)) {
+      return reject(new Error('Invalid file provided for image compression'));
+    }
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = (event) => {
+      const result = event.target?.result;
+      if (!result || typeof result !== 'string') {
+        return reject(new Error('Failed to read image data'));
+      }
       const img = new Image();
-      img.src = event.target?.result as string;
+      img.src = result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
         let width = img.width;
@@ -280,27 +286,32 @@ export function compressImage(file: File, maxWidth = 400, maxHeight = 400, quali
 
         if (width > height) {
           if (width > maxWidth) {
-            height *= maxWidth / width;
+            height = Math.round(height * (maxWidth / width));
             width = maxWidth;
           }
         } else {
           if (height > maxHeight) {
-            width *= maxHeight / height;
+            width = Math.round(width * (maxHeight / height));
             height = maxHeight;
           }
         }
 
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = Math.max(1, width);
+        canvas.height = Math.max(1, height);
         const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
+        if (!ctx) {
+          return resolve(result);
+        }
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
         resolve(dataUrl);
       };
-      img.onerror = reject;
+      img.onerror = (err) => reject(err);
     };
-    reader.onerror = reject;
+    reader.onerror = (err) => reject(err);
   });
 }
 

@@ -101,7 +101,9 @@ import {
   Wifi,
   WifiOff,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -180,25 +182,27 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Update URL and history when tab changes
+  // Update URL and state instantaneously when tab changes
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     
     // Toggle About dropdown if clicking about
     if (tab === 'about') {
-      setIsAboutOpen(!isAboutOpen);
+      setIsAboutOpen(prev => !prev);
     }
 
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', tab);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tab);
+      if (window.history.state?.tab !== tab) {
+        window.history.replaceState({ tab }, '', url.toString());
+      }
+    } catch (_) {}
     
-    if (window.history.state?.tab !== tab) {
-      window.history.pushState({ tab }, '', url.toString());
-    }
-    
-    // Immediate scroll for speed
+    // Instant scroll to top with zero delay
+    window.scrollTo(0, 0);
     const main = document.querySelector('main');
-    if (main) main.scrollTo({ top: 0 });
+    if (main) main.scrollTop = 0;
 
     if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
@@ -247,6 +251,8 @@ export default function App() {
     return false;
   });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
   const [savingState, setSavingState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [editForm, setEditForm] = useState({ 
     displayName: '', 
@@ -323,7 +329,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
           displayName: firebaseUser.displayName || 'Blessed Member',
-          photoURL: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`,
+          photoURL: firebaseUser.photoURL || '',
           role: firebaseUser.email === 'wachirakevin65@gmail.com' ? 'admin' : 'member',
           createdAt: Timestamp.now(),
           online: true,
@@ -399,7 +405,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
 
       if (isNewUser) {
         profileData.displayName = firebaseUser.displayName || signUpForm.name || 'Blessed Member';
-        profileData.photoURL = firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`;
+        profileData.photoURL = firebaseUser.photoURL || '';
         if (signUpForm.phone) {
           profileData.contactNumber = signUpForm.phone.trim();
           profileData.phone = signUpForm.phone.trim();
@@ -510,6 +516,78 @@ Can you provide more insight, theological context, or a related prayer meditatio
     } catch (err) {
       console.error(`Auto-save of ${key} failed:`, err);
       setSavingState('error');
+    }
+  };
+
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setPhotoUploadError('Please select a valid image (PNG, JPG, WEBP).');
+      return;
+    }
+
+    setPhotoUploadError(null);
+    setIsUploadingPhoto(true);
+    setSavingState('saving');
+
+    try {
+      const compressed = await compressImage(file, 360, 360, 0.72);
+      
+      // Update local form and state immediately
+      setEditForm(prev => ({ ...prev, photoURL: compressed }));
+      setProfile(prev => prev ? ({ ...prev, photoURL: compressed }) : null);
+
+      // Persist in Firestore
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        await updateDoc(userDocRef, { photoURL: compressed });
+      }
+
+      // Update Auth Profile if available
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: compressed }).catch(() => {});
+      }
+
+      setSavingState('saved');
+      setTimeout(() => setSavingState('idle'), 2500);
+    } catch (error: any) {
+      console.error("Profile picture upload failed:", error);
+      setPhotoUploadError('Failed to process image. Please try another photo.');
+      setSavingState('error');
+      if (user) {
+        handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
+      }
+    } finally {
+      setIsUploadingPhoto(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleRemoveProfilePhoto = async () => {
+    setPhotoUploadError(null);
+    setIsUploadingPhoto(true);
+    setSavingState('saving');
+    try {
+      setEditForm(prev => ({ ...prev, photoURL: '' }));
+      setProfile(prev => prev ? ({ ...prev, photoURL: '' }) : null);
+
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        await updateDoc(userDocRef, { photoURL: '' });
+      }
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: '' }).catch(() => {});
+      }
+
+      setSavingState('saved');
+      setTimeout(() => setSavingState('idle'), 2000);
+    } catch (error) {
+      console.error("Remove photo failed:", error);
+      setSavingState('error');
+    } finally {
+      setIsUploadingPhoto(false);
     }
   };
 
@@ -1950,77 +2028,75 @@ Can you provide more insight, theological context, or a related prayer meditatio
           style={{ scaleX: scrollProgress }}
         />
         <div className="max-w-6xl mx-auto pt-2 md:pt-16">
-          <AnimatePresence mode="wait">
-            {activeTab === 'home' && (
-              <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <Dashboard 
-                  userName={profile?.displayName || user?.displayName || 'Member'} 
-                  currentUser={profile}
-                  onTabChange={(tab) => handleTabChange(tab)}
-                />
-              </motion.div>
-            )}
-            {activeTab === 'chat' && (
-              <motion.div key="chat" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <ChatPage currentUser={profile} />
-              </motion.div>
-            )}
-            {activeTab === 'gallery' && (
-              <motion.div key="gallery" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <Gallery profile={profile} />
-              </motion.div>
-            )}
-            {activeTab === 'materials' && (
-              <motion.div key="materials" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <GroupLibrary user={profile} isAdmin={isAdmin} onStudy={handleStudyResource} />
-              </motion.div>
-            )}
-            {activeTab === 'schedule' && (
-              <motion.div key="schedule" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <SchedulePage user={profile} isAdmin={isAdmin} />
-              </motion.div>
-            )}
-            {activeTab === 'petitions' && (
-              <motion.div key="petitions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <Petitions />
-              </motion.div>
-            )}
-            {activeTab === 'join' && (
-              <motion.div key="join" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <JoinUs currentUser={profile} />
-              </motion.div>
-            )}
-            {activeTab === 'payments' && (
-              <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <Payments isAdmin={isAdmin} />
-              </motion.div>
-            )}
-            {activeTab === 'trivia' && (
-              <motion.div key="trivia" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <TriviaComponent isAdmin={isAdmin} />
-              </motion.div>
-            )}
-            {activeTab === 'contact' && (
-              <motion.div key="contact" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <ContactUs />
-              </motion.div>
-            )}
-            {activeTab === 'about' && (
-              <motion.div key="about" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <AboutPage />
-              </motion.div>
-            )}
-            {activeTab === 'guide' && (
-              <motion.div key="guide" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <UserGuide />
-              </motion.div>
-            )}
-            {activeTab === 'admin' && isAdmin && (
-              <motion.div key="admin" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <AdminPanel />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {activeTab === 'home' && (
+            <div key="home">
+              <Dashboard 
+                userName={profile?.displayName || user?.displayName || 'Member'} 
+                currentUser={profile}
+                onTabChange={(tab) => handleTabChange(tab)}
+              />
+            </div>
+          )}
+          {activeTab === 'chat' && (
+            <div key="chat">
+              <ChatPage currentUser={profile} />
+            </div>
+          )}
+          {activeTab === 'gallery' && (
+            <div key="gallery">
+              <Gallery profile={profile} />
+            </div>
+          )}
+          {activeTab === 'materials' && (
+            <div key="materials">
+              <GroupLibrary user={profile} isAdmin={isAdmin} onStudy={handleStudyResource} />
+            </div>
+          )}
+          {activeTab === 'schedule' && (
+            <div key="schedule">
+              <SchedulePage user={profile} isAdmin={isAdmin} />
+            </div>
+          )}
+          {activeTab === 'petitions' && (
+            <div key="petitions">
+              <Petitions />
+            </div>
+          )}
+          {activeTab === 'join' && (
+            <div key="join">
+              <JoinUs currentUser={profile} />
+            </div>
+          )}
+          {activeTab === 'payments' && (
+            <div key="payments">
+              <Payments isAdmin={isAdmin} />
+            </div>
+          )}
+          {activeTab === 'trivia' && (
+            <div key="trivia">
+              <TriviaComponent isAdmin={isAdmin} />
+            </div>
+          )}
+          {activeTab === 'contact' && (
+            <div key="contact">
+              <ContactUs />
+            </div>
+          )}
+          {activeTab === 'about' && (
+            <div key="about">
+              <AboutPage />
+            </div>
+          )}
+          {activeTab === 'guide' && (
+            <div key="guide">
+              <UserGuide />
+            </div>
+          )}
+          {activeTab === 'admin' && isAdmin && (
+            <div key="admin">
+              <AdminPanel />
+            </div>
+          )}
         </div>
       </main>
 
@@ -2068,72 +2144,96 @@ Can you provide more insight, theological context, or a related prayer meditatio
                   </div>
                 </div>
                 <form onSubmit={handleUpdateProfile} className="space-y-6">
-                  <div className="flex flex-col items-center gap-6 mb-8 text-center bg-stone-500/5 p-6 rounded-[32px] border border-stone-200/40 dark:border-white/5">
-                    <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-2xl relative group border-2 border-brand-500/20">
-                      {editForm.photoURL ? (
-                        <img src={editForm.photoURL} alt="Preview" className="w-full h-full object-cover animate-fade-in" />
-                      ) : (
-                        <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                          <UserIcon className="w-8 h-8 text-slate-300" />
-                        </div>
-                      )}
-                      <label className="absolute inset-0 bg-brand-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                        <ImageIcon className="w-6 h-6 text-white" />
+                  {/* Modern Profile Picture Upload Section - No Stickers */}
+                  <div className="flex flex-col items-center gap-5 text-center bg-stone-50 dark:bg-stone-900/60 p-6 rounded-3xl border border-stone-200/60 dark:border-stone-800">
+                    <div className="relative group">
+                      <div className="w-28 h-28 rounded-2xl overflow-hidden shadow-lg border-2 border-brand-500/30 bg-white dark:bg-stone-800 flex items-center justify-center">
+                        {editForm.photoURL ? (
+                          <img 
+                            src={editForm.photoURL} 
+                            alt="Profile portrait" 
+                            className="w-full h-full object-cover animate-fade-in" 
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-brand-50 dark:bg-brand-950/40 flex flex-col items-center justify-center text-brand-600 dark:text-brand-400">
+                            {editForm.displayName ? (
+                              <span className="text-3xl font-black uppercase">
+                                {editForm.displayName.charAt(0)}
+                              </span>
+                            ) : (
+                              <UserIcon className="w-10 h-10 text-brand-400" />
+                            )}
+                          </div>
+                        )}
+
+                        {isUploadingPhoto && (
+                          <div className="absolute inset-0 bg-stone-950/70 backdrop-blur-xs flex flex-col items-center justify-center text-white gap-1.5 z-10">
+                            <Loader2 className="w-6 h-6 animate-spin text-brand-400" />
+                            <span className="text-[9px] font-black uppercase tracking-wider">Optimizing...</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Quick upload overlay on hover */}
+                      <label 
+                        className="absolute inset-0 rounded-2xl bg-stone-950/60 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white z-10"
+                        title="Upload new portrait photo"
+                      >
+                        <Camera className="w-6 h-6 text-white drop-shadow-md" />
+                        <span className="text-[8px] font-black uppercase tracking-widest">Change</span>
                         <input 
                           type="file" 
-                          accept="image/*" 
+                          accept="image/png,image/jpeg,image/jpg,image/webp" 
                           className="hidden" 
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              try {
-                                const compressed = await compressImage(file);
-                                setEditForm({...editForm, photoURL: compressed});
-                                await autoSaveProfileField('photoURL', compressed);
-                              } catch (error) {
-                                console.error("Compression failed:", error);
-                              }
-                            }
-                          }}
+                          disabled={isUploadingPhoto}
+                          onChange={handleProfileImageUpload}
                         />
                       </label>
                     </div>
-                    <div className="w-full">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-3">
-                        Choose Spiritual Guide or Upload Portrait
-                      </p>
-                      
-                      <div className="grid grid-cols-6 gap-2 w-full max-w-sm mx-auto">
-                        {[
-                          { name: 'Dove', title: 'Peace', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=peace&mouth=smile' },
-                          { name: 'Shield', title: 'Faith', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=faith&eyes=happy' },
-                          { name: 'Spirit', title: 'Flame', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=spirit&mouth=smile' },
-                          { name: 'Grace', title: 'Sanctuary', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=grace&eyes=happy' },
-                          { name: 'Wisdom', title: 'Word', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wisdom&mouth=smile' },
-                          { name: 'Joy', title: 'Hope', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=joy&eyes=happy' },
-                        ].map((preset) => {
-                          const isSelected = editForm.photoURL === preset.url;
-                          return (
-                            <button
-                              key={preset.name}
-                              type="button"
-                              onClick={async () => {
-                                setEditForm(prev => ({ ...prev, photoURL: preset.url }));
-                                await autoSaveProfileField('photoURL', preset.url);
-                              }}
-                              className={`p-1 rounded-xl border transition-all flex flex-col items-center gap-1 bg-white dark:bg-stone-900 ${
-                                isSelected 
-                                  ? 'border-brand-500 ring-2 ring-brand-500/20 scale-105' 
-                                  : 'border-stone-200 dark:border-white/10 hover:border-brand-500/40 hover:scale-105'
-                              }`}
-                              title={preset.name}
-                            >
-                              <img src={preset.url} alt={preset.name} className="w-7 h-7 rounded-lg object-cover" />
-                              <span className="text-[7px] font-black uppercase tracking-wider text-stone-400">{preset.title}</span>
-                            </button>
-                          );
-                        })}
+
+                    <div className="flex flex-col items-center gap-2 w-full">
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        <label 
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider cursor-pointer transition-all shadow-sm ${
+                            isUploadingPhoto 
+                              ? 'bg-stone-200 text-stone-400 dark:bg-stone-800 cursor-not-allowed'
+                              : 'bg-brand-600 text-white hover:bg-brand-700 active:scale-95 shadow-brand-500/20'
+                          }`}
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{editForm.photoURL ? 'Change Photo' : 'Upload Photo'}</span>
+                          <input 
+                            type="file" 
+                            accept="image/png,image/jpeg,image/jpg,image/webp" 
+                            className="hidden" 
+                            disabled={isUploadingPhoto}
+                            onChange={handleProfileImageUpload}
+                          />
+                        </label>
+
+                        {editForm.photoURL && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveProfilePhoto}
+                            disabled={isUploadingPhoto}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold text-stone-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 border border-stone-200 dark:border-stone-800 transition-all active:scale-95"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Remove</span>
+                          </button>
+                        )}
                       </div>
+
+                      <p className="text-[10px] text-stone-400 font-medium">
+                        JPG, PNG, or WEBP portrait (saved to your profile)
+                      </p>
+
+                      {photoUploadError && (
+                        <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg font-medium mt-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{photoUploadError}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 

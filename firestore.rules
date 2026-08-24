@@ -61,7 +61,7 @@ service cloud.firestore {
         return data.uid is string && data.uid == userId &&
                isValidEmail(data.email) &&
                (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
-               (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 2000)) &&
+               (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 600000)) &&
                (!('bio' in data) || (data.bio is string && data.bio.size() <= 500)) &&
                (!('role' in data) || data.role in ['admin', 'member']);
       }
