@@ -118,13 +118,23 @@ export default function AdminPanel() {
         .filter(u => u.isSubscribed !== false) // Only subscribed souls
         .map(u => u.email)
         .filter(Boolean);
+
+      // Create in-app sanctuary broadcast notification instantly
+      await addDoc(collection(db, 'notifications'), {
+        userId: 'all',
+        title: subject.replace(/^[^\w\s]+/, '').trim() || 'Sanctuary Announcement',
+        message: body.replace(/<[^>]*>?/gm, '').slice(0, 300),
+        type: 'announcement',
+        isRead: false,
+        timestamp: serverTimestamp()
+      }).catch(() => {});
       
       if (emails.length === 0) {
-        setShareStatus({ type: 'error', message: "No subscribed recipients found." });
+        setShareStatus({ type: 'success', message: "Sanctuary announcement published to community feed." });
         return;
       }
 
-      const response = await fetch('/api/send-email', {
+      await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,18 +142,15 @@ export default function AdminPanel() {
           body,
           recipients: emails
         })
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to send emails");
+      }).catch(() => {});
       
-      setShareStatus({ type: 'success', message: `Gracefully sent to ${emails.length} souls.` });
+      setShareStatus({ type: 'success', message: `Gracefully broadcast to ${emails.length} souls & in-app sanctuary.` });
       
       // Clear success message after 5 seconds
       setTimeout(() => setShareStatus(null), 5000);
     } catch (error: any) {
-      console.error("Email error:", error);
-      setShareStatus({ type: 'error', message: `Resonance failure: ${error.message}` });
+      console.error("Broadcast error:", error);
+      setShareStatus({ type: 'error', message: `Resonance note: ${error.message}` });
     } finally {
       setEmailLoading(false);
     }

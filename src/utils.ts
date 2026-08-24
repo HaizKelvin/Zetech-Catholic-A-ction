@@ -113,6 +113,22 @@ export function formatAuthError(error: any): FormattedAuthError {
     };
   }
 
+  // OAuth Redirect URI Mismatch / Access Blocked
+  if (
+    message.includes('redirect_uri_mismatch') || 
+    message.includes('access_blocked') || 
+    message.includes('disallowed_useragent') ||
+    code === 'auth/invalid-oauth-provider-config'
+  ) {
+    return {
+      title: 'Google OAuth Redirect URI Mismatch (Error 400)',
+      message: 'Google rejected the authentication request because the authorized redirect URI (https://gen-lang-client-0527295902.firebaseapp.com/__/auth/handler) is missing in your Google Cloud Console OAuth 2.0 Web Client settings. You can sign in immediately below using Email & Password or Phone Number with zero setup!',
+      isConnectionError: true,
+      canRetry: false,
+      code: code || 'auth/redirect-uri-mismatch'
+    };
+  }
+
   // Popup blocked
   if (code === 'auth/popup-blocked' || message.includes('popup-blocked')) {
     return {

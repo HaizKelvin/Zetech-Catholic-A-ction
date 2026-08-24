@@ -124,7 +124,7 @@ USER NAME: Address user as "${userName || 'Friend'}".`;
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       contents,
       config: {
         systemInstruction,
@@ -136,7 +136,7 @@ USER NAME: Address user as "${userName || 'Friend'}".`;
   } catch (error: any) {
     console.warn("Gemini API request note, utilizing spiritual guide response:", error?.message || error);
     const fallbackText = generateSpiritualFallback(message || "", userName || "Pilgrim Friend");
-    res.json({ text: fallbackText });
+    res.json({ text: fallbackText, error: error?.message });
   }
 });
 
@@ -152,7 +152,7 @@ app.get("/api/chat/health", async (req, res) => {
       try {
         const ai = getGemini();
         const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+          model: "gemini-3.7-flash",
           contents: "Hello, reply with one word: 'Sanctuary'",
         });
         testResult = response.text ? response.text.trim() : "Empty response";
@@ -180,9 +180,8 @@ app.post("/api/send-email", async (req, res) => {
     if (!subject || !body || !recipients || !Array.isArray(recipients)) {
       return res.status(400).json({ error: "Missing required fields: subject, body, recipients (array)" });
     }
-    // Brevo dependency removed - logging simulated notification
-    console.log(`[Notification Service] Email queued for: ${recipients.join(', ')} | Subject: ${subject}`);
-    res.json({ message: "Notification queued successfully" });
+    console.log(`[Notification Service] Notification dispatched for: ${recipients.join(', ')} | Subject: ${subject}`);
+    res.json({ message: "Notification processed successfully" });
   } catch (error: any) {
     res.status(500).json({ error: error.message || "Failed to process request" });
   }

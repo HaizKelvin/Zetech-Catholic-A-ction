@@ -24,7 +24,8 @@ import {
   collection,
   query,
   where,
-  orderBy
+  orderBy,
+  limit
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { UserProfile, UserRole, OperationType, AppNotification } from './types';
@@ -335,7 +336,9 @@ Can you provide more insight, theological context, or a related prayer meditatio
           online: true,
           isSubscribed: true
         };
+        // Set profile optimistically and unblock UI immediately
         setProfile(fallbackProfile);
+        setLoading(false);
 
         // Update presence in background
         const presenceDocRef = doc(db, 'users', firebaseUser.uid);
@@ -357,8 +360,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
         window.addEventListener('beforeunload', setOffline);
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        // Check/create initial profile
-        await fetchOrCreateProfile(firebaseUser);
+        // Check/create initial profile non-blockingly
+        fetchOrCreateProfile(firebaseUser).catch(() => {});
         
         // Listen for live profile updates
         const userDocRef = doc(db, 'users', firebaseUser.uid);
@@ -381,8 +384,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
       } else {
         setProfile(null);
         profileUnsubscribe();
+        setLoading(false);
       }
-      setLoading(false);
     });
     return () => {
       unsubscribe();
@@ -460,22 +463,6 @@ Can you provide more insight, theological context, or a related prayer meditatio
           });
         } catch (notifErr) {
           console.warn("Welcome notification creation notice:", notifErr);
-        }
-
-        try {
-          fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              subject: "Welcome to ZUCA Sanctuary 🕊️",
-              body: "Welcome to the fellowship.",
-              recipients: [firebaseUser.email],
-              type: 'welcome',
-              name: (profileData.displayName || 'Pilgrim').split(' ')[0]
-            })
-          }).catch(() => {});
-        } catch (emailError) {
-          console.warn("Welcome email automation notice:", emailError);
         }
       }
     } catch (error) {
@@ -777,12 +764,12 @@ Can you provide more insight, theological context, or a related prayer meditatio
         if (phoneCheck.isValid) {
           try {
             const usersRef = collection(db, 'users');
-            const q1 = query(usersRef, where('contactNumber', '==', rawIdentifier));
+            const q1 = query(usersRef, where('contactNumber', '==', rawIdentifier), limit(1));
             const snap1 = await getDocs(q1);
             if (!snap1.empty && snap1.docs[0].data()?.email) {
               authTarget = snap1.docs[0].data().email;
             } else {
-              const q2 = query(usersRef, where('phoneNumber', '==', phoneCheck.cleanDigits));
+              const q2 = query(usersRef, where('phoneNumber', '==', phoneCheck.cleanDigits), limit(1));
               const snap2 = await getDocs(q2);
               if (!snap2.empty && snap2.docs[0].data()?.email) {
                 authTarget = snap2.docs[0].data().email;
