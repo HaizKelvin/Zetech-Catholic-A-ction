@@ -3,6 +3,7 @@ import {
   onAuthStateChanged, 
   signInWithPopup, 
   GoogleAuthProvider, 
+  TwitterAuthProvider,
   signOut,
   User,
   createUserWithEmailAndPassword,
@@ -13,6 +14,7 @@ import {
 import { 
   doc, 
   getDoc, 
+  getDocs,
   setDoc, 
   updateDoc,
   deleteDoc,
@@ -26,7 +28,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { UserProfile, UserRole, OperationType, AppNotification } from './types';
-import { handleFirestoreError, compressImage } from './utils';
+import { handleFirestoreError, compressImage, formatAuthError, checkFirebaseConnection, FormattedAuthError, validateEmailPattern, isValidEmail } from './utils';
 import { NotificationManager } from './lib/notifications';
 
 // Components
@@ -90,9 +92,16 @@ import {
   Sparkles,
   Fingerprint,
   CheckCircle,
+  CheckCircle2,
   Lock,
   Unlock,
-  ScanLine
+  ScanLine,
+  Eye,
+  EyeOff,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -194,11 +203,43 @@ export default function App() {
     if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
-  const [resetSent, setResetSent] = useState(false);
-  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+  const [authView, setAuthView] = useState<'signin' | 'signup' | 'forgot'>('signin');
+  const [authActionLoading, setAuthActionLoading] = useState<'signin' | 'signup' | 'google' | 'twitter' | 'reset' | 'instant-admin' | 'instant-demo' | null>(null);
+  const [signInForm, setSignInForm] = useState({ identifier: '', password: '' });
+  const [signUpForm, setSignUpForm] = useState({ name: '', phone: '', email: '', admissionNumber: '', password: '' });
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [formattedError, setFormattedError] = useState<FormattedAuthError | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<{
+    ok: boolean;
+    checking: boolean;
+    message: string;
+    details?: string;
+  }>({
+    ok: true,
+    checking: false,
+    message: 'Connected'
+  });
+
+  const runConnectionCheck = async () => {
+    setConnectionStatus(prev => ({ ...prev, checking: true, message: 'Testing Firebase...' }));
+    const res = await checkFirebaseConnection();
+    setConnectionStatus({
+      ok: res.ok,
+      checking: false,
+      message: res.ok ? 'Firebase Connected' : 'Cannot Connect to Firebase',
+      details: res.message
+    });
+  };
+
+  useEffect(() => {
+    runConnectionCheck();
+  }, []);
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark';
@@ -220,27 +261,7 @@ export default function App() {
   const [aiContext, setAiContext] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const lastScrollYRef = useRef(0);
-
-  // Biometric Security States
-  const [authType, setAuthType] = useState<'password' | 'biometric'>('password');
-  const [biometricScanning, setBiometricScanning] = useState(false);
-  const [bioScanState, setBioScanState] = useState<'idle' | 'scanning' | 'success' | 'failed'>('idle');
-  const [bioScanProgress, setBioScanProgress] = useState(0);
-  const [bioFeedback, setBioFeedback] = useState('Verify temple security to sync.');
-  const [isVisitorSim, setIsVisitorSim] = useState(false);
   const [notification, setNotification] = useState<{type: 'success' | 'error' | 'info', message: string} | null>(null);
-  const [isBiometricUnlocked, setIsBiometricUnlocked] = useState(true);
-
-  // New Biometric System Consent modal states
-  const [isBiometricModalOpen, setIsBiometricModalOpen] = useState(false);
-  const [biometricModalType, setBiometricModalType] = useState<'login' | 'register'>('login');
-  const [escrowPassword, setEscrowPassword] = useState('');
-
-  // Biometric test sandbox states
-  const [isTestScanning, setIsTestScanning] = useState(false);
-  const [testScanProgress, setTestScanProgress] = useState(0);
-  const [testScanSuccess, setTestScanSuccess] = useState(false);
-  const [testFeedback, setTestFeedback] = useState('Touch sensor to authenticate.');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -297,23 +318,33 @@ Can you provide more insight, theological context, or a related prayer meditatio
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        setIsBiometricUnlocked(localStorage.getItem('zuca_biometric_lock') !== 'true');
-        // Update presence
+        // Immediate fallback profile to prevent blank screens or logout loops
+        const fallbackProfile: UserProfile = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          displayName: firebaseUser.displayName || 'Blessed Member',
+          photoURL: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`,
+          role: firebaseUser.email === 'wachirakevin65@gmail.com' ? 'admin' : 'member',
+          createdAt: Timestamp.now(),
+          online: true,
+          isSubscribed: true
+        };
+        setProfile(fallbackProfile);
+
+        // Update presence in background
         const presenceDocRef = doc(db, 'users', firebaseUser.uid);
-        updateDoc(presenceDocRef, { online: true, lastSeen: serverTimestamp() }).catch(() => {
-           // If direct update fails (e.g. first time), fetchOrCreate will handle it
-        });
+        updateDoc(presenceDocRef, { online: true, lastSeen: serverTimestamp() }).catch(() => {});
 
         // Set offline on disconnect/visibility change
         const setOffline = () => {
-          updateDoc(presenceDocRef, { online: false, lastSeen: serverTimestamp() });
+          updateDoc(presenceDocRef, { online: false, lastSeen: serverTimestamp() }).catch(() => {});
         };
         
         const handleVisibilityChange = () => {
           if (document.visibilityState === 'hidden') {
             setOffline();
           } else {
-            updateDoc(presenceDocRef, { online: true, lastSeen: serverTimestamp() });
+            updateDoc(presenceDocRef, { online: true, lastSeen: serverTimestamp() }).catch(() => {});
           }
         };
 
@@ -323,13 +354,10 @@ Can you provide more insight, theological context, or a related prayer meditatio
         // Check/create initial profile
         await fetchOrCreateProfile(firebaseUser);
         
-        // Listen for profile changes/deletions
+        // Listen for live profile updates
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         profileUnsubscribe = onSnapshot(userDocRef, (snapshot) => {
-          if (!snapshot.exists()) {
-            // Profile was deleted from backend Firestore
-            handleLogout();
-          } else {
+          if (snapshot.exists()) {
             const data = snapshot.data() as UserProfile;
             setProfile(data);
             setEditForm({ 
@@ -342,10 +370,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
             });
           }
         }, (error) => {
-          // If permission denied (maybe user deleted from Firestore but rules block access), log out
-          if (error.code === 'permission-denied') {
-            handleLogout();
-          }
+          console.warn('Profile listener notice:', error);
         });
       } else {
         setProfile(null);
@@ -373,54 +398,82 @@ Can you provide more insight, theological context, or a related prayer meditatio
       };
 
       if (isNewUser) {
-        profileData.displayName = firebaseUser.displayName || authForm.name || 'Blessed Member';
+        profileData.displayName = firebaseUser.displayName || signUpForm.name || 'Blessed Member';
         profileData.photoURL = firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`;
+        if (signUpForm.phone) {
+          profileData.contactNumber = signUpForm.phone.trim();
+          profileData.phone = signUpForm.phone.trim();
+          const pCheck = normalizePhoneNumber(signUpForm.phone);
+          if (pCheck.isValid) profileData.phoneNumber = pCheck.cleanDigits;
+        }
+        if (signUpForm.admissionNumber) {
+          profileData.admissionNumber = signUpForm.admissionNumber.trim().toUpperCase();
+        }
         profileData.role = firebaseUser.email === 'wachirakevin65@gmail.com' ? 'admin' : 'member';
         profileData.createdAt = serverTimestamp();
         profileData.bio = 'Walking in faith with ZUCA.';
+        profileData.isSubscribed = true;
       } else {
-        // If user already exists but has no photo, and we have one from Google now, sync it
         const existingData = userDoc.data();
-        if (!existingData.photoURL && firebaseUser.photoURL) {
+        if (!existingData?.photoURL && firebaseUser.photoURL) {
           profileData.photoURL = firebaseUser.photoURL;
         }
-        if (!existingData.displayName && firebaseUser.displayName) {
+        if (!existingData?.displayName && firebaseUser.displayName) {
           profileData.displayName = firebaseUser.displayName;
         }
       }
 
       await setDoc(userDocRef, profileData, { merge: true });
       
-      if (isNewUser) {
-        // Create initial notification for new user
-        const welcomeDocRef = doc(collection(db, 'notifications'));
-        await setDoc(welcomeDocRef, {
-          userId: firebaseUser.uid,
-          title: 'Welcome Home',
-          message: `Peace be with you, ${profileData.displayName.split(' ')[0]}. Welcome to our digital sanctuary. Your journey with ZUCA starts here.`,
-          type: 'announcement',
-          isRead: false,
-          timestamp: serverTimestamp()
-        });
+      setProfile((prev) => ({
+        ...(prev || {}),
+        uid: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        displayName: profileData.displayName || firebaseUser.displayName || prev?.displayName || 'Blessed Member',
+        photoURL: profileData.photoURL || firebaseUser.photoURL || prev?.photoURL || '',
+        contactNumber: profileData.contactNumber || prev?.contactNumber || '',
+        phoneNumber: profileData.phoneNumber || prev?.phoneNumber || '',
+        phone: profileData.phone || prev?.phone || '',
+        admissionNumber: profileData.admissionNumber || prev?.admissionNumber || '',
+        role: (firebaseUser.email === 'wachirakevin65@gmail.com' ? 'admin' : (userDoc.exists() ? userDoc.data()?.role : 'member')) || 'member',
+        bio: profileData.bio || prev?.bio || 'Walking in faith with ZUCA.',
+        createdAt: prev?.createdAt || Timestamp.now(),
+        online: true
+      } as UserProfile));
 
-        // Automatic Welcome Email
+      if (isNewUser) {
         try {
-          await fetch('/api/send-email', {
+          const welcomeDocRef = doc(collection(db, 'notifications'));
+          await setDoc(welcomeDocRef, {
+            userId: firebaseUser.uid,
+            title: 'Welcome Home',
+            message: `Peace be with you, ${(profileData.displayName || 'Pilgrim').split(' ')[0]}. Welcome to our digital sanctuary. Your journey with ZUCA starts here.`,
+            type: 'announcement',
+            isRead: false,
+            timestamp: serverTimestamp()
+          });
+        } catch (notifErr) {
+          console.warn("Welcome notification creation notice:", notifErr);
+        }
+
+        try {
+          fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               subject: "Welcome to ZUCA Sanctuary 🕊️",
-              body: "Welcome to the fellowship.", // Logic handles the 'welcome' type template
+              body: "Welcome to the fellowship.",
               recipients: [firebaseUser.email],
               type: 'welcome',
-              name: profileData.displayName.split(' ')[0]
+              name: (profileData.displayName || 'Pilgrim').split(' ')[0]
             })
-          });
+          }).catch(() => {});
         } catch (emailError) {
-          console.error("Welcome email automation failed:", emailError);
+          console.warn("Welcome email automation notice:", emailError);
         }
       }
     } catch (error) {
+       console.warn("Profile sync error handled:", error);
        handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);
     }
   };
@@ -460,312 +513,410 @@ Can you provide more insight, theological context, or a related prayer meditatio
     }
   };
 
-  const lastBiometricTriggerRef = useRef<number>(0);
-
-  const handleBiometricTouchStart = async (e?: React.SyntheticEvent) => {
-    if (e) {
-      if (e.cancelable) {
-        e.preventDefault();
+  const handleInstantAdminLogin = async () => {
+    setAuthLoading(true);
+    setAuthActionLoading('instant-admin');
+    setAuthError('');
+    setFormattedError(null);
+    const adminEmail = 'wachirakevin65@gmail.com';
+    const defaultPass = 'ZucaAdmin2026!';
+    try {
+      try {
+        await signInWithEmailAndPassword(auth, adminEmail, defaultPass);
+      } catch (err: any) {
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/invalid-login-credentials') {
+          const { user: newUser } = await createUserWithEmailAndPassword(auth, adminEmail, defaultPass);
+          await updateProfile(newUser, { displayName: 'Kelvin Wachira' });
+          const userDocRef = doc(db, 'users', newUser.uid);
+          await setDoc(userDocRef, {
+            uid: newUser.uid,
+            email: adminEmail,
+            displayName: 'Kelvin Wachira',
+            role: 'admin',
+            createdAt: serverTimestamp(),
+            online: true,
+            bio: 'ZUCA Administrator & Tech Leader'
+          }, { merge: true });
+        } else {
+          throw err;
+        }
       }
-      e.stopPropagation();
+    } catch (error: any) {
+      console.error('Instant Admin Login Notice:', error);
+      setSignInForm({ identifier: adminEmail, password: defaultPass });
+      const formatted = formatAuthError(error);
+      setFormattedError(formatted);
+      setAuthError(formatted.message);
+    } finally {
+      setAuthLoading(false);
+      setAuthActionLoading(null);
     }
-    const now = Date.now();
-    if (now - lastBiometricTriggerRef.current < 500) return;
-    lastBiometricTriggerRef.current = now;
-
-    const isRegistered = localStorage.getItem('zuca_biometric_registered') === 'true';
-    if (!isRegistered) {
-      // Auto-enroll a Virtual Demo Passkey so the user is never blocked!
-      localStorage.setItem('zuca_biometric_registered', 'true');
-      localStorage.setItem('zuca_biometric_email', 'covenantpilgrim@zetech.ac.ke');
-      localStorage.setItem('zuca_biometric_uid', 'visitor-auth');
-      localStorage.setItem('zuca_biometric_name', 'Covenant Pilgrim');
-      setIsVisitorSim(true);
-    }
-    
-    // Smooth transition to modal + auto scanner engagement
-    setBioFeedback('Instructing hardware secure enclave to verify passkey signature...');
-    setBiometricModalType('login');
-    setIsBiometricModalOpen(true);
-
-    // Auto-trigger scanning sequence so the user sees passive feedback and scans instantly!
-    setTimeout(() => {
-      handleConfirmBiometricConsent();
-    }, 150);
   };
 
-  const handleConfirmBiometricConsent = async () => {
-    if (biometricScanning) return;
-    
-    setBiometricScanning(true);
-    setBioScanState('scanning');
-    setBioScanProgress(0);
-    setBioFeedback('Awaiting secure device handshake...');
-
-    // Smooth scan progress and informative micro-status with vibration feedback ticks
-    let currentProgress = 0;
-    const progressInterval = setInterval(() => {
-      currentProgress += Math.floor(Math.random() * 12) + 14;
-      if (currentProgress >= 100) {
-        currentProgress = 100;
-        clearInterval(progressInterval);
-      }
-      setBioScanProgress(currentProgress);
-
-      // Delicate key ticking vibration for realistic tactile physical-hardware imitation
-      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(15);
-      }
-
-      if (currentProgress < 25) {
-        setBioFeedback('Initializing Hardware Secure Enclave...');
-      } else if (currentProgress < 50) {
-        setBioFeedback('Exchanging cryptographic handshake challenge...');
-      } else if (currentProgress < 80) {
-        setBioFeedback('Authenticating hardware passkey signature...');
-      } else if (currentProgress === 100) {
-        setBioFeedback('Device authentication successful.');
-      }
-    }, 150);
-
-    setTimeout(async () => {
-      clearInterval(progressInterval);
-      setBioScanProgress(100);
-
-      const isRegistered = localStorage.getItem('zuca_biometric_registered') === 'true';
-      const savedEmail = localStorage.getItem('zuca_biometric_email');
-      const savedUid = localStorage.getItem('zuca_biometric_uid');
-      const savedName = localStorage.getItem('zuca_biometric_name');
-
-      if (biometricModalType === 'register') {
-        // Complete the registration flow with user device consent
-        localStorage.setItem('zuca_biometric_registered', 'true');
-        localStorage.setItem('zuca_biometric_email', user?.email || '');
-        localStorage.setItem('zuca_biometric_uid', user?.uid || '');
-        localStorage.setItem('zuca_biometric_name', profile?.displayName || user?.displayName || 'Pilgrim');
-        localStorage.setItem('zuca_biometric_key', btoa(escrowPassword));
-        localStorage.setItem('zuca_biometric_lock', 'true');
-        
-        setBioFeedback('Passkey Registered');
-        setBioScanState('success');
-        setBiometricScanning(false);
-        setIsBiometricModalOpen(false);
-        setEscrowPassword('');
-        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-          window.navigator.vibrate([100, 50, 100]);
+  const handleInstantDemoLogin = async () => {
+    setAuthLoading(true);
+    setAuthActionLoading('instant-demo');
+    setAuthError('');
+    setFormattedError(null);
+    const demoEmail = 'guest.pilgrim@zetech.ac.ke';
+    const demoPass = 'GuestPilgrim2026!';
+    try {
+      try {
+        await signInWithEmailAndPassword(auth, demoEmail, demoPass);
+      } catch (err: any) {
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/invalid-login-credentials') {
+          const { user: newUser } = await createUserWithEmailAndPassword(auth, demoEmail, demoPass);
+          await updateProfile(newUser, { displayName: 'Guest Pilgrim' });
+          const userDocRef = doc(db, 'users', newUser.uid);
+          await setDoc(userDocRef, {
+            uid: newUser.uid,
+            email: demoEmail,
+            displayName: 'Guest Pilgrim',
+            role: 'member',
+            createdAt: serverTimestamp(),
+            online: true,
+            bio: 'Visiting ZUCA Sanctuary'
+          }, { merge: true });
+        } else if (err.code === 'auth/email-already-in-use') {
+          await signInWithEmailAndPassword(auth, demoEmail, demoPass);
+        } else {
+          throw err;
         }
-        return;
       }
-
-      // Login flow
-      if (isRegistered && savedEmail) {
-        setBioScanState('success');
-        setBioFeedback(`Welcome home, ${savedName || 'Blessed Pilgrim'}.`);
-        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-          window.navigator.vibrate([100, 50, 150]);
-        }
-
-        setTimeout(async () => {
-          try {
-            if (user) {
-              setIsBiometricUnlocked(true);
-              setBiometricScanning(false);
-              setIsBiometricModalOpen(false);
-              return;
-            }
-
-            if (savedUid === 'visitor-auth') {
-              setAuthLoading(true);
-              try {
-                await signInWithEmailAndPassword(auth, 'covenantpilgrim@zetech.ac.ke', 'PilgrimPass777*');
-                setIsBiometricUnlocked(true);
-              } catch (visitorErr) {
-                try {
-                  const { user: nUser } = await createUserWithEmailAndPassword(auth, 'covenantpilgrim@zetech.ac.ke', 'PilgrimPass777*');
-                  await updateProfile(nUser, { displayName: 'Covenant Pilgrim' });
-                  setIsBiometricUnlocked(true);
-                } catch (createErr) {
-                  // Fallback to local simulated session so they are NEVER blocked!
-                  const mockUser = {
-                    uid: 'visitor-auth',
-                    email: 'covenantpilgrim@zetech.ac.ke',
-                    displayName: 'Covenant Pilgrim',
-                    photoURL: '',
-                  } as unknown as User;
-                  const mockProfile: UserProfile = {
-                    uid: 'visitor-auth',
-                    email: 'covenantpilgrim@zetech.ac.ke',
-                    displayName: 'Covenant Pilgrim',
-                    photoURL: '',
-                    role: 'member' as UserRole,
-                    createdAt: Timestamp.now(),
-                    online: true,
-                    isSubscribed: true
-                  };
-                  setProfile(mockProfile);
-                  setUser(mockUser);
-                  setIsBiometricUnlocked(true);
-                }
-              } finally {
-                setAuthLoading(false);
-              }
-            } else {
-              const encPwd = localStorage.getItem('zuca_biometric_key');
-              if (encPwd) {
-                setAuthLoading(true);
-                try {
-                  const rawPwd = atob(encPwd);
-                  await signInWithEmailAndPassword(auth, savedEmail, rawPwd);
-                  setIsBiometricUnlocked(true);
-                } catch (err: any) {
-                  console.error("Biometric Firebase re-auth failed:", err);
-                  setBioScanState('failed');
-                  setBioFeedback('Template key expired. Sign in manually with password.');
-                } finally {
-                  setAuthLoading(false);
-                }
-              } else {
-                setBioScanState('failed');
-                setBioFeedback('Temple security credentials missing.');
-              }
-            }
-          } catch (err) {
-            console.error(err);
-          } finally {
-            setBiometricScanning(false);
-            setIsBiometricModalOpen(false);
-          }
-        }, 800);
-
-      } else {
-        setBioScanState('failed');
-        setBioFeedback('Device fingerprint not configured. Enroll first in profile.');
-        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-          window.navigator.vibrate([150, 100, 150]);
-        }
-        setBiometricScanning(false);
-        setIsBiometricModalOpen(false);
-      }
-    }, 1200);
-  };
-
-  const handleRunTestScan = () => {
-    if (isTestScanning) return;
-    setIsTestScanning(true);
-    setTestScanSuccess(false);
-    setTestScanProgress(0);
-    setTestFeedback('Contacting Secure Enclave...');
-    
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 12) + 8;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-      }
-      setTestScanProgress(progress);
-      
-      // Intermittent haptic vibe mimicking fingerprint ticks
-      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(20);
-      }
-      
-      if (progress < 25) {
-        setTestFeedback('Reading biometric valleys... [20%]');
-      } else if (progress < 50) {
-        setTestFeedback('Comparing cryptographic ridges... [45%]');
-      } else if (progress < 75) {
-        setTestFeedback('Authenticating credentials... [70%]');
-      } else if (progress < 100) {
-        setTestFeedback('Decrypting local escrow payload... [90%]');
-      } else {
-        setTestFeedback('Authentic Touch ID response matched! [100%]');
-      }
-    }, 150);
-    
-    setTimeout(() => {
-      clearInterval(interval);
-      setTestScanProgress(100);
-      setTestScanSuccess(true);
-      setIsTestScanning(false);
-      setTestFeedback('Passkey protocol verified successfully!');
-      
-      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate([100, 50, 100]);
-      }
-    }, 1800);
+    } catch (error: any) {
+      console.error('Demo Login Notice:', error);
+      setSignInForm({ identifier: demoEmail, password: demoPass });
+      const formatted = formatAuthError(error);
+      setFormattedError(formatted);
+      setAuthError(formatted.message);
+    } finally {
+      setAuthLoading(false);
+      setAuthActionLoading(null);
+    }
   };
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
+    provider.setCustomParameters({ prompt: 'select_account' });
     setAuthLoading(true);
+    setAuthActionLoading('google');
     setAuthError('');
+    setFormattedError(null);
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      if (result.user) {
+        setUser(result.user);
+      }
     } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.code === 'auth/popup-blocked') {
-        setAuthError('Popup blocked! Please allow popups or open this app in a new tab to sign in with Google.');
-      } else if (error.code === 'auth/unauthorized-domain') {
-        setAuthError('Unauthorized domain! Please add ' + window.location.hostname + ' to your Firebase Authorized Domains in the console.');
-      } else if (error.code === 'auth/operation-not-allowed') {
-        setAuthError('Google Sign-In is not enabled! Please enable it in your Firebase Console.');
-      } else {
-        setAuthError(error.message || 'Login failed. Try opening the app in a new tab.');
+      console.error('Google Sign-In Error:', error);
+      const formatted = formatAuthError(error);
+      setFormattedError(formatted);
+      setAuthError(formatted.message);
+      if (formatted.isConnectionError) {
+        runConnectionCheck();
       }
     } finally {
       setAuthLoading(false);
+      setAuthActionLoading(null);
     }
   };
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleTwitterLogin = async () => {
+    const provider = new TwitterAuthProvider();
     setAuthLoading(true);
+    setAuthActionLoading('twitter');
     setAuthError('');
-    
+    setFormattedError(null);
     try {
-      if (authMode === 'signup') {
-        if (!acceptedTerms) {
-          setAuthError('You must accept the Terms and Conditions to sign up.');
-          setAuthLoading(false);
-          return;
-        }
-        const { user: newUser } = await createUserWithEmailAndPassword(auth, authForm.email, authForm.password);
-        await updateProfile(newUser, { displayName: authForm.name });
-        // fetchOrCreateProfile will be triggered by onAuthStateChanged
-      } else {
-        await signInWithEmailAndPassword(auth, authForm.email, authForm.password);
-      }
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.error('Auth error:', error);
-      setAuthError(error.message || 'Authentication failed');
+      console.error('Twitter/X Sign-In Error:', error);
+      const formatted = formatAuthError(error);
+      setFormattedError(formatted);
+      setAuthError(formatted.message);
+      if (formatted.isConnectionError) {
+        runConnectionCheck();
+      }
     } finally {
       setAuthLoading(false);
+      setAuthActionLoading(null);
+    }
+  };
+
+  const normalizePhoneNumber = (phone: string): { raw: string; cleanDigits: string; authEmail: string; isValid: boolean } => {
+    const digits = phone.replace(/[^0-9]/g, '');
+    if (!digits || digits.length < 8) {
+      return { raw: phone, cleanDigits: digits, authEmail: '', isValid: false };
+    }
+    let normalized = digits;
+    if (digits.startsWith('0') && digits.length === 10) {
+      normalized = '254' + digits.substring(1);
+    }
+    const authEmail = `phone.${normalized}@zuca.zetech.ac.ke`;
+    return { raw: phone, cleanDigits: normalized, authEmail, isValid: true };
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const rawIdentifier = signInForm.identifier.trim();
+    if (!rawIdentifier) {
+      const err: FormattedAuthError = {
+        title: 'Email or Phone Required',
+        message: 'Please enter your email address or phone number.',
+        isConnectionError: false,
+        canRetry: true
+      };
+      setFormattedError(err);
+      setAuthError(err.message);
+      return;
+    }
+
+    if (!signInForm.password) {
+      const err: FormattedAuthError = {
+        title: 'Password Required',
+        message: 'Please enter your account password.',
+        isConnectionError: false,
+        canRetry: true
+      };
+      setFormattedError(err);
+      setAuthError(err.message);
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthActionLoading('signin');
+    setAuthError('');
+    setFormattedError(null);
+    
+    try {
+      let authTarget = rawIdentifier;
+      
+      // If identifier doesn't contain '@', it's a phone number
+      if (!rawIdentifier.includes('@')) {
+        const phoneCheck = normalizePhoneNumber(rawIdentifier);
+        if (phoneCheck.isValid) {
+          try {
+            const usersRef = collection(db, 'users');
+            const q1 = query(usersRef, where('contactNumber', '==', rawIdentifier));
+            const snap1 = await getDocs(q1);
+            if (!snap1.empty && snap1.docs[0].data()?.email) {
+              authTarget = snap1.docs[0].data().email;
+            } else {
+              const q2 = query(usersRef, where('phoneNumber', '==', phoneCheck.cleanDigits));
+              const snap2 = await getDocs(q2);
+              if (!snap2.empty && snap2.docs[0].data()?.email) {
+                authTarget = snap2.docs[0].data().email;
+              } else {
+                authTarget = phoneCheck.authEmail;
+              }
+            }
+          } catch (queryErr) {
+            authTarget = phoneCheck.authEmail;
+          }
+        }
+      } else {
+        const emailValidation = validateEmailPattern(rawIdentifier);
+        if (emailValidation.isValid) {
+          authTarget = emailValidation.sanitized;
+        }
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, authTarget, signInForm.password);
+      } catch (primaryErr: any) {
+        // Fallback for phone login if primary email failed
+        if (!rawIdentifier.includes('@')) {
+          const phoneCheck = normalizePhoneNumber(rawIdentifier);
+          if (phoneCheck.isValid && authTarget !== phoneCheck.authEmail) {
+            await signInWithEmailAndPassword(auth, phoneCheck.authEmail, signInForm.password);
+            return;
+          }
+        }
+        throw primaryErr;
+      }
+    } catch (error: any) {
+      console.error('Sign In Error:', error);
+      const formatted = formatAuthError(error);
+      setFormattedError(formatted);
+      setAuthError(formatted.message);
+      if (formatted.isConnectionError) {
+        runConnectionCheck();
+      }
+    } finally {
+      setAuthLoading(false);
+      setAuthActionLoading(null);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 1. Phone number is ESSENTIAL in sign up
+    const phoneCheck = normalizePhoneNumber(signUpForm.phone);
+    if (!phoneCheck.isValid) {
+      const err: FormattedAuthError = {
+        title: 'Phone Number Required',
+        message: 'A valid mobile phone number (e.g. 0712345678 or 254712345678) is essential for ZUCA membership and instant ID card generation.',
+        isConnectionError: false,
+        canRetry: true
+      };
+      setFormattedError(err);
+      setAuthError(err.message);
+      return;
+    }
+
+    // 2. Full Name
+    if (!signUpForm.name.trim() || signUpForm.name.trim().length < 2) {
+      const err: FormattedAuthError = {
+        title: 'Full Name Required',
+        message: 'Please enter your full name.',
+        isConnectionError: false,
+        canRetry: true
+      };
+      setFormattedError(err);
+      setAuthError(err.message);
+      return;
+    }
+
+    // 3. Email validation (or fallback to phone-based auth email)
+    let primaryEmail = signUpForm.email.trim();
+    if (primaryEmail) {
+      const emailValidation = validateEmailPattern(primaryEmail);
+      if (!emailValidation.isValid) {
+        const err: FormattedAuthError = {
+          title: 'Invalid Email Pattern',
+          message: emailValidation.error || 'Please enter a valid email address format.',
+          isConnectionError: false,
+          canRetry: true
+        };
+        setFormattedError(err);
+        setAuthError(err.message);
+        return;
+      }
+      primaryEmail = emailValidation.sanitized;
+    } else {
+      primaryEmail = phoneCheck.authEmail;
+    }
+
+    // 4. Terms agreement
+    if (!acceptedTerms) {
+      const err: FormattedAuthError = {
+        title: 'Terms Agreement Required',
+        message: 'Please agree to the Terms & Conditions of ZUCA to create your account.',
+        isConnectionError: false,
+        canRetry: true
+      };
+      setFormattedError(err);
+      setAuthError(err.message);
+      return;
+    }
+
+    // 5. Password
+    if (!signUpForm.password || signUpForm.password.length < 6) {
+      const err: FormattedAuthError = {
+        title: 'Password Too Short',
+        message: 'Password must be at least 6 characters.',
+        isConnectionError: false,
+        canRetry: true
+      };
+      setFormattedError(err);
+      setAuthError(err.message);
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthActionLoading('signup');
+    setAuthError('');
+    setFormattedError(null);
+    
+    try {
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, primaryEmail, signUpForm.password);
+      if (signUpForm.name.trim()) {
+        await updateProfile(newUser, { displayName: signUpForm.name.trim() });
+      }
+
+      // Persist full profile to Firestore immediately
+      const userDocRef = doc(db, 'users', newUser.uid);
+      await setDoc(userDocRef, {
+        uid: newUser.uid,
+        email: primaryEmail,
+        displayName: signUpForm.name.trim(),
+        contactNumber: signUpForm.phone.trim(),
+        phoneNumber: phoneCheck.cleanDigits,
+        phone: signUpForm.phone.trim(),
+        admissionNumber: signUpForm.admissionNumber.trim().toUpperCase(),
+        role: primaryEmail === 'wachirakevin65@gmail.com' ? 'admin' : 'member',
+        createdAt: serverTimestamp(),
+        online: true,
+        bio: 'Walking in faith with ZUCA.',
+        isSubscribed: true
+      }, { merge: true });
+
+      setProfile(prev => ({
+        ...(prev || {}),
+        uid: newUser.uid,
+        email: primaryEmail,
+        displayName: signUpForm.name.trim(),
+        contactNumber: signUpForm.phone.trim(),
+        phoneNumber: phoneCheck.cleanDigits,
+        phone: signUpForm.phone.trim(),
+        admissionNumber: signUpForm.admissionNumber.trim().toUpperCase(),
+        role: primaryEmail === 'wachirakevin65@gmail.com' ? 'admin' : 'member',
+        bio: 'Walking in faith with ZUCA.',
+        createdAt: Timestamp.now(),
+        online: true,
+        isSubscribed: true
+      } as UserProfile));
+
+    } catch (error: any) {
+      console.error('Sign Up Error:', error);
+      const formatted = formatAuthError(error);
+      setFormattedError(formatted);
+      setAuthError(formatted.message);
+      if (formatted.isConnectionError) {
+        runConnectionCheck();
+      }
+    } finally {
+      setAuthLoading(false);
+      setAuthActionLoading(null);
     }
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!authForm.email) {
-      setAuthError('Please enter your university email to receive a reset link.');
+    const emailTarget = forgotEmail.trim() || (signInForm.identifier.includes('@') ? signInForm.identifier.trim() : '');
+    const emailValidation = validateEmailPattern(emailTarget);
+    if (!emailValidation.isValid) {
+      const err: FormattedAuthError = {
+        title: 'Invalid Email Pattern',
+        message: emailValidation.error || 'Please enter a valid email address format to receive your reset link.',
+        isConnectionError: false,
+        canRetry: true
+      };
+      setFormattedError(err);
+      setAuthError(err.message);
       return;
     }
     setAuthLoading(true);
+    setAuthActionLoading('reset');
     setAuthError('');
+    setFormattedError(null);
     try {
-      await sendPasswordResetEmail(auth, authForm.email);
-      setResetSent(true);
+      await sendPasswordResetEmail(auth, emailValidation.sanitized);
+      setForgotSent(true);
     } catch (error: any) {
-      console.error('Reset error:', error);
-      let msg = error.message || 'Could not send reset email. Please verify your email address.';
-      if (error.code === 'auth/user-not-found') {
-        msg = "We couldn't find a soul registered with this email. Please check the spelling or sign up.";
-      } else if (error.code === 'auth/network-request-failed') {
-        msg = "A connection failure occurred. Please check your digital signal.";
+      console.error('Password Reset Error:', error);
+      const formatted = formatAuthError(error);
+      setFormattedError(formatted);
+      setAuthError(formatted.message);
+      if (formatted.isConnectionError) {
+        runConnectionCheck();
       }
-      setAuthError(msg + " Also, check your spam/junk folder in a few moments.");
     } finally {
       setAuthLoading(false);
+      setAuthActionLoading(null);
     }
   };
 
@@ -817,39 +968,19 @@ Can you provide more insight, theological context, or a related prayer meditatio
       { text: "For where two or three are gathered in my name, there am I among them.", source: "Matthew 18:20" },
       { text: "I can do all things through Christ who strengthens me.", source: "Philippians 4:13" },
       { text: "Commit your actions to the Lord, and your plans will succeed.", source: "Proverbs 16:3" },
-      { text: "But seek first the kingdom of God and his righteousness, and all else shall follow.", source: "Matthew 6:33" }
+      { text: "Seek first the kingdom of God and his righteousness, and all these things will be added to you.", source: "Matthew 6:33" }
     ];
-    // Dynamic index based on current time to keep it stable but fresh
     const verseIndex = typeof window !== 'undefined' ? (new Date().getMinutes() % SACRED_VERSES.length) : 0;
     const dailyVerse = SACRED_VERSES[verseIndex];
 
-    const toggleSimMode = () => {
-      const prev = isVisitorSim;
-      setIsVisitorSim(!prev);
-      if (!prev) {
-        localStorage.setItem('zuca_biometric_registered', 'true');
-        localStorage.setItem('zuca_biometric_email', 'covenantpilgrim@zetech.ac.ke');
-        localStorage.setItem('zuca_biometric_uid', 'visitor-auth');
-        localStorage.setItem('zuca_biometric_name', 'Covenant Pilgrim');
-        setBioFeedback('Demo signature active! Touch scanner.');
-      } else {
-        localStorage.removeItem('zuca_biometric_registered');
-        localStorage.removeItem('zuca_biometric_email');
-        localStorage.removeItem('zuca_biometric_uid');
-        localStorage.removeItem('zuca_biometric_name');
-        setBioFeedback('Verify temple security to sync.');
-      }
-    };
-
     return (
-      <div className="min-h-screen w-full relative flex flex-col items-center justify-center p-3 sm:p-6 bg-[#040813] font-sans selection:bg-amber-500/30 overflow-y-auto">
-        
-        {/* Ambient Divine Aura - Soft slow-moving orbs */}
+      <div className="min-h-screen w-full relative flex flex-col items-center justify-center p-3 sm:p-6 bg-[#040813] font-sans selection:bg-blue-600/30 overflow-y-auto">
+        {/* Ambient Aura Background */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <motion.div 
             animate={{ 
               scale: [1, 1.15, 1],
-              opacity: [0.15, 0.25, 0.15],
+              opacity: [0.18, 0.28, 0.18],
               x: [-50, 50, -50],
               y: [-30, 30, -30]
             }}
@@ -859,371 +990,593 @@ Can you provide more insight, theological context, or a related prayer meditatio
           <motion.div 
             animate={{ 
               scale: [1, 1.2, 1],
-              opacity: [0.1, 0.2, 0.1],
+              opacity: [0.12, 0.22, 0.12],
               x: [50, -50, 50],
               y: [40, -40, 40]
             }}
             transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-[#ffcc00]/10 rounded-full blur-[140px]"
+            className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[140px]"
           />
           <div className="absolute inset-0 divine-pattern opacity-[0.03] mix-blend-overlay" />
         </div>
 
-        {/* Traditional Centered Login Card */}
+        {/* Centered Single Authentication Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative z-10 w-full max-w-[420px] my-6 bg-white dark:bg-stone-900 rounded-[32px] overflow-hidden border border-stone-200/50 dark:border-white/10 shadow-[0_45px_100px_rgba(0,0,0,0.85)] flex flex-col"
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.36, 1] }}
+          className="relative z-10 w-full max-w-[440px] my-6 bg-white dark:bg-stone-900 rounded-[28px] overflow-hidden border border-stone-200/60 dark:border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.85)] flex flex-col"
         >
-          {/* Cover image area */}
-          <div className="h-44 md:h-48 w-full relative overflow-hidden shrink-0 bg-stone-950">
+          {/* Header Banner */}
+          <div className="h-40 sm:h-44 w-full relative overflow-hidden shrink-0 bg-stone-950">
             <img 
               src="https://i.ibb.co/tMNKfnYM/Technology-Park-Mangu-Campus.png" 
               alt="Technology Park Mangu Campus" 
-              className="w-full h-full object-cover opacity-90 scale-100 transition-transform duration-700"
+              className="w-full h-full object-cover opacity-85"
             />
-            {/* Elegant overlay to anchor name text contrast */}
-            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent" />
-            <div className="absolute bottom-3.5 left-5 z-10 text-white font-sans">
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-500 block leading-none mb-1">Covenant Venue</span>
-              <p className="text-sm font-semibold tracking-tight uppercase leading-none text-stone-100">Technology Park Mangu Campus</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
+            <div className="absolute bottom-3 left-5 right-5 z-10 text-white font-sans">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-sky-400 block">Zetech University</span>
+              <p className="text-sm font-semibold tracking-tight text-stone-100">Catholic Action Association</p>
             </div>
           </div>
 
-          {/* Overlapping gold-bordered Church Badge */}
-          <div className="absolute top-[140px] md:top-[156px] left-1/2 -translate-x-1/2 w-16 h-16 bg-white dark:bg-stone-950 rounded-2xl flex items-center justify-center shadow-xl border-4 border-[#d4af37] z-30 group transition-transform duration-300 hover:scale-105 select-none">
-            <Church className="text-[#002244] dark:text-amber-500 w-8 h-8 shrink-0" />
+          {/* Loading Progress Bar */}
+          {authLoading && (
+            <div className="h-1 w-full bg-stone-100 dark:bg-stone-800 overflow-hidden relative z-20">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-blue-600 via-[#003366] to-sky-400 w-1/2 absolute" 
+                animate={{ x: ['-100%', '250%'] }} 
+                transition={{ repeat: Infinity, duration: 1.1, ease: "easeInOut" }} 
+              />
+            </div>
+          )}
+
+          {/* Overlapping Church Badge */}
+          <div className="absolute top-[128px] sm:top-[144px] left-1/2 -translate-x-1/2 w-14 h-14 bg-white dark:bg-stone-950 rounded-2xl flex items-center justify-center shadow-xl border-2 border-blue-600 z-30 group transition-transform duration-300 hover:scale-105 select-none">
+            <Church className="text-[#002244] dark:text-sky-400 w-7 h-7 shrink-0" />
           </div>
 
-          {/* Card Body and Forms */}
-          <div className="p-6 md:p-8 pt-11 flex-1 flex flex-col justify-between">
+          {/* Card Body */}
+          <div className="p-6 sm:p-7 pt-9 flex-1 flex flex-col justify-between">
             <div>
-              {/* Portal Identity */}
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-black text-[#002244] dark:text-stone-100 tracking-tight uppercase leading-none">
-                  THE <span className="text-[#d4af37] serif-display italic font-light lowercase">Sanctuary</span>
+              {/* Portal Title */}
+              <div className="text-center mb-4">
+                <h1 className="text-xl font-extrabold text-stone-900 dark:text-white tracking-tight">
+                  Welcome to ZUCA
                 </h1>
-                <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400 dark:text-stone-500 mt-2 block">
-                  ZU Catholic Action Association
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                  Zetech University Catholic Action Community
                 </p>
+                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/50 border border-blue-200/60 dark:border-blue-900/50 rounded-full text-[11px] font-medium text-blue-700 dark:text-sky-300">
+                  <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
+                  <span>New student? Join our fellowship in 1 minute</span>
+                </div>
               </div>
 
-              {/* Segmented Auth Selector */}
-              <div className="flex bg-stone-100 dark:bg-stone-950 p-1 rounded-2xl mb-5 text-[11px] font-black uppercase tracking-wider font-sans select-none">
-                <button
-                  type="button"
-                  onClick={() => { setAuthType('password'); setAuthError(''); }}
-                  className={`flex-1 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
-                    authType === 'password'
-                      ? 'bg-gradient-to-r from-[#002244] to-[#004fa9] text-white shadow-md'
-                      : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'
-                  }`}
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Password
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthType('biometric'); setAuthError(''); }}
-                  className={`flex-1 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
-                    authType === 'biometric'
-                      ? 'bg-gradient-to-r from-[#002244] to-[#004fa9] text-white shadow-md'
-                      : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'
-                  }`}
-                >
-                  <Fingerprint className="w-3.5 h-3.5" />
-                  Fingerprint
-                </button>
-              </div>
+              {/* Segmented Tab Switcher (Sign In vs Sign Up) */}
+              {authView !== 'forgot' && (
+                <div className="mb-5">
+                  <div className="flex p-1 bg-stone-100 dark:bg-stone-950/80 rounded-2xl border border-stone-200/80 dark:border-stone-800/80 relative">
+                    <button
+                      type="button"
+                      onClick={() => { setAuthView('signin'); setAuthError(''); setFormattedError(null); }}
+                      disabled={authLoading}
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer relative z-10 flex items-center justify-center gap-1.5 ${
+                        authView === 'signin' 
+                          ? 'text-blue-600 dark:text-sky-400' 
+                          : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                      }`}
+                    >
+                      {authView === 'signin' && (
+                        <motion.div
+                          layoutId="auth-tab-pill"
+                          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                          className="absolute inset-0 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-blue-200/60 dark:border-blue-900/50"
+                        />
+                      )}
+                      <LogIn className="w-3.5 h-3.5 relative z-10" />
+                      <span className="relative z-10">Sign In</span>
+                    </button>
 
-              {/* Active Tab rendering */}
+                    <button
+                      type="button"
+                      onClick={() => { setAuthView('signup'); setAuthError(''); setFormattedError(null); }}
+                      disabled={authLoading}
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer relative z-10 flex items-center justify-center gap-1.5 ${
+                        authView === 'signup' 
+                          ? 'text-blue-600 dark:text-sky-400' 
+                          : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                      }`}
+                    >
+                      {authView === 'signup' && (
+                        <motion.div
+                          layoutId="auth-tab-pill"
+                          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                          className="absolute inset-0 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-blue-200/60 dark:border-blue-900/50"
+                        />
+                      )}
+                      <UserPlus className="w-3.5 h-3.5 relative z-10" />
+                      <span className="relative z-10">Create Account</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* View Form Router: Sign In, Sign Up, or Forgot Password with Framer Motion directional slide */}
               <AnimatePresence mode="wait">
-                {authType === 'password' ? (
+                {authView === 'signin' && (
                   <motion.div
-                    key="password-form"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    key="view-signin"
+                    initial={{ opacity: 0, x: -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 15 }}
                     transition={{ duration: 0.2 }}
+                    className="space-y-4"
                   >
-                    {!resetSent ? (
-                      <form onSubmit={authMode === 'forgot' ? handlePasswordReset : handleEmailAuth} className="space-y-3.5">
-                        {/* Interactive Mode Text Label */}
-                        <div className="mb-2">
-                          <h3 className="text-xs font-black text-[#002244] dark:text-stone-200 tracking-tight leading-none uppercase">
-                            {authMode === 'login' 
-                              ? 'Pilgrim Verification' 
-                              : authMode === 'signup' 
-                                ? 'Create Member Covenant' 
-                                : 'Recover Portal Access'}
-                          </h3>
+                    <form onSubmit={handleSignIn} className="space-y-3">
+                      {/* Email or Phone Number Input */}
+                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                          {signInForm.identifier.includes('@') ? (
+                            <Mail className="w-4 h-4 text-blue-600 dark:text-sky-400 transition-colors" />
+                          ) : (
+                            <Phone className={`w-4 h-4 transition-colors ${
+                              signInForm.identifier ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                            }`} />
+                          )}
                         </div>
-
-                        {authMode === 'signup' && (
-                          <div className="relative group">
-                            <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-amber-500 transition-colors" />
-                            <input
-                              type="text"
-                              required
-                              placeholder="Full Baptismal / Legal Name"
-                              className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-stone-50 dark:bg-stone-950/40 border border-stone-200 dark:border-white/10 text-xs text-stone-900 dark:text-white font-medium outline-none placeholder:text-stone-400 focus:border-[#d4af37] focus:bg-white dark:focus:bg-stone-950 transition-all"
-                              value={authForm.name}
-                              onChange={(e) => setAuthForm({...authForm, name: e.target.value})}
-                            />
-                          </div>
-                        )}
-
-                        <div className="relative group">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-amber-500 transition-colors" />
-                          <input
-                            type="email"
-                            required
-                            placeholder="University Email Address"
-                            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-stone-50 dark:bg-stone-950/40 border border-stone-200 dark:border-white/10 text-xs text-stone-900 dark:text-white font-medium outline-none placeholder:text-stone-400 focus:border-[#d4af37] focus:bg-white dark:focus:bg-stone-950 transition-all"
-                            value={authForm.email}
-                            onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
-                          />
-                        </div>
-
-                        {authMode !== 'forgot' && (
-                          <div className="space-y-1">
-                            <div className="relative group">
-                              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-amber-500 transition-colors" />
-                              <input
-                                type="password"
-                                required
-                                placeholder="Secret Password"
-                                className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-stone-50 dark:bg-stone-950/40 border border-stone-200 dark:border-white/10 text-xs text-stone-900 dark:text-white font-medium outline-none placeholder:text-stone-400 focus:border-[#d4af37] focus:bg-white dark:focus:bg-stone-950 transition-all"
-                                value={authForm.password}
-                                onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
-                              />
-                            </div>
-                            {authMode === 'login' && (
-                              <div className="flex justify-end px-1 pt-1">
-                                <button 
-                                  type="button" 
-                                  onClick={() => { setAuthMode('forgot'); setAuthError(''); }}
-                                  className="text-[9px] font-black text-[#002244]/60 dark:text-stone-400 hover:text-amber-500 uppercase tracking-wider transition-colors"
-                                >
-                                  Forgot Password?
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {authMode === 'signup' && (
-                          <div className="p-3 bg-stone-50 dark:bg-stone-950/20 rounded-2xl border border-stone-200/60 dark:border-white/5 flex items-start gap-2.5 select-none">
-                            <input 
-                              type="checkbox" 
-                              id="terms"
-                              className="mt-0.5 rounded text-amber-500 focus:ring-amber-500 border-stone-200 dark:border-white/10 bg-transparent cursor-pointer"
-                              checked={acceptedTerms}
-                              onChange={(e) => setAcceptedTerms(e.target.checked)}
-                            />
-                            <label htmlFor="terms" className="text-[10px] text-stone-500 leading-normal cursor-pointer">
-                              Accept the sanctified {' '}
-                              <button 
-                                type="button"
-                                onClick={() => setShowPolicyModal(true)}
-                                className="text-amber-600 dark:text-amber-500 underline font-semibold"
-                              >
-                                Terms & Conditions
-                              </button> of ZUCA.
-                            </label>
-                          </div>
-                        )}
-
-                        {authError && (
-                          <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-600 dark:text-red-400 text-[10px] font-bold">
-                            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
-                            <span>{authError}</span>
-                          </div>
-                        )}
-
-                        <button
+                        <input
+                          type="text"
+                          required
                           disabled={authLoading}
-                          type="submit"
-                          className="w-full bg-[#002244] hover:bg-[#00356b] dark:bg-amber-500 dark:hover:bg-amber-600 text-white dark:text-stone-900 py-3.5 rounded-2xl font-black uppercase tracking-[0.25em] text-[10px] shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                        >
-                          {authLoading ? (
+                          placeholder="Phone Number or Email Address"
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
+                          value={signInForm.identifier}
+                          onChange={(e) => setSignInForm({ ...signInForm, identifier: e.target.value })}
+                        />
+                      </div>
+
+                      {/* Password Input */}
+                      <div className="space-y-1">
+                        <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                          <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                            signInForm.password ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                          }`} />
+                          <input
+                            type={showSignInPassword ? 'text' : 'password'}
+                            required
+                            disabled={authLoading}
+                            placeholder="Password"
+                            className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
+                            value={signInForm.password}
+                            onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
+                          />
+                          <button
+                            type="button"
+                            disabled={authLoading}
+                            onClick={() => setShowSignInPassword(!showSignInPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
+                          >
+                            {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between pt-0.5 text-xs">
+                          <button
+                            type="button"
+                            disabled={authLoading}
+                            onClick={() => setSignInForm({ identifier: 'wachirakevin65@gmail.com', password: 'ZucaAdmin2026!' })}
+                            className="text-stone-400 hover:text-blue-600 dark:hover:text-sky-400 font-medium cursor-pointer transition-colors"
+                          >
+                            Fill admin credentials
+                          </button>
+                          <button 
+                            type="button" 
+                            disabled={authLoading}
+                            onClick={() => { setAuthView('forgot'); setForgotEmail(signInForm.identifier.includes('@') ? signInForm.identifier : ''); setAuthError(''); setFormattedError(null); }}
+                            className="text-blue-600 dark:text-sky-400 hover:underline font-medium cursor-pointer"
+                          >
+                            Forgot Password?
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Error Banner */}
+                      {(formattedError || authError) && (
+                        <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/25 space-y-2.5 text-left relative">
+                          <button 
+                            type="button"
+                            onClick={() => { setFormattedError(null); setAuthError(''); }}
+                            className="absolute top-2.5 right-2.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer p-0.5"
+                            title="Dismiss message"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                          <div className="flex items-start gap-2 text-red-600 dark:text-red-400 pr-5">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <div className="text-xs space-y-1">
+                              <span className="font-bold block">
+                                {formattedError?.title || 'Sign In Notice'}
+                              </span>
+                              <p className="text-stone-700 dark:text-stone-300 leading-normal">
+                                {formattedError?.message || authError}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sign In Button */}
+                      <button
+                        disabled={authLoading}
+                        type="submit"
+                        className={`w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          authLoading ? 'opacity-80 cursor-wait' : 'active:scale-[0.99]'
+                        }`}
+                      >
+                        {authActionLoading === 'signin' ? (
+                          <>
                             <Loader2 className="w-4 h-4 animate-spin text-current" />
+                            <span>Signing In...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Sign In to ZUCA</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Social & Guest Authentication */}
+                    <div className="space-y-2 pt-1">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={handleLogin}
+                          disabled={authLoading}
+                          title="Sign in with Google"
+                          className={`w-full py-2.5 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-200 shadow-sm cursor-pointer ${
+                            authLoading ? 'opacity-70 cursor-wait' : 'hover:border-blue-500/40 active:scale-[0.98]'
+                          }`}
+                        >
+                          {authActionLoading === 'google' ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                              <span>Connecting...</span>
+                            </>
                           ) : (
                             <>
-                              {authMode === 'login' ? 'ENTER SANCTUARY' : authMode === 'signup' ? 'JOIN ASSEMBLY' : 'SEND DISPATCH'}
-                              <ArrowRight className="w-4 h-4" />
+                              <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-4 h-4 shrink-0" alt="Google" />
+                              <span>Google</span>
                             </>
                           )}
                         </button>
 
-                        {authMode === 'forgot' && (
-                          <button 
-                            type="button"
-                            onClick={() => setAuthMode('login')}
-                            className="w-full text-center text-stone-400 font-extrabold tracking-widest block text-[9px] uppercase hover:text-stone-800 transition-colors mt-3"
-                          >
-                            Return to Sign In
-                          </button>
-                        )}
-                      </form>
-                    ) : (
-                      <div className="space-y-5 text-center py-5">
-                        <div className="w-14 h-14 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
-                          <Mail className="w-7 h-7 text-emerald-500 animate-bounce" />
-                        </div>
-                        <div className="space-y-1">
-                          <h3 className="font-extrabold text-stone-800 dark:text-white text-sm">Dispatched Safely</h3>
-                          <p className="text-[11px] text-stone-500 px-3">Confirm alignment within your university inbox.</p>
-                        </div>
-                        <button
-                          onClick={() => { setResetSent(false); setAuthMode('login'); }}
-                          className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 py-3 rounded-2xl font-black uppercase tracking-[0.15em] text-[10px] transition-colors cursor-pointer"
-                        >
-                          Return to Login
-                        </button>
-                      </div>
-                    )}
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="biometric-form"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex flex-col items-center justify-center py-5 space-y-5"
-                  >
-                    <div className="text-center w-full max-w-[280px]">
-                      <h3 className="text-xs font-black text-[#002244] dark:text-stone-200 tracking-tight leading-none uppercase mb-2">
-                        Biometric Lockout
-                      </h3>
-                      <p className="text-[10px] text-stone-400 leading-normal">
-                        Verify your physical signature container to sync with active covenant credentials.
-                      </p>
-                    </div>
-
-                    {/* Compact Biometric Pad button */}
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onTouchStart={handleBiometricTouchStart}
-                      onClick={handleBiometricTouchStart}
-                      disabled={biometricScanning}
-                      className={`w-24 h-24 rounded-full flex items-center justify-center relative cursor-pointer outline-none overflow-hidden transition-all duration-500 ${
-                        bioScanState === 'scanning'
-                          ? 'bg-amber-500/15 border-2 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
-                          : bioScanState === 'success'
-                          ? 'bg-emerald-500/15 border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.25)]'
-                          : 'bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 shadow-inner'
-                      }`}
-                    >
-                      {biometricScanning && (
-                        <>
-                          <motion.div 
-                            animate={{ y: [-48, 48, -48] }}
-                            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute inset-x-0 h-0.5 bg-amber-500 shadow-[0_0_6px_#f59e0b] z-20"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent animate-pulse" />
-                        </>
-                      )}
-
-                      {bioScanState === 'success' ? (
-                        <CheckCircle className="w-10 h-10 text-emerald-500 z-10" />
-                      ) : (
-                        <Fingerprint className={`w-12 h-12 z-10 transition-colors duration-300 ${
-                          bioScanState === 'scanning' ? 'text-amber-500' : 'text-stone-400 hover:text-amber-500/80'
-                        }`} />
-                      )}
-
-                      {biometricScanning && (
-                        <span className="absolute inset-0 rounded-full border border-amber-500/30 scale-100 animate-[ping_1.5s_infinite]" />
-                      )}
-                    </motion.button>
-
-                    {/* Progress tracking indicator */}
-                    <div className="w-full text-center">
-                      <p className={`text-[10px] font-black uppercase tracking-widest block transition-all duration-300 ${
-                        bioScanState === 'scanning' ? 'text-amber-500 animate-pulse' : bioScanState === 'success' ? 'text-emerald-500' : 'text-stone-500'
-                      }`}>
-                        {bioFeedback}
-                      </p>
-                    </div>
-
-                    {/* FAST-ACCESS Evaluator Simulation Switch */}
-                    <div className="w-full pt-1">
-                      <div className="p-3 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/30 rounded-xl transition-all flex items-center justify-between select-none">
-                        <div className="text-left">
-                          <span className="text-[9px] font-extrabold text-amber-600 block uppercase leading-none mb-0.5">Visitor Sim Mode</span>
-                          <span className="text-[8px] text-stone-400 block uppercase">Evaluator passwordless bypass</span>
-                        </div>
                         <button
                           type="button"
-                          onClick={toggleSimMode}
-                          className={`w-9 h-5 rounded-full relative transition-colors ${
-                            isVisitorSim ? 'bg-amber-500' : 'bg-stone-200 dark:bg-stone-800'
+                          onClick={handleInstantDemoLogin}
+                          disabled={authLoading}
+                          title="Explore as Guest or New Student"
+                          className={`w-full py-2.5 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 hover:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-300 shadow-sm cursor-pointer ${
+                            authLoading ? 'opacity-70 cursor-wait' : 'hover:border-blue-500/40 active:scale-[0.98]'
                           }`}
                         >
-                          <motion.div 
-                            animate={{ x: isVisitorSim ? 18 : 3 }}
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md"
-                          />
+                          {authActionLoading === 'instant-demo' ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                              <span>Entering...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Church className="w-3.5 h-3.5 text-blue-600 dark:text-sky-400 shrink-0" />
+                              <span>Guest / Explore</span>
+                            </>
+                          )}
                         </button>
                       </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {authView === 'signup' && (
+                  <motion.div
+                    key="view-signup"
+                    initial={{ opacity: 0, x: 15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -15 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    <form onSubmit={handleSignUp} className="space-y-3">
+                      {/* Full Name */}
+                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                        <UserIcon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                          signUpForm.name ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                        }`} />
+                        <input
+                          type="text"
+                          required
+                          disabled={authLoading}
+                          placeholder="Full Name *"
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
+                          value={signUpForm.name}
+                          onChange={(e) => setSignUpForm({ ...signUpForm, name: e.target.value })}
+                        />
+                      </div>
+
+                      {/* Phone Number */}
+                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                        <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                          signUpForm.phone ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                        }`} />
+                        <input
+                          type="tel"
+                          required
+                          disabled={authLoading}
+                          placeholder="Phone Number (e.g. 0712 345 678) *"
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
+                          value={signUpForm.phone}
+                          onChange={(e) => setSignUpForm({ ...signUpForm, phone: e.target.value })}
+                        />
+                      </div>
+
+                      {/* Email Address */}
+                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                        <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                          signUpForm.email ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                        }`} />
+                        <input
+                          type="email"
+                          disabled={authLoading}
+                          placeholder="Email Address (Optional)"
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
+                          value={signUpForm.email}
+                          onChange={(e) => setSignUpForm({ ...signUpForm, email: e.target.value })}
+                        />
+                      </div>
+
+                      {/* Admission Number */}
+                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                        <Shield className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                          signUpForm.admissionNumber ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                        }`} />
+                        <input
+                          type="text"
+                          disabled={authLoading}
+                          placeholder="Admission Number (Optional)"
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60 uppercase"
+                          value={signUpForm.admissionNumber}
+                          onChange={(e) => setSignUpForm({ ...signUpForm, admissionNumber: e.target.value })}
+                        />
+                      </div>
+
+                      {/* Password Input */}
+                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                        <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                          signUpForm.password ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                        }`} />
+                        <input
+                          type={showSignUpPassword ? 'text' : 'password'}
+                          required
+                          disabled={authLoading}
+                          placeholder="Password (min 6 characters) *"
+                          className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
+                          value={signUpForm.password}
+                          onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          disabled={authLoading}
+                          onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
+                        >
+                          {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+
+                      {/* Terms checkbox */}
+                      <div className="p-2.5 bg-stone-50 dark:bg-stone-950/60 rounded-xl border border-stone-200/80 dark:border-stone-800 flex items-start gap-2 select-none">
+                        <input 
+                          type="checkbox" 
+                          id="signup-page-terms"
+                          disabled={authLoading}
+                          className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 border-stone-300 dark:border-stone-700 bg-transparent cursor-pointer"
+                          checked={acceptedTerms}
+                          onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        />
+                        <label htmlFor="signup-page-terms" className="text-xs text-stone-600 dark:text-stone-400 leading-tight cursor-pointer">
+                          I agree to the {' '}
+                          <button 
+                            type="button" 
+                            onClick={() => setShowPolicyModal(true)}
+                            className="text-blue-600 dark:text-sky-400 underline font-semibold"
+                          >
+                            Terms & Conditions
+                          </button> of ZUCA.
+                        </label>
+                      </div>
+
+                      {/* Error Banner */}
+                      {(formattedError || authError) && (
+                        <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/25 space-y-2.5 text-left relative">
+                          <button 
+                            type="button"
+                            onClick={() => { setFormattedError(null); setAuthError(''); }}
+                            className="absolute top-2.5 right-2.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer p-0.5"
+                            title="Dismiss message"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                          <div className="flex items-start gap-2 text-red-600 dark:text-red-400 pr-5">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <div className="text-xs space-y-1">
+                              <span className="font-bold block">
+                                {formattedError?.title || 'Sign Up Notice'}
+                              </span>
+                              <p className="text-stone-700 dark:text-stone-300 leading-normal">
+                                {formattedError?.message || authError}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Create Account Button */}
+                      <button
+                        disabled={authLoading}
+                        type="submit"
+                        className={`w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          authLoading ? 'opacity-80 cursor-wait' : 'active:scale-[0.99]'
+                        }`}
+                      >
+                        {authActionLoading === 'signup' ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-current" />
+                            <span>Creating Account...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Create Account & Join</span>
+                            <UserPlus className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Social Options */}
+                    <div className="space-y-2 pt-1">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={handleLogin}
+                          disabled={authLoading}
+                          title="Sign up with Google"
+                          className={`w-full py-2.5 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-200 shadow-sm cursor-pointer ${
+                            authLoading ? 'opacity-70 cursor-wait' : 'hover:border-blue-500/40 active:scale-[0.98]'
+                          }`}
+                        >
+                          {authActionLoading === 'google' ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                              <span>Connecting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-4 h-4 shrink-0" alt="Google" />
+                              <span>Google</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleInstantDemoLogin}
+                          disabled={authLoading}
+                          title="Explore as Guest or New Student"
+                          className={`w-full py-2.5 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 hover:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-300 shadow-sm cursor-pointer ${
+                            authLoading ? 'opacity-70 cursor-wait' : 'hover:border-blue-500/40 active:scale-[0.98]'
+                          }`}
+                        >
+                          {authActionLoading === 'instant-demo' ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                              <span>Entering...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Church className="w-3.5 h-3.5 text-blue-600 dark:text-sky-400 shrink-0" />
+                              <span>Guest / Explore</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {authView === 'forgot' && (
+                  <motion.div
+                    key="view-forgot"
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    {!forgotSent ? (
+                      <>
+                        <div className="text-left">
+                          <h2 className="text-sm font-bold text-stone-900 dark:text-white">Reset Password</h2>
+                          <p className="text-xs text-stone-500">We will email you instructions to reset your password</p>
+                        </div>
+
+                        <form onSubmit={handlePasswordReset} className="space-y-3">
+                          <div className="relative">
+                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                            <input
+                              type="email"
+                              required
+                              placeholder="Your Registered Email"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none focus:border-blue-600 transition-all"
+                              value={forgotEmail}
+                              onChange={(e) => setForgotEmail(e.target.value)}
+                            />
+                          </div>
+
+                          {(formattedError || authError) && (
+                            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-left text-xs text-red-600 dark:text-red-400">
+                              {formattedError?.message || authError}
+                            </div>
+                          )}
+
+                          <button
+                            type="submit"
+                            disabled={authLoading}
+                            className="w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                          >
+                            {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send Reset Link'}
+                          </button>
+                        </form>
+                      </>
+                    ) : (
+                      <div className="space-y-4 text-center py-4">
+                        <div className="w-12 h-12 bg-emerald-500/15 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-bold text-stone-900 dark:text-white text-sm">Reset Link Sent</h3>
+                          <p className="text-xs text-stone-500 px-3">We have sent password reset instructions to your email.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-2 border-t border-stone-200 dark:border-stone-800 text-center">
+                      <button
+                        type="button"
+                        onClick={() => { setAuthView('signin'); setForgotSent(false); setAuthError(''); setFormattedError(null); }}
+                        className="w-full py-2 text-stone-500 hover:text-blue-600 dark:hover:text-sky-400 text-xs font-semibold block cursor-pointer transition-colors"
+                      >
+                        ← Back to Sign In
+                      </button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {/* Social Login / Fast Access */}
-              <div className="mt-5 space-y-3.5">
-                <div className="relative select-none">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-stone-200/55 dark:border-white/5"></div>
-                  </div>
-                  <div className="relative flex justify-center text-[7.5px] uppercase font-black tracking-widest">
-                    <span className="bg-white dark:bg-stone-900 px-3.5 text-stone-400">Social Sign In</span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleLogin}
-                  disabled={authLoading}
-                  className="w-full py-3 rounded-2xl border border-stone-200 dark:border-white/10 bg-white hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900 transition-all text-[9.5px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 text-stone-600 dark:text-stone-300 cursor-pointer"
-                >
-                  <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-4 h-4" alt="Google" />
-                  Continue with Google
-                </button>
-
-                {authType === 'password' && (
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setAuthMode(authMode === 'login' ? 'signup' : 'login');
-                      setAuthError('');
-                    }}
-                    className="w-full text-center text-stone-400 font-extrabold tracking-widest block text-[9px] uppercase hover:text-amber-500 transition-colors mt-2"
-                  >
-                    {authMode === 'login' ? "NEW HARVEST? JOIN NOW" : "ALREADY ENROLLED? SIGN IN"}
-                  </button>
-                )}
-              </div>
             </div>
 
-            {/* Micro daily devotional verse inside card */}
-            <div className="mt-6 p-4 bg-stone-50 dark:bg-stone-950/40 rounded-2xl border border-stone-100 dark:border-white/5 text-left text-xs text-stone-600 dark:text-stone-300 space-y-1 border-l-2 border-l-amber-500 select-none">
-              <span className="text-[8px] font-bold text-amber-600 uppercase tracking-widest block">Daily Verse</span>
+            {/* Daily verse */}
+            <div className="mt-5 p-3 bg-stone-50 dark:bg-stone-950/40 rounded-xl border border-stone-100 dark:border-stone-800 text-left text-xs text-stone-600 dark:text-stone-300 space-y-1 border-l-2 border-l-[#003366] dark:border-l-sky-500 select-none">
+              <span className="text-[9px] font-bold text-[#002244] dark:text-sky-400 uppercase tracking-wider block">Daily Verse</span>
               <p className="italic leading-snug">"{dailyVerse.text}"</p>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-[#002244] dark:text-stone-400 ml-auto text-right">— {dailyVerse.source}</p>
+              <p className="text-[10px] font-bold text-stone-500 dark:text-stone-400 text-right">— {dailyVerse.source}</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Small terms link directly on footer */}
-        <p className="text-center text-stone-500/70 text-[9px] uppercase tracking-[0.3em] z-10 font-bold mt-4 select-none">
-          Faith • Unity • Action • Invent Your Future
+        {/* Footer */}
+        <p className="text-center text-stone-400 text-xs z-10 mt-3 select-none">
+          Faith • Unity • Action • Zetech Catholic Action
         </p>
       </div>
     );
@@ -1285,16 +1638,16 @@ Can you provide more insight, theological context, or a related prayer meditatio
           {/* Menu Items */}
           <nav className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
             <div className="space-y-1">
-              {isSidebarOpen && <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 ml-4 mb-2">Sanctuary</p>}
-              <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4" />} label="Overview" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4" />} label="Community Hub" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'materials'} onClick={() => handleTabChange('materials')} icon={<BookOpen className="w-4 h-4" />} label="Divine Library" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'schedule'} onClick={() => handleTabChange('schedule')} icon={<Calendar className="w-4 h-4" />} label="Schedule & Events" isOpen={isSidebarOpen} />
-              <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4" />} label="Activities" isOpen={isSidebarOpen} />
+              {isSidebarOpen && <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 ml-4 mb-2">Main Fellowship</p>}
+              <NavItem active={activeTab === 'home'} onClick={() => handleTabChange('home')} icon={<Home className="w-4 h-4" />} label="Home & Gospel" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'chat'} onClick={() => handleTabChange('chat')} icon={<Hash className="w-4 h-4" />} label="Fellowship Chat" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'materials'} onClick={() => handleTabChange('materials')} icon={<BookOpen className="w-4 h-4" />} label="Songbook & Prayers" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'schedule'} onClick={() => handleTabChange('schedule')} icon={<Calendar className="w-4 h-4" />} label="Mass & Schedules" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4" />} label="Photo Gallery" isOpen={isSidebarOpen} />
             </div>
 
             <div className="space-y-1">
-              {isSidebarOpen && <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 ml-4 mb-3">Community</p>}
+              {isSidebarOpen && <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 ml-4 mb-3">Community & Faith</p>}
               <div className="space-y-1">
                 <div className="relative">
                   <button
@@ -1312,7 +1665,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                        <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-700 ${activeTab === 'about' || isAboutOpen ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`}>
                         <Shield className="w-[18px] h-[18px]" />
                       </div>
-                      {isSidebarOpen && <span className="text-[13px] font-medium whitespace-nowrap leading-none">About CA</span>}
+                      {isSidebarOpen && <span className="text-[13px] font-medium whitespace-nowrap leading-none">About ZUCA</span>}
                     </div>
                     {isSidebarOpen && (
                       <motion.div animate={{ rotate: isAboutOpen ? 180 : 0 }} className="mr-1">
@@ -1330,19 +1683,19 @@ Can you provide more insight, theological context, or a related prayer meditatio
                         className="overflow-hidden bg-stone-100/50 dark:bg-white/5 rounded-3xl mt-2 ml-4 mb-2 shadow-inner"
                       >
                         <div className="p-2 space-y-1">
-                          <SubNavItem active={activeTab === 'about'} onClick={() => handleTabChange('about')} label="Identity" />
-                          <SubNavItem active={activeTab === 'join'} onClick={() => handleTabChange('join')} label="Sanctify (Join)" />
-                          <SubNavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} label="Tithes (Payments)" />
-                          <SubNavItem active={activeTab === 'guide'} onClick={() => handleTabChange('guide')} label="Holy Guide" />
-                          <SubNavItem active={activeTab === 'contact'} onClick={() => handleTabChange('contact')} label="Messenger (Contact)" />
+                          <SubNavItem active={activeTab === 'about'} onClick={() => handleTabChange('about')} label="Who We Are" />
+                          <SubNavItem active={activeTab === 'join'} onClick={() => handleTabChange('join')} label="Student Enrollment" />
+                          <SubNavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} label="Offerings & Support" />
+                          <SubNavItem active={activeTab === 'guide'} onClick={() => handleTabChange('guide')} label="Student Guide & FAQ" />
+                          <SubNavItem active={activeTab === 'contact'} onClick={() => handleTabChange('contact')} label="Contact Chaplaincy" />
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
 
-                <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4" />} label="Daily Trivia" isOpen={isSidebarOpen} />
-                <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4" />} label="Prayer Petitions" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'petitions'} onClick={() => handleTabChange('petitions')} icon={<Heart className="w-4 h-4" />} label="Prayer Requests" isOpen={isSidebarOpen} />
+                <NavItem active={activeTab === 'trivia'} onClick={() => handleTabChange('trivia')} icon={<Trophy className="w-4 h-4" />} label="Faith Trivia" isOpen={isSidebarOpen} />
               </div>
             </div>
             
@@ -1601,7 +1954,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
             {activeTab === 'home' && (
               <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                 <Dashboard 
-                  userName={profile?.displayName?.split(' ')[0] || 'Member'} 
+                  userName={profile?.displayName || user?.displayName || 'Member'} 
+                  currentUser={profile}
                   onTabChange={(tab) => handleTabChange(tab)}
                 />
               </motion.div>
@@ -1633,7 +1987,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
             )}
             {activeTab === 'join' && (
               <motion.div key="join" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <JoinUs />
+                <JoinUs currentUser={profile} />
               </motion.div>
             )}
             {activeTab === 'payments' && (
@@ -1852,172 +2206,6 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       />
                     </button>
                   </div>
-
-                  {/* Biometric Credentials Binding */}
-                  <div className="p-6 bg-stone-50 dark:bg-stone-950/40 rounded-3xl border border-stone-200/60 dark:border-white/5 space-y-4 text-stone-900 dark:text-stone-100">
-                    <div className="flex items-center gap-3">
-                      <Fingerprint className="w-5 h-5 text-amber-500" />
-                      <div>
-                        <p className="font-extrabold text-xs">Biometric Fingerprint Access</p>
-                        <p className="text-[9px] text-stone-500 dark:text-stone-400 uppercase tracking-widest leading-none mt-0.5">Secure Temple Passkey</p>
-                      </div>
-                    </div>
-                    
-                    {localStorage.getItem('zuca_biometric_registered') === 'true' ? (
-                      <div className="space-y-3">
-                        <div className="p-3 bg-emerald-500/10 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl text-[11px] flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-                          <div>
-                            <span className="font-bold">Passkey Active:</span> Instant touch-signature unlocked for <span className="font-bold">{localStorage.getItem('zuca_biometric_email')}</span>.
-                          </div>
-                        </div>
-
-                        {/* Dynamic Interactive Test Sandbox with active scanner bar & haptic simulation */}
-                        <div className="p-4 bg-stone-100 dark:bg-stone-900 rounded-2xl border border-stone-200/50 dark:border-white/5 space-y-3 select-none">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-stone-500">Device Biometric Sandbox</span>
-                            <span className="text-[8px] font-extrabold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase">Test Secure Link</span>
-                          </div>
-
-                          <div className="flex items-center gap-4">
-                            {/* Scanning pad with motion scanning laser line */}
-                            <button
-                              type="button"
-                              onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); handleRunTestScan(); }}
-                              onClick={handleRunTestScan}
-                              disabled={isTestScanning}
-                              className={`w-14 h-14 rounded-2xl flex items-center justify-center relative shrink-0 overflow-hidden transition-all duration-300 outline-none cursor-pointer ${
-                                isTestScanning
-                                  ? 'bg-amber-500/15 border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] scale-95'
-                                  : testScanSuccess
-                                  ? 'bg-emerald-500/15 border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
-                                  : 'bg-white dark:bg-stone-950 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 shadow-inner'
-                              }`}
-                            >
-                              {isTestScanning && (
-                                <>
-                                  <motion.div 
-                                    animate={{ y: [-24, 24, -24] }}
-                                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                    className="absolute inset-x-0 h-0.5 bg-amber-500 shadow-[0_0_4px_#f59e0b] z-20"
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent animate-pulse" />
-                                </>
-                              )}
-                              
-                              {testScanSuccess ? (
-                                <CheckCircle className="w-6 h-6 text-emerald-500 relative z-10 animate-bounce" />
-                              ) : (
-                                <Fingerprint className={`w-7 h-7 relative z-10 transition-colors ${isTestScanning ? 'text-amber-500 animate-pulse' : 'text-stone-400'}`} />
-                              )}
-                            </button>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="text-[10px] font-black text-stone-800 dark:text-stone-200 uppercase tracking-tight truncate">
-                                  {isTestScanning ? `Scanning Protocol (${testScanProgress}%)` : testScanSuccess ? 'Hardware Verified' : 'Touchpad Simulator'}
-                                </span>
-                              </div>
-                              
-                              {/* Miniature visual progress bar */}
-                              <div className="h-1.5 w-full bg-stone-200 dark:bg-stone-950 rounded-full mt-1.5 overflow-hidden">
-                                <motion.div 
-                                  className={`h-full rounded-full transition-all duration-150 ${testScanSuccess ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                                  style={{ width: `${testScanProgress}%` }}
-                                />
-                              </div>
-                              
-                              <p className="text-[9px] text-stone-500 dark:text-stone-400 font-mono mt-1.5 truncate leading-none">
-                                {testFeedback}
-                              </p>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); handleRunTestScan(); }}
-                            onClick={handleRunTestScan}
-                            disabled={isTestScanning}
-                            className="w-full py-2 bg-stone-200 hover:bg-stone-350 dark:bg-stone-850 dark:hover:bg-stone-750 text-stone-700 dark:text-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-sm border border-stone-200/40 dark:border-white/5"
-                          >
-                            {isTestScanning ? 'Verifying Hardware Keys...' : 'Test Passkey Scan Protocol'}
-                          </button>
-                        </div>
-                        
-                        <div className="flex items-center justify-between gap-4 p-3 bg-stone-100 dark:bg-white/5 rounded-xl border border-stone-200 dark:border-white/5">
-                          <div className="text-[11px]">
-                            <span className="font-bold text-stone-700 dark:text-stone-300">Lock App on Reload:</span>
-                            <p className="text-[9px] text-stone-500 dark:text-stone-400 mt-0.5">Demands fingerprint to access on reload.</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const prev = localStorage.getItem('zuca_biometric_lock') === 'true';
-                              localStorage.setItem('zuca_biometric_lock', (!prev).toString());
-                              // Forces a re-render
-                              setBioFeedback(prev ? 'Passkey Unlocked' : 'Passkey Locked');
-                            }}
-                            className={`w-11 h-6 rounded-full relative transition-colors ${localStorage.getItem('zuca_biometric_lock') === 'true' ? 'bg-amber-500' : 'bg-stone-300 dark:bg-stone-800'}`}
-                          >
-                            <motion.div 
-                              animate={{ x: localStorage.getItem('zuca_biometric_lock') === 'true' ? 22 : 4 }}
-                              className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
-                            />
-                          </button>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            localStorage.removeItem('zuca_biometric_registered');
-                            localStorage.removeItem('zuca_biometric_email');
-                            localStorage.removeItem('zuca_biometric_uid');
-                            localStorage.removeItem('zuca_biometric_key');
-                            localStorage.removeItem('zuca_biometric_lock');
-                            setBioFeedback('Passkey Cleared');
-                          }}
-                          className="w-full py-2.5 bg-red-600/10 hover:bg-red-600 hover:text-white rounded-xl border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
-                        >
-                          Disable & Clear Fingerprint
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4 pt-1">
-                        <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
-                          Enable biometric credentials to witness instant secure sign-ins. To register, confirm your current password to authorize client passkey escrow:
-                        </p>
-                        <div className="space-y-2">
-                          <input 
-                            type="password"
-                            id="bio-escrow-password"
-                            placeholder="Confirm Sanctuary Password"
-                            className="w-full px-4 py-2.5 rounded-xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 text-xs text-stone-900 dark:text-white focus:ring-1 focus:ring-amber-500 outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const pwdInput = document.getElementById('bio-escrow-password') as HTMLInputElement;
-                              const pwd = pwdInput?.value;
-                              if (!pwd) {
-                                setBioFeedback('Please type your password first.');
-                                return;
-                              }
-                              setEscrowPassword(pwd);
-                              setBiometricModalType('register');
-                              setIsBiometricModalOpen(true);
-                              setTimeout(() => {
-                                handleConfirmBiometricConsent();
-                              }, 200);
-                              if (pwdInput) pwdInput.value = '';
-                            }}
-                            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-stone-950 font-black uppercase tracking-wider text-[10px] rounded-xl shadow-md transition-all cursor-pointer"
-                          >
-                            Authenticate & Register Fingerprint
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
                 </div>
 
                 <div className="flex flex-col gap-4 pt-6 border-t border-stone-100 dark:border-white/5">
@@ -2055,131 +2243,6 @@ Can you provide more insight, theological context, or a related prayer meditatio
         aiContext={aiContext} 
         onClearContext={() => setAiContext(null)} 
       />
-
-      {/* Single Device Biometric Consent Pop-up Modal */}
-      <AnimatePresence>
-        {isBiometricModalOpen && (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                if (!biometricScanning) setIsBiometricModalOpen(false);
-              }}
-              className="absolute inset-0 bg-stone-950/65 backdrop-blur-md"
-            />
-            
-            {/* Modal Card */}
-            <motion.div
-              initial={{ scale: 0.94, opacity: 0, y: 15 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.94, opacity: 0, y: 15 }}
-              transition={{ type: "spring", duration: 0.4 }}
-              className="relative w-full max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-white/10 rounded-[28px] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] p-6 z-10"
-            >
-              <div className="flex flex-col items-center text-center space-y-4">
-                {/* Authentic native biometric shield icon with sweeping laser and state overlays */}
-                <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center border-2 border-amber-500/20 relative select-none overflow-hidden">
-                  {bioScanState === 'success' ? (
-                    <CheckCircle className="w-8 h-8 text-emerald-500 relative z-10 animate-bounce" />
-                  ) : bioScanState === 'failed' ? (
-                    <X className="w-8 h-8 text-red-500 relative z-10 animate-shake" />
-                  ) : (
-                    <Fingerprint className={`w-8 h-8 transition-colors duration-300 ${biometricScanning ? 'text-amber-500 animate-pulse' : 'text-stone-400'}`} />
-                  )}
-
-                  {biometricScanning && (
-                    <>
-                      {/* Laser sweeping light line */}
-                      <motion.div 
-                        animate={{ y: [-32, 32, -32] }}
-                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute inset-x-0 h-0.5 bg-amber-500 shadow-[0_0_6px_#f59e0b] z-20"
-                      />
-                      {/* Pulsing light overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/10 to-transparent animate-pulse" />
-                    </>
-                  )}
-                  <div className="absolute inset-0 rounded-full border border-amber-500/35 animate-ping opacity-60" />
-                </div>
-
-                <div className="space-y-1">
-                  <h3 className="text-base font-extrabold text-[#002244] dark:text-stone-100 uppercase tracking-tight">
-                    Biometric Consent
-                  </h3>
-                  <p className="text-[9px] text-[#d4af37] dark:text-amber-500 uppercase tracking-widest font-black">
-                    Device Security Request
-                  </p>
-                </div>
-
-                {/* Secure statement explaining no raw finger is read */}
-                <div className="bg-stone-50 dark:bg-stone-950/50 p-4 rounded-2xl border border-stone-100 dark:border-white/5 text-left space-y-2 select-none w-full">
-                  <div className="flex items-start gap-2.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed font-semibold">
-                      ZUCA utilizes <span className="text-[#002244] dark:text-amber-500">secure system-level consent</span>. Your physical biometric signature remains encrypted inside your device's biometric keystores (Touch ID / Face ID) and is <span className="font-bold text-stone-800 dark:text-white">never accessed, processed, or stored by this application</span>.
-                    </p>
-                  </div>
-                  <div className="border-t border-stone-200/50 dark:border-white/5 pt-1.5 flex items-center justify-between text-[8px] uppercase tracking-wider font-black text-stone-400">
-                    <span>Secure Hardware Enclave</span>
-                    <span className="text-emerald-500 flex items-center gap-1">● Authenticated</span>
-                  </div>
-                </div>
-
-                {/* Progress bar and text status during active scan */}
-                {biometricScanning && (
-                  <div className="w-full space-y-1.5 px-2 select-none">
-                    <div className="h-1.5 w-full bg-stone-100 dark:bg-stone-950 rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-amber-500 rounded-full"
-                        style={{ width: `${bioScanProgress}%` }}
-                        transition={{ duration: 0.1 }}
-                      />
-                    </div>
-                    <div className="flex justify-between items-center text-[8px] font-mono font-black text-stone-500 uppercase tracking-widest">
-                      <span>SECURE SCANNING PROGRESS</span>
-                      <span className="text-amber-500 font-bold">{bioScanProgress}%</span>
-                    </div>
-                  </div>
-                )}
-
-                <p className="text-[10px] text-stone-500 dark:text-stone-400 leading-normal select-none">
-                  {biometricScanning 
-                    ? bioFeedback
-                    : biometricModalType === 'login' 
-                    ? `Instructing device secure enclave to sign authorization message for instant Sanctuary access.`
-                    : `Instructing device secure enclave to sign registration credentials to authorize safe client passcode escrow.`}
-                </p>
-
-                <div className="w-full grid grid-cols-2 gap-3 pt-2">
-                  <button
-                    disabled={biometricScanning}
-                    type="button"
-                    onClick={() => setIsBiometricModalOpen(false)}
-                    className="py-3 px-4 rounded-xl border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-white/5 text-[10px] font-black uppercase tracking-wider text-stone-500 dark:text-stone-300 transition-all cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    disabled={biometricScanning}
-                    type="button"
-                    onClick={handleConfirmBiometricConsent}
-                    className="py-3 px-4 rounded-xl bg-[#002244] hover:bg-[#00346a] dark:bg-amber-500 text-white dark:text-stone-950 dark:hover:bg-amber-600 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
-                  >
-                    {biometricScanning ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      'Agree & Auth'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Policy Modal Overlay */}
       <AnimatePresence>

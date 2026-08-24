@@ -6,10 +6,10 @@
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
-        "email": { "type": "string" },
-        "displayName": { "type": "string" },
-        "photoURL": { "type": "string", "description": "URL to profile picture." },
-        "bio": { "type": "string", "description": "A short spiritual bio." },
+        "email": { "type": "string", "format": "email", "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", "maxLength": 120, "minLength": 5 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "description": "URL to profile picture.", "maxLength": 2000 },
+        "bio": { "type": "string", "description": "A short spiritual bio.", "maxLength": 500 },
         "isSubscribed": { "type": "boolean", "description": "Whether the user wants to receive automatic email updates." },
         "role": { "type": "string", "enum": ["admin", "member"] },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -75,11 +75,11 @@
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
-        "userEmail": { "type": "string" },
-        "userName": { "type": "string" },
+        "userEmail": { "type": "string", "format": "email", "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", "maxLength": 120, "minLength": 5 },
+        "userName": { "type": "string", "maxLength": 100 },
         "amount": { "type": "number" },
-        "purpose": { "type": "string" },
-        "transactionId": { "type": "string" },
+        "purpose": { "type": "string", "maxLength": 200 },
+        "transactionId": { "type": "string", "maxLength": 100 },
         "status": { "type": "string", "enum": ["pending", "verified"] },
         "timestamp": { "type": "string", "format": "date-time" }
       },
@@ -138,12 +138,12 @@
       "description": "Records for individuals who want to join Catholic Action.",
       "type": "object",
       "properties": {
-        "fullName": { "type": "string" },
-        "admissionNumber": { "type": "string" },
-        "phoneNumber": { "type": "string" },
-        "schoolEmail": { "type": "string" },
-        "photoUrl": { "type": "string" },
-        "cardTheme": { "type": "string" },
+        "fullName": { "type": "string", "maxLength": 100, "minLength": 2 },
+        "admissionNumber": { "type": "string", "maxLength": 30, "minLength": 3 },
+        "phoneNumber": { "type": "string", "maxLength": 20, "minLength": 7 },
+        "schoolEmail": { "type": "string", "format": "email", "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", "maxLength": 120, "minLength": 5 },
+        "photoUrl": { "type": "string", "maxLength": 2000 },
+        "cardTheme": { "type": "string", "maxLength": 50 },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["fullName", "admissionNumber", "phoneNumber", "schoolEmail", "createdAt"]
@@ -177,6 +177,21 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "date", "type", "addedBy", "createdAt"]
+    },
+    "Feedback": {
+      "title": "Feedback & Inquiries",
+      "description": "Confidential inquiries or feedback sent by members to administrators.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string", "format": "email", "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" },
+        "userName": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["feedback", "complaint", "inquiry"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "subject", "message", "type", "timestamp"]
     }
   },
   "firestore": {
@@ -192,6 +207,7 @@
     "/community_chat/{id}": { "schema": "CommunityMessage", "description": "Main community messages." },
     "/registrations/{id}": { "schema": "MembershipRegistration", "description": "Registration entries for new members." },
     "/notifications/{id}": { "schema": "AppNotification", "description": "Real-time alerts and notices." },
-    "/schedule/{id}": { "schema": "ScheduleItem", "description": "Semester schedules and activities." }
+    "/schedule/{id}": { "schema": "ScheduleItem", "description": "Semester schedules and activities." },
+    "/feedback/{id}": { "schema": "Feedback", "description": "Confidential inquiries and feedback." }
   }
 }

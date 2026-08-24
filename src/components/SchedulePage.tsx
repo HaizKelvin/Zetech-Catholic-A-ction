@@ -327,43 +327,49 @@ _United in Spirit and Faith._ 🙏🕊️`;
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100">
-      {/* Header - Compacted */}
+    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100 px-2 sm:px-6">
+      {/* Header */}
       <motion.header 
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-6 md:py-24 px-4 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-xl group mb-4 md:mb-12 mx-1 md:mx-0 border border-white/5"
+        className="relative py-8 md:py-20 px-6 md:px-14 rounded-[32px] md:rounded-[48px] overflow-hidden bg-stone-950 text-white shadow-2xl group mb-4 md:mb-10 border border-white/10"
       >
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1506784919141-935043324940?q=80&w=2670&auto=format&fit=crop" 
-            className="w-full h-full object-cover opacity-20 transform group-hover:scale-110 transition-transform duration-[3s]" 
-            alt="Schedule"
+            src="https://images.unsplash.com/photo-1544427920-c49ccfb85579?q=80&w=1600&auto=format&fit=crop" 
+            className="w-full h-full object-cover opacity-30 transform group-hover:scale-105 transition-transform duration-[10s]" 
+            alt="Catholic Altar and Cross"
+            referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-stone-950 via-stone-950/80 to-transparent" />
         </div>
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12 max-w-full">
-          <div className="space-y-2 md:space-y-6">
+          <div className="space-y-2 md:space-y-4 text-left">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-dark border border-white/10 text-[7px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/80 border border-blue-400/30 text-[10px] md:text-xs font-bold uppercase tracking-wider text-sky-300 shadow-md backdrop-blur-md"
             >
-              <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,1)]" />
-              Timeline
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              Event Calendar
             </motion.div>
             
-            <h1 className="text-2xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-none text-white serif-display">
-              Sacred <span className="serif-display italic font-light text-emerald-400 lowercase">Events & Plans</span>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white font-sans leading-tight">
+              Mass & Activity <br />
+              <span className="text-sky-400 font-serif italic text-2xl sm:text-4xl md:text-5xl font-normal">Schedules</span>
             </h1>
+
+            <p className="text-stone-300 text-sm md:text-base max-w-xl">
+              Stay updated on Sunday Masses, weekly Jumuiya sessions, choir rehearsals, and diocesan youth rallies.
+            </p>
           </div>
 
           {isAdmin && (
-            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={async () => {
                   try {
                     await setDoc(doc(db, 'control', 'settings'), { isWhatsAppAutoSync: !isWhatsAppAutoSync }, { merge: true });
@@ -371,27 +377,27 @@ _United in Spirit and Faith._ 🙏🕊️`;
                     console.error(e);
                   }
                 }}
-                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 md:px-8 md:py-5 rounded-xl md:rounded-[32px] transition-all font-black uppercase tracking-[0.2em] shadow-xl text-[8px] md:text-[10px] ${
+                className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer ${
                   isWhatsAppAutoSync 
-                    ? 'bg-brand-600 text-white shadow-brand-600/20' 
-                    : 'bg-white/10 text-white/40 border border-white/5'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                    : 'bg-white/10 text-white/60 hover:bg-white/20 border border-white/10'
                 }`}
               >
-                <Zap className={`w-3.5 h-3.5 ${isWhatsAppAutoSync ? 'animate-pulse' : 'opacity-30'}`} />
-                {isWhatsAppAutoSync ? 'WhatsApp Sync Active' : 'WhatsApp Sync Off'}
+                <Zap className={`w-4 h-4 ${isWhatsAppAutoSync ? 'animate-pulse' : 'opacity-50'}`} />
+                <span>{isWhatsAppAutoSync ? 'Auto WhatsApp On' : 'Auto WhatsApp Off'}</span>
               </motion.button>
 
               <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   setNewActivity(prev => ({ ...prev, date: format(new Date(), "yyyy-MM-dd'T'12:00") }));
                   setIsAddModalOpen(true);
                 }}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-[32px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/30 text-[8px] md:text-[10px]"
+                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
-                Add Event
+                <Plus className="w-4 h-4" />
+                <span>Add New Event</span>
               </motion.button>
             </div>
           )}

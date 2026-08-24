@@ -1,6 +1,6 @@
 {
   "name": "ZUCA",
-  "description": "A magnificent and adorable digital sanctuary for Zetech University Catholic Action, featuring sacred resources, divine community fellowship, and a meditative space for spiritual growth.",
+  "description": "Zetech University Catholic Action (ZUCA) student portal for new member enrollment, Mass schedules, Catholic hymnals & prayers, photo gallery, and campus fellowship.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

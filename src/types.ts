@@ -8,6 +8,8 @@ export interface UserProfile {
   displayName: string | null;
   photoURL?: string;
   contactNumber?: string;
+  phoneNumber?: string;
+  phone?: string;
   admissionNumber?: string;
   bio?: string;
   isSubscribed?: boolean;

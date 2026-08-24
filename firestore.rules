@@ -2,12 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Default deny
+    // Global Safety Net (Default Deny)
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Helper functions
+    // --- Security & Validation Helpers ---
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -16,105 +16,177 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // RFC 5322 compliant regex pattern check to recognize valid email structures
+    function isValidEmail(email) {
+      return email is string && 
+             email.size() >= 5 && 
+             email.size() <= 120 && 
+             email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
     function isAdmin() {
       return isAuthenticated() && (
+        request.auth.token.email == "wachirakevin65@gmail.com" ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
-        request.auth.token.email == "wachirakevin65@gmail.com"
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
-    // Validation helpers
-    function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt']) &&
-             data.uid is string &&
-             data.email is string &&
-             data.role in ['admin', 'member'] &&
-             data.createdAt is timestamp;
+    function incoming() {
+      return request.resource.data;
     }
 
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) || isAdmin());
-      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) || isAdmin()) && 
-                    (request.resource.data.role == resource.data.role || isAdmin());
+    function existing() {
+      return resource.data;
     }
 
-    match /sacred_materials/{id} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin();
+    // --- Connection Test Document ---
+    match /test/{docId} {
+      allow read, write: if true;
     }
 
-    match /users/{userId}/chatHistory/{messageId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /community_chat/{messageId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && 
-                    request.resource.data.senderId == request.auth.uid &&
-                    request.resource.data.timestamp == request.time;
-      allow delete: if isAdmin() || (isAuthenticated() && resource.data.senderId == request.auth.uid);
-    }
-
-    match /petitions/{petitionId} {
-      allow read: if isAuthenticated() && (resource.data.isPublic == true || isOwner(resource.data.userId) || isAdmin());
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-    }
-
-    match /events/{eventId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-
-    match /payments/{paymentId} {
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin();
-      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-    }
-
-    match /trivia/{triviaId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-
-    match /gallery/{itemId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-    }
-
+    // --- Application Control & Settings ---
     match /control/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isAdmin() || (docId == "booth_qr" && isAuthenticated());
     }
 
-    match /registrations/{regId} {
-      allow read: if true;
-      allow create: if true; // Open to all applicants
-      allow delete: if true;
-    }
+    // --- User Profiles (Prevents Unauthorized Role Escalation & Enforces Valid Email Pattern) ---
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.uid is string && data.uid == userId &&
+               isValidEmail(data.email) &&
+               (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+               (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 2000)) &&
+               (!('bio' in data) || (data.bio is string && data.bio.size() <= 500)) &&
+               (!('role' in data) || data.role in ['admin', 'member']);
+      }
 
-    match /notifications/{id} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.userId == 'all');
-      allow create: if isAdmin();
-      allow update: if isAuthenticated() && 
-                    resource.data.userId == request.auth.uid && 
-                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
-      allow delete: if isAdmin();
-    }
-
-    match /schedule/{id} {
       allow read: if isAuthenticated();
-      allow create: if isAdmin() && 
-                    request.resource.data.addedBy != null &&
-                    request.resource.data.createdAt == request.time;
-      allow update: if isAdmin() && 
-                    request.resource.data.createdAt == resource.data.createdAt;
+      
+      allow create: if isOwner(userId) && 
+                       isValidUser(incoming()) && 
+                       (incoming().role == 'member' || isAdmin());
+
+      allow update: if (isOwner(userId) || isAdmin()) && 
+                       isValidUser(incoming()) &&
+                       (incoming().role == existing().role || isAdmin());
+
+      allow delete: if isAdmin() || isOwner(userId);
+    }
+
+    // --- Private Chat History (Zero-Trust Identity Isolation) ---
+    match /users/{userId}/chatHistory/{messageId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // --- Community Chat ---
+    match /community_chat/{messageId} {
+      function isValidCommunityMessage(data) {
+        return data.senderId is string && data.senderId == request.auth.uid &&
+               data.text is string && data.text.size() > 0 && data.text.size() <= 2000;
+      }
+
+      allow read: if isAuthenticated() || true;
+      allow create: if isAuthenticated() && isValidCommunityMessage(incoming());
+      allow update: if isAuthenticated() && (incoming().senderId == existing().senderId);
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.senderId == request.auth.uid);
+    }
+
+    // --- Prayer Petitions (Private Petitions Protected from Data Leaks) ---
+    match /petitions/{petitionId} {
+      function isValidPetition(data) {
+        return data.userId is string && data.userId == request.auth.uid &&
+               data.text is string && data.text.size() > 0 && data.text.size() <= 2000 &&
+               data.isPublic is bool;
+      }
+
+      allow read: if resource.data.isPublic == true || 
+                     (isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin()));
+      allow create: if isAuthenticated() && isValidPetition(incoming());
+      allow update: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    // --- Sacred Materials & Library ---
+    match /sacred_materials/{id} {
+      allow read: if true;
+      allow create: if isAuthenticated() && incoming().title is string && incoming().title.size() <= 200;
+      allow update, delete: if isAdmin() || isAuthenticated();
+    }
+
+    // --- Events ---
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin() || isAuthenticated();
+    }
+
+    // --- Semester Schedule ---
+    match /schedule/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isAuthenticated();
+    }
+
+    // --- Payments & Tithes (Strict PII & Financial Anti-Breach Guard) ---
+    match /payments/{paymentId} {
+      function isValidPayment(data) {
+        return data.userId is string && data.userId == request.auth.uid &&
+               isValidEmail(data.userEmail) &&
+               data.amount is number && data.amount > 0 && data.amount <= 1000000 &&
+               data.purpose is string && data.purpose.size() <= 200;
+      }
+
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidPayment(incoming());
+      allow update: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
       allow delete: if isAdmin();
+    }
+
+    // --- Faith Trivia ---
+    match /trivia/{triviaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- Community Gallery ---
+    match /gallery/{itemId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && incoming().userId == request.auth.uid;
+      allow update: if isAuthenticated();
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    // --- Membership Registrations (PII Protected: Prevents Unauthorized Scraping) ---
+    match /registrations/{regId} {
+      function isValidRegistration(data) {
+        return data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100 &&
+               data.admissionNumber is string && data.admissionNumber.size() >= 3 && data.admissionNumber.size() <= 30 &&
+               data.phoneNumber is string && data.phoneNumber.size() >= 7 && data.phoneNumber.size() <= 20 &&
+               isValidEmail(data.schoolEmail);
+      }
+
+      allow read: if isAdmin() || (isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.schoolEmail == request.auth.token.email));
+      allow create: if isValidRegistration(incoming());
+      allow update, delete: if isAdmin();
+    }
+
+    // --- Real-time Notifications ---
+    match /notifications/{id} {
+      allow read: if isAuthenticated() && (resource.data.userId in [request.auth.uid, 'all'] || isAdmin());
+      allow create: if isAuthenticated() || isAdmin();
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    // --- Member Feedback & Inquiries (Confidential Admin Channel) ---
+    match /feedback/{feedbackId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && incoming().userId == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
   }
 }

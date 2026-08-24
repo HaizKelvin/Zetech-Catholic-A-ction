@@ -38,8 +38,77 @@ interface GalleryItem {
   likes?: number;
 }
 
+const DEFAULT_MOMENTS: GalleryItem[] = [
+  {
+    id: 'default-1',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1544427920-c49ccfb85579?auto=format&fit=crop&w=1000&q=80',
+    title: 'Sunday Holy Mass at Campus Chapel',
+    description: 'Students gathering in prayer, Eucharistic celebration, and liturgical singing.',
+    userId: 'admin',
+    userName: 'ZUCA Liturgy Team',
+    timestamp: null,
+    likes: 42
+  },
+  {
+    id: 'default-2',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1000&q=80',
+    title: 'St. Jude Choir Rehearsal',
+    description: 'Practicing traditional Catholic hymns and praise for upcoming diocese youth festival.',
+    userId: 'admin',
+    userName: 'St. Jude Choir',
+    timestamp: null,
+    likes: 38
+  },
+  {
+    id: 'default-3',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1000&q=80',
+    title: 'Wednesday Jumuiya Bible Study & Fellowship',
+    description: 'Small Christian Community session in PG 6 Room sharing the Gospel and friendship.',
+    userId: 'admin',
+    userName: 'SCC Ministry',
+    timestamp: null,
+    likes: 56
+  },
+  {
+    id: 'default-4',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=1000&q=80',
+    title: 'Annual Charity Visit & Outreach',
+    description: 'ZUCA members spending time with children, sharing food items, and praying together.',
+    userId: 'admin',
+    userName: 'Charity Committee',
+    timestamp: null,
+    likes: 64
+  },
+  {
+    id: 'default-5',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1510590337019-5ef8d3d32116?auto=format&fit=crop&w=1000&q=80',
+    title: 'Candlelight Rosary Vigil & Eucharistic Adoration',
+    description: 'Evening of quiet prayer, holy adoration of the Blessed Sacrament, and personal reflection.',
+    userId: 'admin',
+    userName: 'Spiritual Formation',
+    timestamp: null,
+    likes: 71
+  },
+  {
+    id: 'default-6',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80',
+    title: 'First-Year Welcome Barbecue & Fellowship',
+    description: 'Welcoming newly admitted students into the Catholic family at Zetech University.',
+    userId: 'admin',
+    userName: 'Orientation Team',
+    timestamp: null,
+    likes: 85
+  }
+];
+
 export default function Gallery({ profile }: { profile: UserProfile | null }) {
-  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [items, setItems] = useState<GalleryItem[]>(DEFAULT_MOMENTS);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [loading, setLoading] = useState(false);
@@ -53,9 +122,15 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
   useEffect(() => {
     const q = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'), limit(24));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as GalleryItem[]);
+      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as GalleryItem[];
+      if (fetched.length > 0) {
+        setItems(fetched);
+      } else {
+        setItems(DEFAULT_MOMENTS);
+      }
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'gallery');
+      setItems(DEFAULT_MOMENTS);
     });
     return () => unsubscribe();
   }, []);
@@ -93,50 +168,51 @@ export default function Gallery({ profile }: { profile: UserProfile | null }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24">
+    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 px-3 sm:px-6">
       <motion.header 
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-12 mx-2 md:mx-0"
+        className="relative py-10 md:py-20 px-6 md:px-14 rounded-[32px] md:rounded-[48px] overflow-hidden bg-stone-950 text-white shadow-2xl border border-white/10 group mb-6 md:mb-10"
       >
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80" 
-            className="w-full h-full object-cover mix-blend-overlay scale-110 opacity-30 transition-transform duration-[15s] group-hover:scale-100"
-            alt="Gallery"
+            src="https://images.unsplash.com/photo-1510590337019-5ef8d3d32116?auto=format&fit=crop&w=1600&q=80" 
+            className="w-full h-full object-cover mix-blend-overlay scale-105 opacity-40 transition-transform duration-[15s] group-hover:scale-100"
+            alt="Catholic Worship, Mass and Candle Devotion"
+            referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-stone-950 via-stone-950/80 to-transparent" />
         </div>
         
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-10 md:gap-20">
-          <div className="space-y-6 md:space-y-10 max-w-4xl">
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-12">
+          <div className="space-y-3 md:space-y-4 max-w-2xl text-left">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-3 px-6 py-2 md:px-8 md:py-3 rounded-full glass-dark border border-white/10 text-[9px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-xl"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-950/80 border border-blue-400/30 text-[10px] md:text-xs font-bold uppercase tracking-wider text-sky-300 shadow-md backdrop-blur-md"
             >
-              <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
-              Living Testimony
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              Community Moments
             </motion.div>
             
-            <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white serif-display italic">
-              Activity <br className="hidden md:block" />
-              <span className="text-brand-400 not-italic uppercase font-black text-xl md:text-3xl tracking-[0.2em] block mt-1 md:mt-2">Gallery</span>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white font-sans leading-tight">
+              ZUCA Photo & <br />
+              <span className="text-sky-400 font-serif italic text-2xl sm:text-4xl md:text-5xl font-normal">Activity Gallery</span>
             </h1>
             
-            <p className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
-              Reliving our moments of worship, fellowship, and divine connection.
+            <p className="text-stone-300 text-sm md:text-base leading-relaxed">
+              Explore photos and videos from Sunday Mass, choir practices, Jumuiya fellowship, and charity visits.
             </p>
           </div>
           
           <motion.button
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => setShowAdd(true)}
-            className="w-full md:w-auto flex items-center justify-center gap-3 bg-brand-600 text-white px-6 py-4 md:px-8 md:py-4 rounded-2xl md:rounded-3xl hover:bg-brand-500 transition-all font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-600/30 text-[9px] md:text-[10px]"
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-2xl transition-all font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/30 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Share Moment
+            <span>Add New Photo</span>
           </motion.button>
         </div>
       </motion.header>

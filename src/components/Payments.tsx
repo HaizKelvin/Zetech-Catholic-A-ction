@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { Payment, OperationType } from '../types';
-import { handleFirestoreError } from '../utils';
+import { handleFirestoreError, validateEmailPattern } from '../utils';
 import { CreditCard, ShieldCheck, Clock, Download, Plus, CheckCircle2, AlertCircle, Loader2, Smartphone, DollarSign, Wallet, Trash2, Receipt, Printer, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -61,10 +61,13 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
       const path = 'payments';
       try {
         const transId = 'MP' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        const safeEmail = validateEmailPattern(auth.currentUser?.email || '').isValid 
+          ? validateEmailPattern(auth.currentUser?.email || '').sanitized 
+          : 'member@zuca.zetech.ac.ke';
         const paymentData = {
           userId: auth.currentUser?.uid,
           userName: auth.currentUser?.displayName || 'User',
-          userEmail: auth.currentUser?.email || '',
+          userEmail: safeEmail,
           amount: Number(form.amount),
           purpose: form.purpose,
           transactionId: transId,
@@ -106,10 +109,13 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
       const path = 'payments';
       try {
         const transId = 'PAYPAL-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        const safeEmail = validateEmailPattern(auth.currentUser?.email || '').isValid 
+          ? validateEmailPattern(auth.currentUser?.email || '').sanitized 
+          : 'member@zuca.zetech.ac.ke';
         const paymentData = {
           userId: auth.currentUser?.uid,
           userName: auth.currentUser?.displayName || 'User',
-          userEmail: auth.currentUser?.email || '',
+          userEmail: safeEmail,
           amount: Number(form.amount),
           purpose: form.purpose,
           transactionId: transId,
@@ -140,10 +146,13 @@ export default function Payments({ isAdmin }: { isAdmin: boolean }) {
 
     setLoading(true);
     try {
+      const safeEmail = validateEmailPattern(auth.currentUser.email || '').isValid 
+        ? validateEmailPattern(auth.currentUser.email || '').sanitized 
+        : 'member@zuca.zetech.ac.ke';
       const paymentData = {
         userId: auth.currentUser.uid,
         userName: auth.currentUser.displayName || 'User',
-        userEmail: auth.currentUser.email || '',
+        userEmail: safeEmail,
         amount: Number(form.amount),
         purpose: form.purpose,
         transactionId: form.transactionId,

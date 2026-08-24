@@ -288,64 +288,62 @@ ${item.link || 'Available via ZUCA Portal'}
 
       {/* Sacred Header - Enhanced with subtle texture */}
       <motion.header 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative py-12 md:py-32 px-6 md:px-16 rounded-[32px] md:rounded-[64px] overflow-hidden bg-brand-950 text-white shadow-3xl group mx-2 md:mx-0 border border-emerald-500/20"
+        initial={{ opacity: 0, y: -15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative py-8 md:py-20 px-6 md:px-14 rounded-[32px] md:rounded-[48px] overflow-hidden bg-stone-950 text-white shadow-2xl border border-white/10 group mb-6 md:mb-10"
       >
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1548625361-92e105e4539a?q=80&w=2670&auto=format&fit=crop" 
-            className="w-full h-full object-cover opacity-30 transform group-hover:scale-105 transition-transform duration-[20s]" 
-            alt="Cathedral"
+            src="https://images.unsplash.com/photo-1507692049790-de58290a4334?q=80&w=1600&auto=format&fit=crop" 
+            className="w-full h-full object-cover opacity-25 scale-105 group-hover:scale-100 transition-transform duration-[15s]" 
+            alt="Catholic Bible, Rosary and Hymnals"
+            referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/90 to-transparent" />
-                   <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/10 blur-[180px] rounded-full -mr-64 -mt-64" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-stone-950 via-stone-950/85 to-transparent" />
           <div className="absolute inset-0 divine-pattern opacity-5" />
         </div>
-        
-        <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-10 md:gap-16">
-          <div className="space-y-6 md:space-y-10">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12">
+          <div className="space-y-3 md:space-y-4 text-left">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full glass-dark border border-white/10 text-[10px] font-black uppercase tracking-[0.5em] text-emerald-400 shadow-2xl backdrop-blur-3xl"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/80 border border-blue-400/30 text-[10px] md:text-xs font-bold uppercase tracking-wider text-sky-300 shadow-md backdrop-blur-md"
             >
-               <Flame className="w-3.5 h-3.5 animate-pulse text-amber-500" />
-               Eternal Repository
+               <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+               Catholic Resources
             </motion.div>
             
-            <div className="space-y-4">
-              <h1 className="text-5xl md:text-9xl font-black tracking-tighter leading-[0.85] text-white serif-display">
-                Sacred <br />
-                <span className="serif-display italic font-light text-emerald-400 lowercase drop-shadow-3xl">Archive</span>
+            <div className="space-y-2">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white font-sans leading-tight">
+                Songbook, Prayers & <br />
+                <span className="text-sky-400 font-serif italic text-2xl sm:text-4xl md:text-5xl font-normal">Library</span>
               </h1>
-              <p className="max-w-xl text-stone-400 text-base md:text-2xl font-light italic serif-display leading-relaxed opacity-90">
-                "Where wisdom is stored, grace flourishes. Seek and you shall find the path to enlightenment."
+              <p className="max-w-xl text-stone-300 text-sm md:text-base leading-relaxed">
+                Access Catholic hymnals, Sunday Mass order, Rosary prayers, and Jumuiya study notes anytime.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <motion.button
-              whileHover={{ scale: 1.05, y: -5 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onStudy("Divine Archive Guidance", "I am exploring the Sacred Archive. What spiritual treasures are available for me today?")}
-              className="flex-1 md:flex-none flex items-center justify-center gap-4 bg-stone-900 border border-white/10 text-white px-10 py-6 rounded-[28px] md:rounded-[40px] hover:bg-black transition-all font-black uppercase tracking-[0.3em] shadow-3xl text-[11px]"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onStudy("Catholic Faith Assistant", "I would like guidance on Catholic prayers, hymn chords, or Mass readings. What can you help me with?")}
+              className="flex items-center justify-center gap-2 bg-stone-900/90 border border-stone-700 text-white px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-stone-800 transition-all shadow-md cursor-pointer"
             >
-              <Bot className="w-5 h-5 text-brand-400" />
-              Seek Counsel
+              <Bot className="w-4 h-4 text-sky-400" />
+              <span>Ask Faith AI</span>
             </motion.button>
 
             <motion.button
-              whileHover={{ scale: 1.05, y: -5 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setIsAddModalOpen(true)}
-              className="flex-1 md:flex-none flex items-center justify-center gap-4 bg-emerald-600 text-white px-10 py-6 rounded-[28px] md:rounded-[40px] hover:bg-emerald-500 transition-all font-black uppercase tracking-[0.3em] shadow-3xl shadow-emerald-500/30 text-[11px] border border-white/10"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
             >
-              <Plus className="w-5 h-5" />
-              Endow Resource
+              <Plus className="w-4 h-4" />
+              <span>Add Resource</span>
             </motion.button>
           </div>
         </div>

@@ -1,17 +1,62 @@
 import React, { useEffect, useState } from 'react';
 import { doc, onSnapshot, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { DailyControl, OperationType } from '../types';
-import { Quote, BookOpen, User as UserIcon, Calendar, Loader2, Heart, Library, Trophy, ArrowUpRight, HelpCircle, MessageCircle, Share2, Sparkles, QrCode, ArrowRight, UserPlus, X, Upload } from 'lucide-react';
+import { DailyControl, OperationType, UserProfile } from '../types';
+import { 
+  Quote, 
+  BookOpen, 
+  User as UserIcon, 
+  Calendar, 
+  Loader2, 
+  Heart, 
+  Library, 
+  Trophy, 
+  ArrowUpRight, 
+  HelpCircle, 
+  MessageCircle, 
+  Share2, 
+  Sparkles, 
+  QrCode, 
+  ArrowRight, 
+  UserPlus, 
+  X, 
+  Upload, 
+  Image as ImageIcon,
+  UserCheck,
+  GraduationCap,
+  Church,
+  CheckCircle2
+} from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'motion/react';
 import { handleFirestoreError } from '../utils';
 
-export default function Dashboard({ userName, onTabChange }: { userName: string, onTabChange: (tab: any) => void }) {
+interface DashboardProps {
+  userName?: string;
+  currentUser?: UserProfile | null;
+  onTabChange: (tab: any) => void;
+}
+
+export default function Dashboard({ userName, currentUser, onTabChange }: DashboardProps) {
   const [daily, setDaily] = useState<DailyControl | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewQr, setViewQr] = useState(false);
   const [customQr, setCustomQr] = useState<string | null>(null);
   const [whatsAppGroupLink, setWhatsAppGroupLink] = useState('https://chat.whatsapp.com/GxuvB559sZLIurYvXbxHmU');
+
+  // Compute recognized user details
+  const rawName = (currentUser?.displayName || userName || '').trim();
+  const displayName = rawName || 'Friend';
+  const firstName = displayName.split(' ')[0] || 'Friend';
+  const admissionNumber = currentUser?.admissionNumber || '';
+  const phoneNumber = currentUser?.contactNumber || currentUser?.phone || '';
+  const isRecognized = !!rawName && rawName.toLowerCase() !== 'member' && rawName.toLowerCase() !== 'friend';
+
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -145,156 +190,176 @@ ZUCA Community`);
       {/* Immersive Header - Magazine Style */}
       <motion.header 
         variants={item}
-        className="relative py-12 md:py-32 px-6 md:px-20 rounded-[32px] md:rounded-[80px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/20 group h-auto flex items-center mb-8 md:mb-12"
+        className="relative py-12 md:py-24 px-6 md:px-16 rounded-[32px] md:rounded-[60px] overflow-hidden bg-stone-950 text-white shadow-2xl border border-white/10 group h-auto flex items-center mb-8 md:mb-12"
       >
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1438032005730-c779502df39b?q=80&w=2671&auto=format&fit=crop" 
-            className="w-full h-full object-cover mix-blend-overlay scale-110 opacity-30 transition-transform duration-[20s] group-hover:scale-100"
-            alt="Sanctuary"
+            src="https://images.unsplash.com/photo-1544427920-c49ccfb85579?auto=format&fit=crop&w=1600&q=80" 
+            className="w-full h-full object-cover mix-blend-overlay scale-105 opacity-40 transition-transform duration-[15s] group-hover:scale-100"
+            alt="Catholic Altar & Chapel"
+            loading="eager"
+            referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-stone-950 via-stone-950/80 to-transparent" />
           
           {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 blur-[150px] rounded-full -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-1/4 w-[300px] h-[300px] bg-indigo-500/10 blur-[130px] rounded-full" />
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full -mr-32 -mt-32" />
+          <div className="absolute bottom-0 left-1/4 w-[300px] h-[300px] bg-sky-500/10 blur-[130px] rounded-full" />
         </div>
 
-        <div className="relative z-10 flex flex-col gap-10 md:gap-16 max-w-7xl w-full">
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="relative z-10 flex flex-col gap-8 md:gap-12 max-w-7xl w-full">
+          <div className="flex flex-wrap items-center gap-3">
             <motion.div
               variants={item}
-              className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass-dark border border-white/10 text-[9px] md:text-[11px] font-black uppercase tracking-[0.6em] text-brand-300 shadow-2xl backdrop-blur-3xl w-fit"
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-blue-950/80 border border-blue-400/20 text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-sky-300 shadow-xl backdrop-blur-md w-fit"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse shadow-[0_0_12px_rgba(92,133,255,1)]" />
-              Cathedral of Digital Fellowship
+              <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shadow-[0_0_10px_rgba(56,189,248,1)]" />
+              Zetech Catholic Community
             </motion.div>
+
+            {isRecognized && (
+              <motion.div
+                variants={item}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/40 border border-sky-400/30 text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-sky-200 shadow-md backdrop-blur-md w-fit"
+              >
+                <UserCheck className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                <span>Recognized Student: <strong className="text-white font-extrabold">{displayName}</strong></span>
+                {admissionNumber && <span className="text-amber-300 font-mono">({admissionNumber})</span>}
+              </motion.div>
+            )}
 
             <motion.div
               variants={item}
-              className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] md:text-[11px] font-black uppercase tracking-[0.4em] text-emerald-400 shadow-xl backdrop-blur-xl w-fit group/live relative"
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-emerald-400 shadow-lg backdrop-blur-md w-fit group/live relative"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
               <span className="relative">
-                <span className="tabular-nums">14</span> SEEKERS ACTIVE
+                <span className="tabular-nums font-bold">14+</span> Students Online
               </span>
-              
-              {/* Inviting Hover Message */}
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-2 bg-emerald-600 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover/live:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
-                The Sanctuary is vibrant today! 🙏
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-emerald-600 rotate-45" />
-              </div>
             </motion.div>
           </div>
           
-          <div className="space-y-4 md:space-y-8">
-            <motion.h1 
-              variants={item}
-              className="text-5xl md:text-[10rem] font-black tracking-[-0.04em] leading-[0.8] text-white text-left"
-            >
-              Welcome, <br />
-              <span className="serif-display italic font-light text-brand-400 lowercase drop-shadow-3xl shadow-brand-400/20">
-                {userName?.toLowerCase() || 'member'}
-              </span>
-            </motion.h1>
+          <div className="space-y-4 md:space-y-5">
+            <motion.div variants={item} className="space-y-2">
+              <p className="text-sky-400 font-bold text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                {getTimeGreeting()}, {firstName}! Peace be with you.
+              </p>
+              <motion.h1 
+                variants={item}
+                className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-white text-left"
+              >
+                Welcome, <span className="text-sky-400 capitalize">{displayName}</span>! <br className="hidden sm:inline" />
+                <span className="text-stone-100 font-bold">Faith, Unity & Student Life at Zetech.</span>
+              </motion.h1>
+            </motion.div>
             
-            <motion.p variants={item} className="text-stone-400 text-sm md:text-2xl font-light max-w-2xl leading-relaxed italic serif-display opacity-80 text-left pl-2 md:pl-4 border-l border-brand-500/30">
-              Your digital sanctuary for community devotion, divine wisdom, and authentic connection.
+            <motion.p variants={item} className="text-stone-300 text-sm md:text-lg font-normal max-w-3xl leading-relaxed pl-3 md:pl-4 border-l-2 border-sky-400 text-left">
+              Join us for weekly Holy Mass, prayer meetings, choir practice, charity missions, and real university friendships in Christ.
             </motion.p>
           </div>
         </div>
       </motion.header>
 
-      {/* 🌟 Orientation & Recruitment Hub - High-Conversion Centerpiece for First Years */}
+      {/* 🌟 Orientation & Recruitment Hub - Personalized Recognition */}
       <motion.div 
         variants={item}
-        className="relative p-6 md:p-12 rounded-[32px] md:rounded-[48px] overflow-hidden bg-gradient-to-br from-[#003366] via-[#002244] to-brand-950 text-white shadow-3xl border border-white/5"
+        className="relative p-6 md:p-10 rounded-[32px] md:rounded-[40px] overflow-hidden bg-gradient-to-br from-[#002244] via-[#003366] to-[#040813] text-white shadow-2xl border border-blue-500/20"
       >
-        <div className="absolute inset-0 divine-pattern opacity-[0.04] pointer-events-none" />
-        <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-zetech-gold/10 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-brand-500/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
+        <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-500/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
         
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center gap-8 justify-between">
-          <div className="space-y-4 max-w-2xl text-left">
-            <div className="inline-flex items-center gap-2.5 px-4.5 py-1.5 rounded-full bg-zetech-gold/10 border border-zetech-gold/20 text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-zetech-gold shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse text-zetech-gold" />
-              Orientation Day 2026
+          <div className="space-y-3 max-w-2xl text-left">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-[10px] font-bold uppercase tracking-wider text-amber-300 shadow-md">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse text-amber-300" />
+              New Student Enrollment 2026
             </div>
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-none uppercase text-white font-sans">
-              Welcome First Years <span className="serif-display italic font-light text-zetech-gold font-serif pl-1 lowercase">class of 2026</span>
+            <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight leading-snug text-white font-sans">
+              {isRecognized ? (
+                <>Welcome to ZUCA, <span className="text-amber-300">{firstName}</span>!</>
+              ) : (
+                <>Welcome First Year Students!</>
+              )}
             </h2>
-            <p className="text-stone-300 text-xs md:text-base leading-relaxed font-semibold">
-              Embark on a beautiful path of vibrant faith, lasting friendships, and meaningful growth with Zetech Catholic Action (ZUCA). Register below to create your official student membership card instantly!
+            <p className="text-stone-300 text-xs md:text-sm leading-relaxed font-normal">
+              {isRecognized ? (
+                `Hello ${displayName}! Your student profile is active. You can generate or download your official 2026 ZUCA membership card, join your Jumuiya fellowship, or connect with chaplaincy.`
+              ) : (
+                `Make Zetech feel like home! Register with Zetech Catholic Action (ZUCA) in 1 minute to get your official member card, join your campus Jumuiya, and connect with fellow Catholic students.`
+              )}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-4 w-full lg:w-auto justify-start lg:justify-end shrink-0">
+          <div className="flex flex-wrap gap-3.5 w-full lg:w-auto justify-start lg:justify-end shrink-0">
             <motion.button 
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => onTabChange('join')}
-              className="px-6 py-4 bg-zetech-gold text-stone-950 font-black rounded-2xl tracking-[0.2em] text-[10px] md:text-[11px] uppercase shadow-lg shadow-zetech-gold/20 transition-all flex items-center gap-3 cursor-pointer"
+              className="px-6 py-3.5 bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold rounded-xl text-xs uppercase tracking-wider shadow-lg transition-all flex items-center gap-2.5 cursor-pointer"
             >
-              <UserPlus className="w-4 h-4 text-stone-950" /> Enroll in ZUCA Now
+              <UserPlus className="w-4 h-4 text-stone-950" /> 
+              {isRecognized ? `Generate ID Card for ${firstName}` : 'Register as New Student'}
             </motion.button>
             
             <motion.button 
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setViewQr(true)}
-              className="px-6 py-4 bg-white/10 dark:bg-white/5 text-white border border-white/10 font-black rounded-2xl tracking-[0.2em] text-[10px] md:text-[11px] uppercase hover:bg-white/20 transition-all flex items-center gap-3 shadow-lg cursor-pointer"
+              className="px-5 py-3.5 bg-white/10 hover:bg-white/15 text-white border border-white/15 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-2.5 shadow-md cursor-pointer"
             >
-              <QrCode className="w-4 h-4 text-white" /> Booth QR Code
+              <QrCode className="w-4 h-4 text-white" /> Show QR Code
             </motion.button>
 
             <motion.button 
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => window.open(whatsAppGroupLink, '_blank')}
-              className="px-6 py-4 bg-[#25D366] hover:bg-[#128C7E] text-white font-black rounded-2xl tracking-[0.2em] text-[10px] md:text-[11px] uppercase shadow-lg shadow-[#25D366]/25 transition-all flex items-center gap-3 cursor-pointer"
+              className="px-5 py-3.5 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-lg transition-all flex items-center gap-2.5 cursor-pointer"
             >
-              <MessageCircle className="w-4 h-4 text-white" /> Join WhatsApp Group
+              <MessageCircle className="w-4 h-4 text-white" /> WhatsApp Group
             </motion.button>
           </div>
         </div>
 
-        {/* Freshman Quick Survival Guide */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 pt-10 border-t border-white/10 relative z-10 text-left">
+        {/* New Student Orientation Quick Guide */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8 pt-8 border-t border-white/10 relative z-10 text-left">
           {[
             {
-              title: "Sacred gatherings",
-              desc: "Join us for Jumuiya in PG 6 Room every Wednesday at 4:20 PM, Choir Practice on Thursday at 4:30 PM, Saturday & Sunday at 3:00 PM, and Sunday Holy Mass at 9:00 AM.",
-              action: "Schedule & Locations",
+              title: "Weekly Mass & Meetings",
+              desc: "Join Jumuiya in PG 6 Room every Wednesday at 4:20 PM, Choir Practice on Thursday & weekends, and Sunday Holy Mass at 9:00 AM.",
+              action: "View Full Schedule",
               tab: "schedule"
             },
             {
-              title: "Frictionless IDs",
-              desc: "Tap 'Enroll' to fill out your student details, upload your profile picture, and instantly generate a printable PDF covenant card.",
-              action: "Generate Member Card",
+              title: "Instant Student Member ID",
+              desc: "Fill in your name, admission number, and photo to generate your official downloadable ZUCA membership card.",
+              action: "Get Your ID Card",
               tab: "join"
             },
             {
-              title: "Meet Sanctuary Spirit",
-              desc: "Have any questions about university life, spiritual matters, or ZUCA sub-groups? Click the chat button to talk with our AI guide.",
-              action: "Ask Sanctuary AI",
+              title: "Questions & AI Chaplain",
+              desc: "Ask anything about Catholic prayers, university life, choir, or Mass schedules anytime with our Catholic AI assistant.",
+              action: "Open Chat Assistant",
               tab: "chat"
             }
           ].map((itm, idx) => (
             <motion.div 
               key={idx}
-              whileHover={{ y: -4 }}
-              className="p-6 rounded-[24px] bg-white/5 hover:bg-white/[0.08] border border-white/5 transition-all flex flex-col justify-between"
+              whileHover={{ y: -3 }}
+              className="p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex flex-col justify-between"
             >
-              <div className="space-y-2">
-                <span className="text-[9px] font-black uppercase text-zetech-gold/80 tracking-widest block font-sans">Survival Guide {idx + 1}</span>
-                <h4 className="text-base font-black text-white uppercase font-sans mt-1">{itm.title}</h4>
-                <p className="text-stone-300 text-[11px] md:text-xs leading-relaxed font-medium mt-1">{itm.desc}</p>
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold uppercase text-amber-300/90 tracking-wider block">Step {idx + 1}</span>
+                <h4 className="text-sm font-bold text-white mt-1">{itm.title}</h4>
+                <p className="text-stone-300 text-xs leading-relaxed mt-1">{itm.desc}</p>
               </div>
               <button 
                 onClick={() => onTabChange(itm.tab)}
-                className="mt-6 text-[9px] font-black uppercase tracking-widest text-brand-300 hover:text-white transition-colors flex items-center gap-2 cursor-pointer w-fit"
+                className="mt-4 text-[11px] font-bold uppercase tracking-wider text-sky-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer w-fit"
               >
-                {itm.action} <ArrowRight className="w-3.5 h-3.5 text-brand-300" />
+                {itm.action} <ArrowRight className="w-3.5 h-3.5 text-sky-300" />
               </button>
             </motion.div>
           ))}
@@ -303,66 +368,66 @@ ZUCA Community`);
 
       {/* Main Insights Bento Grid - Optimized Spacing */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-        {/* Divine Bread - Primary Card */}
+        {/* Daily Scripture Card */}
         <motion.div 
           variants={item}
-          className="lg:col-span-8 bg-white dark:bg-stone-900/40 p-8 md:p-16 relative overflow-hidden group shadow-2xl rounded-[40px] md:rounded-[80px] border border-stone-100 dark:border-white/5"
+          className="lg:col-span-8 bg-white dark:bg-stone-900/60 p-6 md:p-12 relative overflow-hidden group shadow-xl rounded-[32px] md:rounded-[48px] border border-stone-200/80 dark:border-white/5"
         >
           <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
-          <div className="absolute -right-20 -top-20 w-80 h-80 bg-brand-500/5 blur-[100px] rounded-full group-hover:bg-brand-500/10 transition-colors duration-500" />
+          <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-500/5 blur-[100px] rounded-full group-hover:bg-blue-500/10 transition-colors duration-500" />
           
-          <div className="relative z-10 space-y-8 md:space-y-16">
+          <div className="relative z-10 space-y-6 md:space-y-10">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div className="w-14 h-14 md:w-20 md:h-20 bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center rounded-[24px] md:rounded-[32px] shadow-sm group-hover:rotate-6 transition-transform duration-300">
-                  <BookOpen className="w-6 h-6 md:w-10 md:h-10 text-brand-600 dark:text-brand-400" />
+              <div className="flex items-center gap-4 md:gap-5">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center rounded-2xl shadow-sm text-blue-600 dark:text-sky-400">
+                  <BookOpen className="w-6 h-6 md:w-8 md:h-8" />
                 </div>
                 <div>
-                  <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.6em] text-stone-400 dark:text-brand-300/30">Liturgy of the Word</span>
-                  <p className="text-brand-600 dark:text-brand-400 font-serif italic text-lg md:text-2xl mt-1">Morning Devotion</p>
+                  <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">Daily Scripture</span>
+                  <p className="text-blue-900 dark:text-sky-300 font-bold text-base md:text-xl mt-0.5">Word of the Day</p>
                 </div>
               </div>
               
-              <div className="hidden md:flex flex-col items-end">
-                 <p className="text-[10px] font-black uppercase tracking-widest text-stone-300">{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
-                 <p className="text-[8px] font-bold text-brand-500/40 uppercase tracking-[0.4em]">Solemnity</p>
+              <div className="hidden sm:flex flex-col items-end">
+                 <p className="text-xs font-bold text-stone-600 dark:text-stone-300">{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                 <p className="text-[10px] font-medium text-blue-600 dark:text-sky-400 uppercase tracking-wide">Daily Reflection</p>
               </div>
             </div>
 
             {loading ? (
-              <div className="py-20 md:py-32 flex justify-center"><Loader2 className="w-10 h-10 animate-spin text-brand-200" /></div>
+              <div className="py-16 md:py-24 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
             ) : daily ? (
-              <div className="space-y-10 md:space-y-16">
+              <div className="space-y-6 md:space-y-8">
                 <div className="relative">
-                   <Quote className="absolute -top-12 -left-8 w-24 h-24 text-brand-500/5 -z-10 group-hover:scale-110 transition-transform duration-[2s]" />
-                   <p className="text-3xl md:text-6xl lg:text-7xl font-serif italic font-light text-stone-950 dark:text-white leading-[1] tracking-tight group-hover:-translate-x-1 transition-transform duration-500">
+                   <Quote className="absolute -top-6 -left-4 w-16 h-16 text-blue-500/10 -z-10" />
+                   <p className="text-2xl md:text-4xl lg:text-5xl font-serif italic text-stone-900 dark:text-stone-100 leading-snug tracking-tight">
                      "{daily.verse}"
                    </p>
                 </div>
 
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-10">
-                  <div className="flex items-center gap-6">
-                    <div className="h-[1px] w-12 md:w-24 bg-brand-500/20 rounded-full group-hover:w-32 transition-all duration-500" />
-                    <p className="text-xs md:text-xl font-black uppercase tracking-[0.5em] text-brand-500 italic drop-shadow-sm font-sans">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                  <div className="flex items-center gap-3">
+                    <div className="h-[2px] w-8 bg-blue-600 rounded-full" />
+                    <p className="text-sm md:text-lg font-bold text-blue-700 dark:text-sky-400 font-sans">
                       {daily.reference}
                     </p>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex gap-2.5">
                     <motion.button 
-                      whileHover={{ scale: 1.05, y: -5 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={shareWhatsApp}
-                      className="flex items-center gap-3 px-8 py-5 bg-[#25D366] text-white rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl shadow-[#25D366]/20 transition-all hover:bg-[#128C7E]"
+                      className="flex items-center gap-2 px-5 py-2.5 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
                     >
-                      WhatsApp <MessageCircle className="w-5 h-5" />
+                      <span>Share WhatsApp</span> <MessageCircle className="w-4 h-4" />
                     </motion.button>
                     <motion.button 
-                      whileHover={{ scale: 1.05, y: -5 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={shareEmail}
-                      className="flex items-center gap-3 px-8 py-5 bg-blue-600 text-white rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all hover:bg-blue-700"
+                      className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
                     >
-                      Email <Share2 className="w-5 h-5" />
+                      <span>Email</span> <Share2 className="w-4 h-4" />
                     </motion.button>
                   </div>
                 </div>
@@ -371,28 +436,27 @@ ZUCA Community`);
           </div>
         </motion.div>
 
-        {/* Saint Insight & Atmosphere Column */}
-        <div className="lg:col-span-4 flex flex-col gap-8 md:gap-12">
+        {/* Saint Insight & Community Column */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
           <motion.div 
             variants={item}
-            className="flex-1 p-8 md:p-12 bg-stone-50 dark:bg-stone-950/80 border border-stone-100 dark:border-white/5 rounded-[40px] md:rounded-[64px] relative overflow-hidden group shadow-xl"
+            className="flex-1 p-6 md:p-8 bg-white dark:bg-stone-900/60 border border-stone-200/80 dark:border-white/5 rounded-[32px] md:rounded-[40px] relative overflow-hidden group shadow-xl flex flex-col justify-between"
           >
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-brand-500/20 to-transparent" />
-            <div className="relative z-10 flex flex-col h-full space-y-6 md:space-y-10">
-              <div className="flex items-center gap-6">
-                <div className="w-12 h-12 md:w-16 md:h-16 rounded-[20px] md:rounded-[28px] bg-white dark:bg-stone-900 flex items-center justify-center shadow-md dark:shadow-none border border-stone-100 dark:border-white/5">
-                  <UserIcon className="w-6 h-6 md:w-8 md:h-8 text-brand-500" />
+            <div className="relative z-10 flex flex-col h-full space-y-4 md:space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900/50">
+                  <UserIcon className="w-6 h-6" />
                 </div>
                 <div>
-                   <h2 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.5em] text-stone-400 dark:text-brand-300/30">Holy Patron</h2>
-                   <p className="text-brand-600 dark:text-brand-400 text-xs md:text-sm font-bold tracking-widest uppercase mt-0.5">Daily Guide</p>
+                   <h2 className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Patron Saint</h2>
+                   <p className="text-stone-900 dark:text-white text-sm font-bold mt-0.5">Saint of the Day</p>
                 </div>
               </div>
 
               {daily && (
-                <div className="space-y-4 md:space-y-6 flex-1">
-                  <h3 className="text-2xl md:text-4xl font-black text-stone-900 dark:text-white leading-tight tracking-tight uppercase">{daily.saintName}</h3>
-                  <p className="text-stone-500 dark:text-stone-400 text-sm md:text-xl leading-relaxed opacity-80 line-clamp-6 md:line-clamp-8 serif-display italic font-light">
+                <div className="space-y-2 flex-1">
+                  <h3 className="text-xl md:text-2xl font-bold text-stone-900 dark:text-white leading-tight">{daily.saintName}</h3>
+                  <p className="text-stone-600 dark:text-stone-300 text-xs md:text-sm leading-relaxed line-clamp-4">
                     {daily.saintInfo}
                   </p>
                 </div>
@@ -400,50 +464,47 @@ ZUCA Community`);
               
               <button 
                 onClick={() => onTabChange('trivia')}
-                className="w-full py-5 md:py-7 bg-brand-950 text-white font-black tracking-[0.4em] text-[10px] md:text-xs rounded-[24px] md:rounded-[32px] hover:bg-brand-900 transition-all shadow-2xl shadow-brand-950/20 flex items-center justify-center gap-4 group"
+                className="w-full py-3.5 bg-stone-900 dark:bg-stone-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-stone-950 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
-                ENTER DEVOTION <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                <span>Play Faith Trivia</span> <ArrowUpRight className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
 
           <motion.div 
             variants={item}
-            className="p-8 md:p-10 bg-gradient-to-br from-emerald-950/40 to-stone-900/40 border border-emerald-500/10 dark:border-white/5 rounded-[40px] md:rounded-[64px] overflow-hidden group relative shadow-2xl flex flex-col justify-between min-h-[220px] text-left"
+            className="p-6 bg-gradient-to-br from-emerald-900/30 to-stone-900/50 border border-emerald-500/20 rounded-[32px] md:rounded-[40px] overflow-hidden group relative shadow-xl flex flex-col justify-between text-left"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent group-hover:scale-125 transition-transform duration-[3s]" />
-            <div className="relative z-10 space-y-3">
-              <span className="text-[9px] md:text-[10.5px] font-black uppercase tracking-[0.4em] text-emerald-400 block font-sans">COMMUNITY PORTAL</span>
-              <h3 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase font-sans">ZUCA WHATSAPP</h3>
-              <p className="text-stone-300 text-[11px] md:text-xs leading-relaxed font-semibold">
-                Receive scriptures, announcements, and connect with other Catholic Action members instantly.
+            <div className="relative z-10 space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">Stay Connected</span>
+              <h3 className="text-lg md:text-xl font-bold text-white">ZUCA WhatsApp Channel</h3>
+              <p className="text-stone-300 text-xs leading-relaxed">
+                Get daily Mass readings, event announcements, and group updates directly on WhatsApp.
               </p>
             </div>
             
             <motion.button 
-              whileHover={{ scale: 1.02, y: -2 }}
+              whileHover={{ scale: 1.02, y: -1 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => window.open(whatsAppGroupLink, '_blank')}
-              className="relative z-10 mt-6 w-full py-4.5 bg-[#25D366] text-white font-black tracking-[0.3em] text-[10px] uppercase rounded-[20px] hover:bg-[#128C7E] transition-all shadow-xl shadow-[#25D366]/20 flex items-center justify-center gap-2.5 cursor-pointer"
+              className="relative z-10 mt-4 w-full py-3 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
-              <MessageCircle className="w-5 h-5 text-white animate-pulse" /> JOIN OUR CHAT
+              <MessageCircle className="w-4 h-4 text-white" /> Join WhatsApp Group
             </motion.button>
           </motion.div>
         </div>
       </div>
 
-      {/* Quick Actions - Floating Style */}
-      <div className="relative pt-6">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-stone-200 dark:via-white/10 to-transparent" />
-        
+      {/* Quick Actions */}
+      <div className="relative pt-4">
         <motion.div 
           variants={item}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8"
+          className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-6"
         >
-          <CompactAction onClick={() => onTabChange('chat')} title="Chat" icon={<HelpCircle className="w-5 h-5 md:w-6 md:h-6" />} color="bg-indigo-500/10 text-indigo-500" />
-          <CompactAction onClick={() => onTabChange('materials')} title="Library" icon={<Library className="w-5 h-5 md:w-6 md:h-6" />} color="bg-brand-500/10 text-brand-500" />
-          <CompactAction onClick={() => onTabChange('gallery')} title="Activities" icon={<Trophy className="w-5 h-5 md:w-6 md:h-6" />} color="bg-amber-500/10 text-amber-500" />
-          <CompactAction onClick={() => onTabChange('petitions')} title="Altar" icon={<Heart className="w-5 h-5 md:w-6 md:h-6" />} color="bg-rose-500/10 text-rose-500" />
+          <CompactAction onClick={() => onTabChange('join')} title="Enrollment" icon={<UserPlus className="w-5 h-5 md:w-6 md:h-6" />} color="bg-emerald-500/10 text-emerald-500" />
+          <CompactAction onClick={() => onTabChange('materials')} title="Songbook & Prayers" icon={<BookOpen className="w-5 h-5 md:w-6 md:h-6" />} color="bg-blue-500/10 text-blue-500" />
+          <CompactAction onClick={() => onTabChange('gallery')} title="Photo Gallery" icon={<ImageIcon className="w-5 h-5 md:w-6 md:h-6" />} color="bg-amber-500/10 text-amber-500" />
+          <CompactAction onClick={() => onTabChange('petitions')} title="Prayer Requests" icon={<Heart className="w-5 h-5 md:w-6 md:h-6" />} color="bg-rose-500/10 text-rose-500" />
         </motion.div>
       </div>
 

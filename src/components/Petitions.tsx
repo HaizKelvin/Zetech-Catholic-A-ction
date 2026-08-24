@@ -78,164 +78,167 @@ export default function Petitions() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100">
-      {/* Immersive Header - Standardized across all pages */}
+    <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 text-stone-900 dark:text-stone-100 px-2 sm:px-6">
+      {/* Header */}
       <motion.header 
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative py-8 md:py-24 px-6 md:px-12 rounded-[24px] md:rounded-[48px] overflow-hidden bg-brand-950 text-white shadow-3xl shadow-brand-900/10 group mb-6 md:mb-12 mx-2 md:mx-0"
+        className="relative py-8 md:py-20 px-6 md:px-14 rounded-[32px] md:rounded-[48px] overflow-hidden bg-stone-950 text-white shadow-2xl border border-white/10 group mb-6 md:mb-10"
       >
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1544256718-3bcf237f3974?q=80&w=2671&auto=format&fit=crop" 
-            className="w-full h-full object-cover opacity-20 transform group-hover:scale-110 transition-transform duration-[3s]" 
-            alt="Sacred Altar"
+            src="https://images.unsplash.com/photo-1544427920-c49ccfb85579?q=80&w=1600&auto=format&fit=crop" 
+            className="w-full h-full object-cover opacity-25 scale-105 group-hover:scale-100 transition-transform duration-[10s]" 
+            alt="Candlelight and Holy Cross"
+            referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-950 via-brand-950/40 to-transparent" />
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[120px] rounded-full -mr-48 -mt-48" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-stone-950 via-stone-950/85 to-transparent" />
         </div>
 
-        <div className="relative z-10 flex flex-col gap-6 md:gap-8 max-w-full">
-          <div className="space-y-4 md:space-y-6">
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-dark border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-brand-300 shadow-2xl backdrop-blur-xl"
-            >
-              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,1)]" />
-              Sacred Altar
-            </motion.div>
-            
-            <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-tight text-white serif-display">
-              Prayer <br />
-              <span className="serif-display italic font-light text-rose-400 lowercase">Petitions</span>
-            </h1>
-            
-            <p className="text-stone-400 text-sm md:text-xl font-light max-w-xl leading-relaxed italic serif-display opacity-80">
-              "The prayer of the humble pierces the clouds." Entrust your intentions to the sanctuary.
-            </p>
-          </div>
+        <div className="relative z-10 flex flex-col gap-4 max-w-2xl text-left">
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-950/80 border border-rose-400/30 text-[10px] md:text-xs font-bold uppercase tracking-wider text-rose-300 shadow-md backdrop-blur-md"
+          >
+            <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
+            Prayer & Intercession
+          </motion.div>
+          
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white font-sans leading-tight">
+            Prayer Requests & <br />
+            <span className="text-rose-400 font-serif italic text-2xl sm:text-4xl md:text-5xl font-normal">Petitions</span>
+          </h1>
+          
+          <p className="text-stone-300 text-sm md:text-base leading-relaxed">
+            "Ask, and it will be given to you; seek, and you will find; knock, and it will be opened to you." Share your intentions so our community can pray for you during Mass and Rosary.
+          </p>
         </div>
       </motion.header>
 
-      <div className="px-4 md:px-0">
+      <div className="px-2 md:px-0">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
+          initial={{ opacity: 0, scale: 0.99 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          className="glass rounded-[32px] md:rounded-[48px] p-6 md:p-16 lg:p-24 relative group overflow-hidden border border-brand-500/20 shadow-3xl shadow-brand-900/10"
+          className="bg-white dark:bg-stone-900/60 rounded-[32px] md:rounded-[40px] p-6 md:p-12 relative group overflow-hidden border border-stone-200/80 dark:border-white/5 shadow-xl"
         >
-          <div className="absolute inset-0 divine-pattern opacity-[0.03] pointer-events-none" />
-
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full animate-pulse" />
-          <div className="relative z-10 space-y-8 md:space-y-16">
-            <div className="text-center md:text-left space-y-4 md:space-y-6">
-              <h2 className="text-2xl md:text-5xl font-black tracking-tight text-stone-900 dark:text-white uppercase">Submit <span className="text-brand-600 dark:text-brand-400">Intentions</span></h2>
-              <p className="text-stone-500 text-sm md:text-lg font-serif italic max-w-2xl">Your whispers in the sanctuary are heard in high places.</p>
+          <div className="relative z-10 space-y-6 md:space-y-8">
+            <div className="text-left space-y-2">
+              <h2 className="text-xl md:text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">Submit Your Prayer Request</h2>
+              <p className="text-stone-600 dark:text-stone-300 text-sm">You can submit your petition publicly for community prayers or keep it private for the chaplaincy team.</p>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-6 md:space-y-10">
-            <div className="relative group/input">
-              <div className="absolute inset-x-0 -bottom-1 h-[2px] bg-brand-500/0 group-focus-within/input:bg-brand-500/40 transition-all duration-700" />
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Entrust your deepest petitions to the sanctuary..."
-                className="w-full bg-white/40 dark:bg-white/5 rounded-3xl md:rounded-[40px] p-6 md:p-12 min-h-[180px] md:min-h-[250px] text-base md:text-2xl font-serif italic resize-none border border-white/20 outline-none focus:ring-4 focus:ring-brand-500/10 placeholder:text-stone-300 dark:placeholder:text-stone-700 transition-all shadow-inner"
-                required
-              />
-              <Heart className="absolute bottom-6 right-6 md:bottom-10 md:right-10 w-10 h-10 md:w-16 md:h-16 text-brand-900/5 group-focus-within/input:text-brand-500/10 transition-all duration-700 animate-pulse-gentle" />
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10">
-              <div className="flex flex-col sm:flex-row items-center gap-3 p-2 md:p-3 glass rounded-[28px] md:rounded-[32px] shadow-2xl border border-white/20 w-full md:w-auto">
-                <button
-                  type="button"
-                  onClick={() => setIsPublic(true)}
-                  className={`w-full sm:w-auto flex items-center justify-center gap-4 px-6 md:px-8 py-4 md:py-5 rounded-[20px] md:rounded-[24px] transition-all font-black text-[9px] md:text-[11px] uppercase tracking-[0.3em] ${isPublic ? 'bg-brand-900 text-white shadow-3xl shadow-brand-900/40 scale-105' : 'text-stone-500 dark:text-stone-400 hover:text-brand-600'}`}
-                >
-                  <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  Divine Publication
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsPublic(false)}
-                  className={`w-full sm:w-auto flex items-center justify-center gap-4 px-6 md:px-8 py-4 md:py-5 rounded-[20px] md:rounded-[24px] transition-all font-black text-[9px] md:text-[11px] uppercase tracking-[0.3em] ${!isPublic ? 'bg-brand-900 text-white shadow-3xl shadow-brand-900/40 scale-105' : 'text-stone-500 dark:text-stone-400 hover:text-brand-600'}`}
-                >
-                  <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  Sacred Silence
-                </button>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="relative">
+                <textarea
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Type your prayer request here (e.g., healing for a loved one, peace during upcoming exams, thanksgiving for blessings)..."
+                  rows={4}
+                  className="w-full bg-stone-50 dark:bg-stone-800/60 border border-stone-300 dark:border-stone-700 focus:border-blue-500 dark:focus:border-sky-400 rounded-2xl p-4 md:p-5 text-stone-900 dark:text-white text-sm md:text-base placeholder-stone-400 focus:outline-none transition-all shadow-inner resize-none"
+                  required
+                />
               </div>
 
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                disabled={loading || !text.trim()}
-                className="w-full md:w-auto bg-brand-900 text-white px-10 md:px-16 py-5 md:py-7 rounded-[28px] md:rounded-[32px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 md:gap-5 hover:bg-brand-800 transition-all shadow-3xl shadow-brand-900/40 disabled:opacity-50 text-[10px] md:text-[11px] active:scale-95 group/btn"
-              >
-                {loading ? <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" /> : <Send className="w-5 h-5 md:w-6 md:h-6 group-hover/btn:translate-x-2 transition-transform" />}
-                Deposit Petition
-              </motion.button>
-            </div>
-          </form>
-        </div>
-      </motion.div>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setIsPublic(true)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isPublic 
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200'
+                    }`}
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>Public Community Prayer</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsPublic(false)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      !isPublic 
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200'
+                    }`}
+                  >
+                    <Lock className="w-4 h-4" />
+                    <span>Private to Chaplain</span>
+                  </button>
+                </div>
 
-      <div className="space-y-12 md:space-y-16 px-2 md:px-0">
-        <div className="flex items-center gap-6 md:gap-10">
-           <div className="h-[1px] md:h-[2px] flex-1 bg-gradient-to-r from-transparent via-stone-200 dark:via-white/10 to-transparent" />
-           <h3 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.6em] text-stone-500 dark:text-stone-600 shrink-0 italic serif-display">The Eternal Litany</h3>
-           <div className="h-[1px] md:h-[2px] flex-1 bg-gradient-to-r from-transparent via-stone-200 dark:via-white/10 to-transparent" />
+                <button
+                  type="submit"
+                  disabled={loading || !text.trim()}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-rose-600/20 cursor-pointer"
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <span>Send Prayer Request</span>
+                      <Send className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="space-y-8 md:space-y-10 px-2 md:px-0 text-left">
+        <div className="flex items-center gap-4">
+           <div className="h-[1px] flex-1 bg-stone-200 dark:bg-stone-800" />
+           <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">Community Prayer Intentions</h3>
+           <div className="h-[1px] flex-1 bg-stone-200 dark:bg-stone-800" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <AnimatePresence mode="popLayout">
             {petitions.map((p, idx) => (
               <motion.div
                 layout
-                initial={{ opacity: 0, y: 50, filter: 'blur(10px)' }}
-                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx % 2 * 0.1, duration: 0.8 }}
+                transition={{ delay: (idx % 4) * 0.05 }}
                 key={p.id}
-                className="glass rounded-[32px] md:rounded-[48px] p-8 md:p-12 lg:p-16 group relative border-white/20 shadow-xl hover:shadow-3xl hover:shadow-brand-900/10 transition-all duration-700 bg-white/20 dark:bg-black/10 backdrop-blur-2xl"
+                className="bg-white dark:bg-stone-900/60 rounded-3xl p-6 md:p-8 border border-stone-200/80 dark:border-white/5 shadow-md flex flex-col justify-between"
               >
-                <div className="absolute inset-0 divine-pattern opacity-[0.02] pointer-events-none" />
-                <div className="flex justify-between items-start mb-8 md:mb-10">
-                  <div className="flex items-center gap-4 md:gap-6">
-                    <div className="w-10 h-10 md:w-14 md:h-14 bg-brand-900/10 rounded-[12px] md:rounded-[20px] flex items-center justify-center shadow-inner group-hover:bg-brand-900 group-hover:scale-110 transition-all duration-700">
-                      <Heart className="w-5 h-5 md:w-7 md:h-7 text-brand-900 group-hover:text-white group-hover:animate-pulse" />
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center">
+                        <Heart className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-stone-900 dark:text-white text-base">
+                          {p.isPublic ? p.userName : 'Anonymous Student'}
+                        </h4>
+                        <p className="text-[11px] text-stone-400 font-medium">
+                          {p.timestamp?.toDate()?.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) || 'Recent'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="space-y-0.5 md:space-y-1">
-                      <h4 className="font-bold text-stone-900 dark:text-white italic serif-display text-xl md:text-2xl tracking-tighter truncate max-w-[150px] md:max-w-full">
-                        {p.isPublic ? p.userName : 'Silent Guardian'}
-                      </h4>
-                      <p className="text-[8px] md:text-[10px] text-brand-600/60 dark:text-brand-500/60 font-black uppercase tracking-[0.2em]">
-                        {p.timestamp?.toDate()?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) || 'Recent'}
-                      </p>
-                    </div>
+                    {(auth.currentUser?.uid === p.userId || auth.currentUser?.email === 'wachirakevin65@gmail.com') && (
+                      <button 
+                        onClick={() => handleDelete(p.id)} 
+                        className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all rounded-xl cursor-pointer"
+                        title="Delete petition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
-                  {(auth.currentUser?.uid === p.userId || auth.currentUser?.email === 'wachirakevin65@gmail.com') && (
-                    <motion.button 
-                      whileHover={{ scale: 1.2, rotate: 12 }}
-                      onClick={() => handleDelete(p.id)} 
-                      className="p-3 md:p-4 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all rounded-[16px] md:rounded-[20px] border border-transparent hover:border-red-500/20"
-                    >
-                      <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
-                    </motion.button>
-                  )}
-                </div>
-                <div className="relative pt-4 md:pt-6">
-                  <div className="absolute top-0 left-0 w-8 md:w-12 h-0.5 bg-brand-500/30 group-hover:w-full transition-all duration-1000" />
-                  <p className="text-stone-900 dark:text-stone-100 text-xl md:text-3xl leading-relaxed font-serif italic group-hover:tracking-tight transition-all duration-700">
+                  <p className="text-stone-700 dark:text-stone-200 text-sm md:text-base leading-relaxed italic">
                     "{p.text}"
                   </p>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
-          </div>
         </div>
       </div>
     </div>
