@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, addDoc, query, onSnapshot, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { OperationType, UserProfile } from '../types';
@@ -12,25 +12,19 @@ import {
   Mail, 
   User, 
   Download, 
-  ShieldCheck, 
   Church, 
   AlertCircle, 
   Loader2, 
-  Sparkles, 
   Users,
   Search,
-  Check,
-  Eye,
   Trash2,
   X,
   Camera,
-  Palette,
-  FileText,
   ChevronDown,
   ChevronUp,
-  RefreshCw
+  Award,
+  Image as ImageIcon
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 export interface RegisteredMember {
@@ -45,84 +39,313 @@ export interface RegisteredMember {
   joinDate?: string;
 }
 
-export const CARD_THEMES: Record<string, {
-  name: string;
-  colorHex: string;
-  background: string;
-  borderStyle: string;
-  accentText: string;
-  badgeStyle: string;
-  sealColor: string;
-  textColor: string;
-  labelColor: string;
-}> = {
-  classic: {
-    name: 'Sanctuary Navy',
-    colorHex: '#003366',
-    background: 'linear-gradient(135deg, #021222 0%, #003366 100%)',
-    borderStyle: 'border-2 border-amber-500',
-    accentText: 'text-amber-500',
-    badgeStyle: 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-bold',
-    sealColor: 'text-amber-500/5',
-    textColor: 'text-white',
-    labelColor: 'text-amber-400'
-  },
-  emerald: {
-    name: 'Divine Emerald',
-    colorHex: '#0e3d28',
-    background: 'linear-gradient(135deg, #04140a 0%, #0e3d28 100%)',
-    borderStyle: 'border-2 border-emerald-400',
-    accentText: 'text-emerald-400',
-    badgeStyle: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/30 font-bold',
-    sealColor: 'text-emerald-400/5',
-    textColor: 'text-white',
-    labelColor: 'text-emerald-400'
-  },
-  crimson: {
-    name: 'Vatican Crimson',
-    colorHex: '#4a000c',
-    background: 'linear-gradient(135deg, #180003 0%, #4a000c 100%)',
-    borderStyle: 'border-2 border-yellow-500',
-    accentText: 'text-yellow-500',
-    badgeStyle: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30 font-bold',
-    sealColor: 'text-yellow-500/5',
-    textColor: 'text-white',
-    labelColor: 'text-yellow-400'
-  },
-  violet: {
-    name: 'Royal Violet',
-    colorHex: '#250247',
-    background: 'linear-gradient(135deg, #0d011c 0%, #250247 100%)',
-    borderStyle: 'border-2 border-amber-400',
-    accentText: 'text-amber-400',
-    badgeStyle: 'bg-amber-400/15 text-amber-300 border-amber-400/30 font-bold',
-    sealColor: 'text-amber-400/5',
-    textColor: 'text-white',
-    labelColor: 'text-amber-300'
-  },
-  obsidian: {
-    name: 'Midnight Steel',
-    colorHex: '#1e2430',
-    background: 'linear-gradient(135deg, #080a0e 0%, #1e2430 100%)',
-    borderStyle: 'border-2 border-stone-400',
-    accentText: 'text-stone-300',
-    badgeStyle: 'bg-white/10 text-stone-200 border-white/20 font-bold',
-    sealColor: 'text-white/5',
-    textColor: 'text-white',
-    labelColor: 'text-stone-300'
-  },
-  whitegold: {
-    name: 'Angelic Ivory',
-    colorHex: '#f0ece1',
-    background: 'linear-gradient(135deg, #fbfaf5 0%, #ece9e0 100%)',
-    borderStyle: 'border-2 border-stone-800',
-    accentText: 'text-stone-800',
-    badgeStyle: 'bg-stone-800/10 text-stone-800 border-stone-800/30 font-bold',
-    sealColor: 'text-stone-800/5',
-    textColor: 'text-stone-900',
-    labelColor: 'text-stone-800 font-bold'
-  }
+// Single official ZUCA Credential Theme definition
+export const OFFICIAL_CARD_STYLE = {
+  name: 'Official Sanctuary Navy',
+  colorHex: '#002244',
+  background: 'linear-gradient(135deg, #011222 0%, #002244 50%, #003366 100%)',
+  borderStyle: 'border-2 border-amber-500',
+  accentText: 'text-amber-400',
+  badgeStyle: 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-bold',
+  sealColor: 'text-amber-500/5',
+  textColor: 'text-white',
+  labelColor: 'text-amber-400'
 };
+
+/**
+ * Pixel-perfect standalone Canvas renderer for Official ZUCA Membership Card.
+ * Renders ONLY the isolated ID card in 300 DPI ID-1 standard dimensions (1028 x 648 px).
+ */
+async function generateOfficialCardCanvas(member: {
+  fullName: string;
+  admissionNumber: string;
+  phoneNumber: string;
+  schoolEmail?: string;
+  photoUrl?: string;
+  id?: string;
+}): Promise<HTMLCanvasElement> {
+  const canvas = document.createElement('canvas');
+  const width = 1028;
+  const height = 648;
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error("Could not initialize 2D canvas context");
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const radius = 32;
+
+  // 1. Card Rounded Boundary Clip
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(radius, 0);
+  ctx.lineTo(width - radius, 0);
+  ctx.quadraticCurveTo(width, 0, width, radius);
+  ctx.lineTo(width, height - radius);
+  ctx.quadraticCurveTo(width, height, width - radius, height);
+  ctx.lineTo(radius, height);
+  ctx.quadraticCurveTo(0, height, 0, height - radius);
+  ctx.lineTo(0, radius);
+  ctx.quadraticCurveTo(0, 0, radius, 0);
+  ctx.closePath();
+  ctx.clip();
+
+  // 2. Official Sanctuary Navy Gradient
+  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+  bgGrad.addColorStop(0, '#011222');
+  bgGrad.addColorStop(0.45, '#002244');
+  bgGrad.addColorStop(1, '#003366');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  // Subtle luminous aura
+  const radialGlow = ctx.createRadialGradient(width * 0.35, height * 0.25, 10, width * 0.35, height * 0.25, 420);
+  radialGlow.addColorStop(0, 'rgba(59, 130, 246, 0.14)');
+  radialGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = radialGlow;
+  ctx.fillRect(0, 0, width, height);
+
+  // 3. Watermark Holy Cross (✝) in soft golden opacity
+  ctx.save();
+  ctx.fillStyle = 'rgba(251, 191, 36, 0.05)';
+  ctx.font = '330px "Times New Roman", Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('✝', width - 170, height / 2 + 25);
+  ctx.restore();
+
+  // 4. Gold Outer and Inner Dual Borders
+  ctx.strokeStyle = '#d97706';
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  ctx.save();
+  ctx.beginPath();
+  const innerMargin = 12;
+  const innerRadius = radius - 4;
+  ctx.moveTo(innerMargin + innerRadius, innerMargin);
+  ctx.lineTo(width - innerMargin - innerRadius, innerMargin);
+  ctx.quadraticCurveTo(width - innerMargin, innerMargin, width - innerMargin, innerMargin + innerRadius);
+  ctx.lineTo(width - innerMargin, height - innerMargin - innerRadius);
+  ctx.quadraticCurveTo(width - innerMargin, height - innerMargin, width - innerMargin - innerRadius, height - innerMargin);
+  ctx.lineTo(innerMargin + innerRadius, height - innerMargin);
+  ctx.quadraticCurveTo(innerMargin, height - innerMargin, innerMargin, height - innerMargin - innerRadius);
+  ctx.lineTo(innerMargin, innerMargin + innerRadius);
+  ctx.quadraticCurveTo(innerMargin, innerMargin, innerMargin + innerRadius, innerMargin);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  // 5. Header Section
+  const padX = 52;
+  const topY = 46;
+
+  // Title: ZETECH UNIVERSITY
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 30px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('ZETECH UNIVERSITY', padX, topY);
+
+  // Subtitle: Catholic Action Association (ZUCA)
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 19px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+  ctx.fillText('CATHOLIC ACTION ASSOCIATION (ZUCA)', padX, topY + 36);
+
+  // Badge: ACADEMIC YEAR 2026/2027 (Top Right)
+  const badgeWidth = 220;
+  const badgeHeight = 36;
+  const badgeX = width - padX - badgeWidth;
+  const badgeY = topY + 6;
+  
+  ctx.save();
+  ctx.fillStyle = 'rgba(245, 158, 11, 0.16)';
+  ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 8);
+  } else {
+    ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 15px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('YEAR 2026/2027', badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
+  ctx.restore();
+
+  // Header Divider Line
+  const divider1Y = topY + 76;
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(padX, divider1Y);
+  ctx.lineTo(width - padX, divider1Y);
+  ctx.stroke();
+
+  // 6. Member Photo Frame (Right side)
+  const photoSize = 175;
+  const photoX = width - padX - photoSize;
+  const photoY = divider1Y + 30;
+
+  ctx.save();
+  ctx.beginPath();
+  const photoRadius = 18;
+  if (ctx.roundRect) {
+    ctx.roundRect(photoX, photoY, photoSize, photoSize, photoRadius);
+  } else {
+    ctx.rect(photoX, photoY, photoSize, photoSize);
+  }
+  ctx.fillStyle = '#021629';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.65)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.clip();
+
+  let photoLoaded = false;
+  if (member.photoUrl) {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise<void>((resolve) => {
+        img.onload = () => {
+          try {
+            const aspect = img.width / img.height;
+            let drawW = photoSize;
+            let drawH = photoSize;
+            let offsetX = photoX;
+            let offsetY = photoY;
+
+            if (aspect > 1) {
+              drawW = photoSize * aspect;
+              offsetX = photoX - (drawW - photoSize) / 2;
+            } else {
+              drawH = photoSize / aspect;
+              offsetY = photoY - (drawH - photoSize) / 2;
+            }
+            ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+            photoLoaded = true;
+          } catch {
+            // fallback
+          }
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = member.photoUrl!;
+      });
+    } catch {
+      // ignore and use placeholder
+    }
+  }
+
+  if (!photoLoaded) {
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = '64px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✝', photoX + photoSize / 2, photoY + photoSize / 2 - 12);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText('MEMBER', photoX + photoSize / 2, photoY + photoSize / 2 + 38);
+  }
+  ctx.restore();
+
+  // 7. Member Information Details (Left Column)
+  const contentStartY = divider1Y + 32;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+
+  // Field 1: STUDENT NAME
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillText('STUDENT NAME', padX, contentStartY);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 30px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+  const displayName = (member.fullName || 'STUDENT FULL NAME').toUpperCase();
+  let truncatedName = displayName;
+  const maxNameWidth = photoX - padX - 30;
+  if (ctx.measureText(truncatedName).width > maxNameWidth) {
+    while (truncatedName.length > 3 && ctx.measureText(truncatedName + '...').width > maxNameWidth) {
+      truncatedName = truncatedName.slice(0, -1);
+    }
+    truncatedName += '...';
+  }
+  ctx.fillText(truncatedName, padX, contentStartY + 24);
+
+  // Field 2: ADMISSION NUMBER
+  const admY = contentStartY + 76;
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillText('ADMISSION NUMBER', padX, admY);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px monospace';
+  ctx.fillText((member.admissionNumber || 'BBIT-01-XXXX/2026').toUpperCase(), padX, admY + 22);
+
+  // Field 3: CONTACT & EMAIL
+  const contactY = admY + 66;
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText('CONTACT & EMAIL', padX, contactY);
+
+  ctx.fillStyle = 'rgba(226, 232, 240, 0.9)';
+  ctx.font = 'bold 18px monospace';
+  const contactText = `${member.phoneNumber || '07XXXXXXXX'} • ${member.schoolEmail || 'student@zetech.ac.ke'}`;
+  let truncatedContact = contactText;
+  if (ctx.measureText(truncatedContact).width > maxNameWidth) {
+    while (truncatedContact.length > 3 && ctx.measureText(truncatedContact + '...').width > maxNameWidth) {
+      truncatedContact = truncatedContact.slice(0, -1);
+    }
+    truncatedContact += '...';
+  }
+  ctx.fillText(truncatedContact, padX, contactY + 20);
+
+  // 8. Footer Section
+  const footerDividerY = height - 88;
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(padX, footerDividerY);
+  ctx.lineTo(width - padX, footerDividerY);
+  ctx.stroke();
+
+  const footerY = footerDividerY + 24;
+  
+  // Footer Left: ID Serial
+  const cleanId = member.admissionNumber ? member.admissionNumber.replace(/[^A-Z0-9]/g, '').slice(-8) : 'ZUCA2026';
+  ctx.fillStyle = 'rgba(203, 213, 225, 0.8)';
+  ctx.font = 'bold 16px monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`ID: #ZUCA-${cleanId}`, padX, footerY);
+
+  // Footer Right: OFFICIAL REGISTERED MEMBER
+  ctx.textAlign = 'right';
+  const rightX = width - padX;
+  ctx.fillStyle = '#34d399';
+  ctx.beginPath();
+  ctx.arc(rightX - 250, footerY, 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#34d399';
+  ctx.font = 'bold 16px monospace';
+  ctx.fillText('OFFICIAL REGISTERED MEMBER', rightX, footerY);
+
+  ctx.restore();
+  return canvas;
+}
 
 interface JoinUsProps {
   currentUser?: UserProfile | null;
@@ -134,8 +357,7 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
     admissionNumber: currentUser?.admissionNumber || '',
     phoneNumber: currentUser?.contactNumber || '',
     schoolEmail: currentUser?.email?.includes('@zuca.zetech.ac.ke') ? '' : (currentUser?.email || ''),
-    photoUrl: currentUser?.photoURL || '',
-    cardTheme: 'classic'
+    photoUrl: currentUser?.photoURL || ''
   });
 
   // Sync with currentUser when loaded or changed
@@ -153,11 +375,10 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
   }, [currentUser]);
 
   const [loading, setLoading] = useState(false);
-  const [lastRegistered, setLastRegistered] = useState<RegisteredMember | null>(null);
+  const [downloadingFormat, setDownloadingFormat] = useState<'pdf' | 'png' | null>(null);
   const [registrations, setRegistrations] = useState<RegisteredMember[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
-  const [exportingMember, setExportingMember] = useState<RegisteredMember | null>(null);
   const [showDirectory, setShowDirectory] = useState(false);
 
   // Real-time listener for registrations
@@ -185,13 +406,11 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
           phoneNumber: data.phoneNumber || '',
           schoolEmail: data.schoolEmail || '',
           photoUrl: data.photoUrl || '',
-          cardTheme: data.cardTheme || 'classic',
           createdAt: rawDate,
           joinDate: displayDate
         } as RegisteredMember;
       });
 
-      // Sort client-side descending by creation date
       list.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       setRegistrations(list);
     }, (error) => {
@@ -204,7 +423,6 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
   const isNameValid = formData.fullName.trim().length >= 3;
   const isAdmissionValid = formData.admissionNumber.trim().length >= 3;
   const isPhoneValid = formData.phoneNumber.trim().length >= 6;
-  const isEmailValid = !formData.schoolEmail || (formData.schoolEmail.includes('@') && formData.schoolEmail.includes('.'));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,26 +442,12 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
         phoneNumber: formData.phoneNumber.trim(),
         schoolEmail: formData.schoolEmail.trim() || `${formData.admissionNumber.trim().toLowerCase().replace(/[^a-z0-9]/g, '')}@student.zetech.ac.ke`,
         photoUrl: formData.photoUrl || '',
-        cardTheme: formData.cardTheme || 'classic',
         createdAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db, 'registrations'), newRecord);
+      await addDoc(collection(db, 'registrations'), newRecord);
 
-      const savedMember: RegisteredMember = {
-        id: docRef.id,
-        fullName: newRecord.fullName,
-        admissionNumber: newRecord.admissionNumber,
-        phoneNumber: newRecord.phoneNumber,
-        schoolEmail: newRecord.schoolEmail,
-        photoUrl: newRecord.photoUrl,
-        cardTheme: newRecord.cardTheme,
-        createdAt: new Date(),
-        joinDate: 'Just Now'
-      };
-
-      setLastRegistered(savedMember);
-      setNotification({ type: 'success', message: 'Enrollment successful! Card is ready.' });
+      setNotification({ type: 'success', message: 'Enrollment successful! Official card generated below.' });
       setTimeout(() => setNotification(null), 3500);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'registrations');
@@ -254,72 +458,62 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
     }
   };
 
-  const triggerExport = async (member: { fullName: string; admissionNumber: string; phoneNumber: string; schoolEmail: string; photoUrl?: string; cardTheme?: string; id?: string }, format: 'pdf' | 'png' = 'pdf') => {
+  /**
+   * Downloads ONLY the isolated ID Card (never the whole page).
+   */
+  const triggerExport = async (member: { 
+    fullName: string; 
+    admissionNumber: string; 
+    phoneNumber: string; 
+    schoolEmail?: string; 
+    photoUrl?: string; 
+    id?: string 
+  }, format: 'pdf' | 'png' = 'pdf') => {
     try {
-      setNotification({ type: 'info', message: `Generating printable ${format.toUpperCase()} card...` });
-      
-      const pseudoMember: RegisteredMember = {
-        id: member.id || 'MEM-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-        fullName: member.fullName,
-        admissionNumber: member.admissionNumber,
-        phoneNumber: member.phoneNumber,
-        schoolEmail: member.schoolEmail,
-        photoUrl: member.photoUrl,
-        cardTheme: member.cardTheme || 'classic',
-        createdAt: new Date()
-      };
+      setDownloadingFormat(format);
+      setNotification({ type: 'info', message: `Generating isolated ${format.toUpperCase()} card...` });
 
-      setExportingMember(pseudoMember);
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      const element = document.getElementById('live-preview-card') || document.getElementById('export-card-node');
-      if (!element) {
-        throw new Error("Target card element was not found");
-      }
-
-      await document.fonts.ready;
-      
-      const canvas = await html2canvas(element, {
-        backgroundColor: null,
-        scale: 3.5,
-        useCORS: true,
-        logging: false,
-        allowTaint: true
+      // Generate pristine standalone canvas
+      const canvas = await generateOfficialCardCanvas({
+        fullName: member.fullName || formData.fullName || 'Student Name',
+        admissionNumber: member.admissionNumber || formData.admissionNumber || 'BBIT-01-XXXX/2026',
+        phoneNumber: member.phoneNumber || formData.phoneNumber || '07XXXXXXXX',
+        schoolEmail: member.schoolEmail || formData.schoolEmail || 'student@zetech.ac.ke',
+        photoUrl: member.photoUrl || formData.photoUrl,
+        id: member.id
       });
-      
-      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-      const imgData = canvas.toDataURL(mimeType, 1.0);
-      const safeFileName = `ZUCA_CARD_${member.fullName.toUpperCase().trim().replace(/\s+/g, '_')}`;
-      
+
+      const safeFileName = `ZUCA_MEMBERSHIP_CARD_${(member.fullName || 'STUDENT').toUpperCase().trim().replace(/[^A-Z0-9]/g, '_')}`;
+
       if (format === 'png') {
+        const imgData = canvas.toDataURL('image/png', 1.0);
         const link = document.createElement('a');
         link.download = `${safeFileName}.png`;
         link.href = imgData;
-        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        setNotification({ type: 'success', message: 'Card downloaded as PNG Image!' });
+        setNotification({ type: 'success', message: 'ID Card image downloaded (PNG)!' });
       } else {
+        const imgData = canvas.toDataURL('image/png', 1.0);
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'mm',
-          format: [85.6, 54]
+          format: [85.6, 54] // Standard ISO ID-1 dimensions
         });
         
         pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 54, undefined, 'FAST');
         pdf.save(`${safeFileName}.pdf`);
-        setNotification({ type: 'success', message: 'Printable ID Card downloaded as PDF!' });
+        setNotification({ type: 'success', message: 'Print-ready ID Card downloaded (PDF)!' });
       }
       
       setTimeout(() => setNotification(null), 3000);
-    } catch (err) {
-      console.error('Failed to generate card', err);
-      window.print();
-      setNotification({ type: 'error', message: 'Direct download issue. Browser print triggered as fallback.' });
+    } catch (err: any) {
+      console.error('Failed to generate card:', err);
+      setNotification({ type: 'error', message: 'Could not generate card. Please try again.' });
       setTimeout(() => setNotification(null), 4000);
     } finally {
-      setExportingMember(null);
+      setDownloadingFormat(null);
     }
   };
 
@@ -331,15 +525,10 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
       await deleteDoc(doc(db, 'registrations', id));
       setNotification({ type: 'success', message: 'Record deleted.' });
       setTimeout(() => setNotification(null), 2500);
-      if (lastRegistered && lastRegistered.id === id) {
-        setLastRegistered(null);
-      }
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `registrations/${id}`);
     }
   };
-
-  const activeTheme = CARD_THEMES[formData.cardTheme] || CARD_THEMES.classic;
 
   const filteredRegistrations = registrations.filter(r => 
     r.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -369,87 +558,6 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Off-screen dynamic capture node */}
-      <div 
-        className="fixed pointer-events-none z-[-50] overflow-hidden" 
-        style={{ bottom: '-1000px', right: '-1000px', width: '350px', height: '220px' }}
-        aria-hidden="true"
-      >
-        {exportingMember && (() => {
-          const t = CARD_THEMES[exportingMember.cardTheme || 'classic'] || CARD_THEMES.classic;
-          return (
-            <div 
-              id="export-card-node"
-              className={`w-[350px] h-[220px] ${t.textColor} p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden`}
-              style={{ 
-                fontFamily: "system-ui, -apple-system, sans-serif",
-                background: t.background,
-                boxShadow: "inset 0 0 20px rgba(0,0,0,0.35)"
-              }}
-            >
-              <div className={`absolute inset-0 rounded-2xl pointer-events-none ${t.borderStyle}`} />
-              <div className={`absolute right-[12px] bottom-[28px] text-[130px] font-light ${t.sealColor} pointer-events-none select-none leading-none`}>
-                ✝
-              </div>
-
-              <div className="border-b pb-[6px] flex justify-between items-start text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.2)' }}>
-                <div>
-                  <h3 className={`text-[11px] font-extrabold tracking-wider uppercase ${t.labelColor} leading-tight`}>ZETECH UNIVERSITY</h3>
-                  <p className="text-[7.5px] font-bold uppercase tracking-wider leading-none mt-0.5 opacity-90">Catholic Action Association (ZUCA)</p>
-                </div>
-                <div className={`text-[7px] font-mono font-bold border rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none ${t.badgeStyle}`}>
-                  YEAR 2026/2027
-                </div>
-              </div>
-
-              <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
-                <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
-                  <div className="leading-none">
-                    <span className={`text-[6.5px] font-bold uppercase tracking-wider block font-mono ${t.labelColor}`}>STUDENT NAME</span>
-                    <span className="text-[11px] font-extrabold uppercase tracking-tight truncate block max-w-[200px] mt-0.5">{exportingMember.fullName || 'Student Name'}</span>
-                  </div>
-                  
-                  <div className="leading-none">
-                    <span className={`text-[6.5px] font-bold uppercase tracking-wider block font-mono ${t.labelColor}`}>ADMISSION NUMBER</span>
-                    <span className="text-[10px] font-bold uppercase font-mono tracking-wide mt-0.5 block">{exportingMember.admissionNumber || 'ADMISSION NO'}</span>
-                  </div>
-
-                  <div className="leading-none">
-                    <span className={`text-[6.5px] font-bold uppercase tracking-wider block font-mono ${t.labelColor}`}>CONTACT & EMAIL</span>
-                    <span className="text-[8px] font-semibold font-mono truncate max-w-[200px] block mt-0.5 opacity-85">{exportingMember.phoneNumber || 'Phone'} • {exportingMember.schoolEmail || 'Email'}</span>
-                  </div>
-                </div>
-
-                <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
-                  <div className="w-[56px] h-[56px] rounded-lg border bg-black/20 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner" style={{ borderColor: 'rgba(150,150,150,0.2)' }}>
-                    {exportingMember.photoUrl ? (
-                      <img 
-                        src={exportingMember.photoUrl} 
-                        alt="Profile photo" 
-                        className="w-full h-full object-cover object-center"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <>
-                        <span className={`text-[22px] ${t.labelColor} font-light leading-none`}>✝</span>
-                        <span className="text-[5.5px] font-bold opacity-80 uppercase tracking-wider mt-1 font-mono">MEMBER</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.2)' }}>
-                <span className="uppercase opacity-70 tracking-wide">ID: #{exportingMember.id.slice(-8).toUpperCase()}</span>
-                <span className="text-emerald-400 font-bold tracking-wider uppercase flex items-center gap-1">
-                  <span className="w-1 h-1 rounded-full bg-emerald-400" /> OFFICIAL MEMBER
-                </span>
-              </div>
-            </div>
-          );
-        })()}
-      </div>
 
       {/* SINGLE UNIFIED CARD OVERALL */}
       <div className="w-full bg-white dark:bg-stone-900 rounded-[28px] md:rounded-[36px] border border-stone-200/80 dark:border-white/10 shadow-xl overflow-hidden text-left">
@@ -575,48 +683,20 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                 </div>
               </div>
 
-              {/* Theme & Photo Customization */}
-              <div className="pt-2 space-y-3">
-                <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-300">
-                  <span className="flex items-center gap-1.5">
-                    <Palette className="w-3.5 h-3.5 text-blue-600 dark:text-sky-400" /> Choose Card Theme
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(CARD_THEMES).map(([slug, t]) => (
-                    <button
-                      key={slug}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, cardTheme: slug }))}
-                      className={`p-2 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer flex items-center gap-2 ${
-                        formData.cardTheme === slug 
-                          ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/40 text-blue-800 dark:text-sky-300 ring-1 ring-blue-600' 
-                          : 'border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-950/50 text-stone-600 dark:text-stone-400 hover:border-stone-300'
-                      }`}
-                    >
-                      <span 
-                        className="w-3 h-3 rounded-full shrink-0 border border-black/10" 
-                        style={{ backgroundColor: t.colorHex }} 
-                      />
-                      <span className="truncate text-[11px]">{t.name}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Passport Portrait Upload */}
-                <div className="p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-950/50 flex items-center justify-between gap-3">
+              {/* Passport Portrait Upload */}
+              <div className="pt-2 space-y-2">
+                <div className="p-3.5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-950/50 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-stone-200 dark:bg-stone-800 flex items-center justify-center overflow-hidden shrink-0 border border-stone-300 dark:border-stone-700">
+                    <div className="w-11 h-11 rounded-xl bg-stone-200 dark:bg-stone-800 flex items-center justify-center overflow-hidden shrink-0 border border-stone-300 dark:border-stone-700">
                       {formData.photoUrl ? (
                         <img src={formData.photoUrl} alt="Photo" className="w-full h-full object-cover" />
                       ) : (
-                        <Camera className="w-4 h-4 text-stone-400" />
+                        <Camera className="w-5 h-5 text-stone-400" />
                       )}
                     </div>
                     <div className="text-xs">
                       <span className="font-bold text-stone-800 dark:text-stone-200 block">Portrait Photo</span>
-                      <span className="text-stone-400 text-[10px]">Optional passport picture</span>
+                      <span className="text-stone-400 text-[10px]">Passport image for official card</span>
                     </div>
                   </div>
 
@@ -635,7 +715,7 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                             setFormData(prev => ({ ...prev, photoUrl: compressed }));
                             setNotification({ type: 'success', message: 'Photo ready for card!' });
                             setTimeout(() => setNotification(null), 2000);
-                          } catch (err) {
+                          } catch {
                             setNotification({ type: 'error', message: 'Photo upload error' });
                             setTimeout(() => setNotification(null), 3000);
                           }
@@ -645,7 +725,7 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                     <button
                       type="button"
                       onClick={() => document.getElementById('card-photo-picker')?.click()}
-                      className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      className="px-3 py-1.5 bg-[#002244] hover:bg-[#003366] text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
                     >
                       {formData.photoUrl ? 'Change' : 'Upload'}
                     </button>
@@ -653,7 +733,7 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, photoUrl: '' }))}
-                        className="p-1.5 text-stone-400 hover:text-red-500 rounded-lg transition-all"
+                        className="p-1.5 text-stone-400 hover:text-red-500 rounded-lg transition-all cursor-pointer"
                         title="Remove photo"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -661,13 +741,19 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                     )}
                   </div>
                 </div>
+
+                {/* Single Official Card Designation Badge */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-[11px] text-blue-900 dark:text-sky-300 font-medium">
+                  <Award className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>Standard ZUCA Sanctuary Navy & Gold ID format with 2026 verification seal.</span>
+                </div>
               </div>
 
               {/* Submit / Save Registration */}
               <button
                 disabled={loading}
                 type="submit"
-                className="w-full py-3.5 bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-3"
+                className="w-full py-3.5 bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2"
               >
                 {loading ? (
                   <>
@@ -684,15 +770,15 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
             </form>
           </div>
 
-          {/* Right Column: Live Interactive Card Preview & Instant Downloads */}
+          {/* Right Column: Live Interactive Card Preview & Instant Card Download */}
           <div className="lg:col-span-6 space-y-5 flex flex-col items-center">
             <div className="w-full border-b border-stone-100 dark:border-stone-800 pb-3 flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-bold uppercase tracking-wider text-stone-800 dark:text-stone-200">
-                  Step 2: Live ID Card Preview
+                  Step 2: Official ID Card Preview
                 </h2>
                 <p className="text-xs text-stone-500 dark:text-stone-400">
-                  Live print-ready ID badge updates in real-time.
+                  Single official university layout ready for instant download.
                 </p>
               </div>
 
@@ -702,29 +788,33 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
               </div>
             </div>
 
-            {/* LIVE CARD PREVIEW ELEMENT */}
+            {/* LIVE CARD PREVIEW ELEMENT - Official Single Style */}
             <div className="py-2 w-full flex justify-center">
               <div 
                 id="live-preview-card"
-                className={`w-[340px] sm:w-[350px] h-[220px] ${activeTheme.textColor} p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden shadow-2xl transition-all duration-300`}
+                className="w-[340px] sm:w-[350px] h-[220px] text-white p-[18px] rounded-2xl flex flex-col justify-between select-none relative overflow-hidden shadow-2xl transition-all duration-300"
                 style={{ 
                   fontFamily: "system-ui, -apple-system, sans-serif",
-                  background: activeTheme.background,
+                  background: OFFICIAL_CARD_STYLE.background,
                   boxShadow: "0 20px 40px -15px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.3)"
                 }}
               >
-                <div className={`absolute inset-0 rounded-2xl pointer-events-none ${activeTheme.borderStyle}`} />
-                <div className={`absolute right-[12px] bottom-[28px] text-[130px] font-light ${activeTheme.sealColor} pointer-events-none select-none leading-none`}>
+                <div className={`absolute inset-0 rounded-2xl pointer-events-none ${OFFICIAL_CARD_STYLE.borderStyle}`} />
+                <div className="absolute right-[12px] bottom-[28px] text-[130px] font-light text-amber-500/5 pointer-events-none select-none leading-none">
                   ✝
                 </div>
 
                 {/* Top Card Header */}
-                <div className="border-b pb-[6px] flex justify-between items-start text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.2)' }}>
+                <div className="border-b pb-[6px] flex justify-between items-start text-left relative z-10" style={{ borderColor: 'rgba(251,191,36,0.25)' }}>
                   <div>
-                    <h3 className={`text-[11px] font-extrabold tracking-wider uppercase ${activeTheme.labelColor} leading-tight`}>ZETECH UNIVERSITY</h3>
-                    <p className="text-[7.5px] font-bold uppercase tracking-wider leading-none mt-0.5 opacity-90">Catholic Action Association (ZUCA)</p>
+                    <h3 className="text-[11px] font-extrabold tracking-wider uppercase text-amber-400 leading-tight">
+                      ZETECH UNIVERSITY
+                    </h3>
+                    <p className="text-[7.5px] font-bold uppercase tracking-wider leading-none mt-0.5 opacity-90 text-white">
+                      Catholic Action Association (ZUCA)
+                    </p>
                   </div>
-                  <div className={`text-[7px] font-mono font-bold border rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none ${activeTheme.badgeStyle}`}>
+                  <div className="text-[7px] font-mono font-bold border rounded px-[5px] py-[1.5px] uppercase tracking-wider leading-none bg-amber-500/15 text-amber-300 border-amber-500/30">
                     YEAR 2026/2027
                   </div>
                 </div>
@@ -733,22 +823,28 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                 <div className="flex-1 flex items-stretch gap-3 py-[6px] text-left relative z-10">
                   <div className="flex-1 flex flex-col justify-center space-y-1.5 py-[2px] min-w-0">
                     <div className="leading-none">
-                      <span className={`text-[6.5px] font-bold uppercase tracking-wider block font-mono ${activeTheme.labelColor}`}>STUDENT NAME</span>
-                      <span className="text-[11px] font-extrabold uppercase tracking-tight truncate block max-w-[190px] mt-0.5">
+                      <span className="text-[6.5px] font-bold uppercase tracking-wider block font-mono text-amber-400">
+                        STUDENT NAME
+                      </span>
+                      <span className="text-[11px] font-extrabold uppercase tracking-tight truncate block max-w-[190px] mt-0.5 text-white">
                         {formData.fullName.trim() || 'STUDENT FULL NAME'}
                       </span>
                     </div>
                     
                     <div className="leading-none">
-                      <span className={`text-[6.5px] font-bold uppercase tracking-wider block font-mono ${activeTheme.labelColor}`}>ADMISSION NUMBER</span>
-                      <span className="text-[10px] font-bold uppercase font-mono tracking-wide mt-0.5 block">
+                      <span className="text-[6.5px] font-bold uppercase tracking-wider block font-mono text-amber-400">
+                        ADMISSION NUMBER
+                      </span>
+                      <span className="text-[10px] font-bold uppercase font-mono tracking-wide mt-0.5 block text-white">
                         {formData.admissionNumber.trim() || 'BBIT-01-XXXX/2026'}
                       </span>
                     </div>
 
                     <div className="leading-none">
-                      <span className={`text-[6.5px] font-bold uppercase tracking-wider block font-mono ${activeTheme.labelColor}`}>CONTACT & EMAIL</span>
-                      <span className="text-[8px] font-semibold font-mono truncate max-w-[190px] block mt-0.5 opacity-85">
+                      <span className="text-[6.5px] font-bold uppercase tracking-wider block font-mono text-amber-400">
+                        CONTACT & EMAIL
+                      </span>
+                      <span className="text-[8px] font-semibold font-mono truncate max-w-[190px] block mt-0.5 opacity-85 text-slate-200">
                         {formData.phoneNumber.trim() || '07XXXXXXXX'} • {formData.schoolEmail.trim() || 'student@zetech.ac.ke'}
                       </span>
                     </div>
@@ -756,7 +852,7 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
 
                   {/* Photo Column */}
                   <div className="w-[68px] flex flex-col items-center justify-center shrink-0">
-                    <div className="w-[56px] h-[56px] rounded-lg border bg-black/20 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner" style={{ borderColor: 'rgba(150,150,150,0.2)' }}>
+                    <div className="w-[56px] h-[56px] rounded-lg border border-amber-500/40 bg-black/30 flex flex-col items-center justify-center relative overflow-hidden text-center backdrop-blur-sm shadow-inner">
                       {formData.photoUrl ? (
                         <img 
                           src={formData.photoUrl} 
@@ -766,8 +862,8 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                         />
                       ) : (
                         <>
-                          <span className={`text-[22px] ${activeTheme.labelColor} font-light leading-none`}>✝</span>
-                          <span className="text-[5.5px] font-bold opacity-80 uppercase tracking-wider mt-1 font-mono">MEMBER</span>
+                          <span className="text-[22px] text-amber-400 font-light leading-none">✝</span>
+                          <span className="text-[5.5px] font-bold opacity-80 uppercase tracking-wider mt-1 font-mono text-white">MEMBER</span>
                         </>
                       )}
                     </div>
@@ -775,8 +871,10 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                 </div>
 
                 {/* Card Footer */}
-                <div className="border-t pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10" style={{ borderColor: 'rgba(150,150,150,0.2)' }}>
-                  <span className="uppercase opacity-70 tracking-wide">ID: #{formData.admissionNumber ? formData.admissionNumber.replace(/[^A-Z0-9]/g, '').slice(-6) : 'ZUCA2026'}</span>
+                <div className="border-t pt-[6px] flex justify-between items-center text-[7px] font-mono font-bold leading-none text-left relative z-10" style={{ borderColor: 'rgba(251,191,36,0.25)' }}>
+                  <span className="uppercase opacity-70 tracking-wide text-slate-300">
+                    ID: #{formData.admissionNumber ? formData.admissionNumber.replace(/[^A-Z0-9]/g, '').slice(-6) : 'ZUCA2026'}
+                  </span>
                   <span className="text-emerald-400 font-bold tracking-wider uppercase flex items-center gap-1">
                     <span className="w-1 h-1 rounded-full bg-emerald-400" /> OFFICIAL MEMBER
                   </span>
@@ -784,50 +882,46 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
               </div>
             </div>
 
-            {/* Instant Download Action Buttons */}
+            {/* Isolated Card Download Actions (Strictly downloads the ID card only) */}
             <div className="w-full space-y-2.5">
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => triggerExport({
-                    fullName: formData.fullName || 'Student',
-                    admissionNumber: formData.admissionNumber || 'ZUCA',
-                    phoneNumber: formData.phoneNumber || '',
-                    schoolEmail: formData.schoolEmail || '',
-                    photoUrl: formData.photoUrl,
-                    cardTheme: formData.cardTheme
-                  }, 'pdf')}
-                  className="py-3 bg-[#002244] hover:bg-[#003366] text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  disabled={downloadingFormat !== null}
+                  onClick={() => triggerExport(formData, 'pdf')}
+                  className="py-3 bg-[#002244] hover:bg-[#003366] text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-70"
                 >
-                  <Download className="w-4 h-4" />
+                  {downloadingFormat === 'pdf' ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-current" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
                   <span>Download PDF Card</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => triggerExport({
-                    fullName: formData.fullName || 'Student',
-                    admissionNumber: formData.admissionNumber || 'ZUCA',
-                    phoneNumber: formData.phoneNumber || '',
-                    schoolEmail: formData.schoolEmail || '',
-                    photoUrl: formData.photoUrl,
-                    cardTheme: formData.cardTheme
-                  }, 'png')}
-                  className="py-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  disabled={downloadingFormat !== null}
+                  onClick={() => triggerExport(formData, 'png')}
+                  className="py-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-70"
                 >
-                  <Download className="w-4 h-4" />
+                  {downloadingFormat === 'png' ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-current" />
+                  ) : (
+                    <ImageIcon className="w-4 h-4" />
+                  )}
                   <span>Save PNG Image</span>
                 </button>
               </div>
 
-              <p className="text-[11px] text-center text-stone-400">
-                Standard ISO ID-1 card dimensions (85.6mm × 54mm) ready for mobile wallet or print.
+              <p className="text-[11px] text-center text-stone-400 dark:text-stone-500">
+                Downloads the high-resolution ID card only (standard 85.6mm × 54mm ISO ID-1 dimensions).
               </p>
             </div>
           </div>
         </div>
 
-        {/* Collapsible Enrolled Students Directory Footer inside the same card */}
+        {/* Collapsible Enrolled Students Directory Footer */}
         <div className="border-t border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-950/40 p-6 md:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -899,9 +993,17 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
                             type="button"
                             onClick={() => triggerExport(member, 'pdf')}
                             className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-sky-400 hover:bg-blue-600 hover:text-white rounded-lg font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1"
-                            title="Download PDF Card"
+                            title="Download PDF Card Only"
                           >
                             <Download className="w-3.5 h-3.5" /> PDF
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => triggerExport(member, 'png')}
+                            className="px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1"
+                            title="Download PNG Card Only"
+                          >
+                            <ImageIcon className="w-3.5 h-3.5" /> PNG
                           </button>
                           <button
                             type="button"

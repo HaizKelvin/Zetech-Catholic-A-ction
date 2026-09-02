@@ -62,7 +62,13 @@ service cloud.firestore {
                isValidEmail(data.email) &&
                (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
                (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 600000)) &&
+               (!('contactNumber' in data) || (data.contactNumber is string && data.contactNumber.size() <= 30)) &&
+               (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() <= 30)) &&
+               (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
+               (!('admissionNumber' in data) || (data.admissionNumber is string && data.admissionNumber.size() <= 50)) &&
                (!('bio' in data) || (data.bio is string && data.bio.size() <= 500)) &&
+               (!('isSubscribed' in data) || data.isSubscribed is bool) &&
+               (!('online' in data) || data.online is bool) &&
                (!('role' in data) || data.role in ['admin', 'member']);
       }
 
@@ -77,6 +83,13 @@ service cloud.firestore {
                        (incoming().role == existing().role || isAdmin());
 
       allow delete: if isAdmin() || isOwner(userId);
+    }
+
+    // --- Phone Directory for Fast Multi-Format Member Login ---
+    match /phone_directory/{phoneId} {
+      allow read: if true;
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin();
     }
 
     // --- Private Chat History (Zero-Trust Identity Isolation) ---

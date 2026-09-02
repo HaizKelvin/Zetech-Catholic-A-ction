@@ -123,13 +123,13 @@ USER NAME: Address user warmly as "${userName || 'Friend'}".`;
       });
     }
 
-    // Attempt generation with gemini-2.5-flash or gemini-3.7-flash
+    // Attempt generation with gemini-3.7-flash (or fallback to gemini-flash-latest)
     let responseText = "";
-    let usedModel = "gemini-2.5-flash";
+    let usedModel = "gemini-3.7-flash";
 
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.7-flash",
         contents,
         config: {
           systemInstruction,
@@ -137,10 +137,10 @@ USER NAME: Address user warmly as "${userName || 'Friend'}".`;
       });
       responseText = response.text || "";
     } catch (modelErr: any) {
-      console.warn("Primary model attempt, trying gemini-3.7-flash:", modelErr?.message);
-      usedModel = "gemini-3.7-flash";
+      console.warn("Primary model attempt note, trying gemini-flash-latest:", modelErr?.message);
+      usedModel = "gemini-flash-latest";
       const response = await ai.models.generateContent({
-        model: "gemini-3.7-flash",
+        model: "gemini-flash-latest",
         contents,
         config: {
           systemInstruction,
@@ -183,21 +183,21 @@ app.get("/api/chat/health", async (req, res) => {
       try {
         const ai = getGemini();
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.7-flash",
           contents: "Hello, respond with one word: 'Connected'",
         });
         testResult = response.text ? response.text.trim() : "Online";
-        liveModel = "gemini-2.5-flash";
+        liveModel = "gemini-3.7-flash";
         connected = true;
       } catch (e: any) {
         try {
           const ai = getGemini();
           const response = await ai.models.generateContent({
-            model: "gemini-3.7-flash",
+            model: "gemini-flash-latest",
             contents: "Hello, respond with one word: 'Connected'",
           });
           testResult = response.text ? response.text.trim() : "Online";
-          liveModel = "gemini-3.7-flash";
+          liveModel = "gemini-flash-latest";
           connected = true;
         } catch (e2: any) {
           testResult = `Error calling Gemini: ${e2.message}`;

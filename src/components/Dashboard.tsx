@@ -187,76 +187,31 @@ ZUCA Community`);
       animate="show"
       className="space-y-10 md:space-y-20 pb-20 mt-6 md:mt-20 px-2 md:px-10"
     >
-      {/* Immersive Header - Magazine Style */}
+      {/* Simplified Welcome Banner */}
       <motion.header 
         variants={item}
-        className="relative py-12 md:py-24 px-6 md:px-16 rounded-[32px] md:rounded-[60px] overflow-hidden bg-stone-950 text-white shadow-2xl border border-white/10 group h-auto flex items-center mb-8 md:mb-12"
+        className="relative py-8 md:py-12 px-6 md:px-10 rounded-3xl overflow-hidden bg-gradient-to-r from-stone-950 via-[#002244] to-[#001830] text-white shadow-xl border border-white/10 flex items-center mb-6"
       >
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1544427920-c49ccfb85579?auto=format&fit=crop&w=1600&q=80" 
-            className="w-full h-full object-cover mix-blend-overlay scale-105 opacity-40 transition-transform duration-[15s] group-hover:scale-100"
-            alt="Catholic Altar & Chapel"
-            loading="eager"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-tr from-stone-950 via-stone-950/80 to-transparent" />
-          
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-1/4 w-[300px] h-[300px] bg-sky-500/10 blur-[130px] rounded-full" />
-        </div>
-
-        <div className="relative z-10 flex flex-col gap-8 md:gap-12 max-w-7xl w-full">
-          <div className="flex flex-wrap items-center gap-3">
-            <motion.div
-              variants={item}
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-blue-950/80 border border-blue-400/20 text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-sky-300 shadow-xl backdrop-blur-md w-fit"
-            >
-              <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shadow-[0_0_10px_rgba(56,189,248,1)]" />
-              Zetech Catholic Community
-            </motion.div>
-
-            {isRecognized && (
-              <motion.div
-                variants={item}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/40 border border-sky-400/30 text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-sky-200 shadow-md backdrop-blur-md w-fit"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                <span>Recognized Student: <strong className="text-white font-extrabold">{displayName}</strong></span>
-                {admissionNumber && <span className="text-amber-300 font-mono">({admissionNumber})</span>}
-              </motion.div>
-            )}
-
-            <motion.div
-              variants={item}
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-emerald-400 shadow-lg backdrop-blur-md w-fit group/live relative"
-            >
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              <span className="relative">
-                <span className="tabular-nums font-bold">14+</span> Students Online
+        <div className="relative z-10 flex flex-col gap-4 max-w-4xl w-full text-left">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-[11px] font-bold uppercase tracking-wider text-sky-300">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              {getTimeGreeting()}, {firstName}!
+            </span>
+            {isRecognized && admissionNumber && (
+              <span className="px-2.5 py-1 rounded-full bg-white/10 text-[11px] font-mono text-stone-300">
+                {admissionNumber}
               </span>
-            </motion.div>
+            )}
           </div>
           
-          <div className="space-y-4 md:space-y-5">
-            <motion.div variants={item} className="space-y-2">
-              <p className="text-sky-400 font-bold text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                {getTimeGreeting()}, {firstName}! Peace be with you.
-              </p>
-              <motion.h1 
-                variants={item}
-                className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-white text-left"
-              >
-                Welcome, <span className="text-sky-400 capitalize">{displayName}</span>! <br className="hidden sm:inline" />
-                <span className="text-stone-100 font-bold">Faith, Unity & Student Life at Zetech.</span>
-              </motion.h1>
-            </motion.div>
-            
-            <motion.p variants={item} className="text-stone-300 text-sm md:text-lg font-normal max-w-3xl leading-relaxed pl-3 md:pl-4 border-l-2 border-sky-400 text-left">
-              Join us for weekly Holy Mass, prayer meetings, choir practice, charity missions, and real university friendships in Christ.
-            </motion.p>
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+              Welcome, <span className="text-sky-400 capitalize">{displayName}</span>
+            </h1>
+            <p className="text-stone-300 text-sm sm:text-base leading-relaxed max-w-2xl">
+              Zetech University Catholic Action — Growing together in faith, fellowship, and university life.
+            </p>
           </div>
         </div>
       </motion.header>

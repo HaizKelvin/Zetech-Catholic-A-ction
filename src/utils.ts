@@ -277,6 +277,27 @@ export function isValidEmail(email: string): boolean {
   return validateEmailPattern(email).isValid;
 }
 
+export function normalizePhoneNumber(phone: string): { raw: string; cleanDigits: string; authEmail: string; isValid: boolean } {
+  if (!phone || typeof phone !== 'string') {
+    return { raw: '', cleanDigits: '', authEmail: '', isValid: false };
+  }
+  const digits = phone.replace(/[^0-9]/g, '');
+  if (!digits || digits.length < 7 || digits.length > 15) {
+    return { raw: phone, cleanDigits: digits, authEmail: '', isValid: false };
+  }
+  let normalized = digits;
+  // Kenya format handling
+  if (digits.startsWith('2540') && digits.length === 13) {
+    normalized = '254' + digits.substring(4);
+  } else if (digits.startsWith('0') && digits.length === 10) {
+    normalized = '254' + digits.substring(1);
+  } else if ((digits.startsWith('7') || digits.startsWith('1')) && digits.length === 9) {
+    normalized = '254' + digits;
+  }
+  const authEmail = `phone.${normalized}@zuca.zetech.ac.ke`;
+  return { raw: phone, cleanDigits: normalized, authEmail, isValid: true };
+}
+
 export const cn = (...inputs: any[]) => {
   return inputs.filter(Boolean).join(' ');
 };

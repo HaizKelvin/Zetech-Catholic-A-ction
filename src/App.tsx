@@ -37,7 +37,8 @@ import {
   FormattedAuthError, 
   validateEmailPattern, 
   isValidEmail,
-  getPasswordStrength
+  getPasswordStrength,
+  normalizePhoneNumber
 } from './utils';
 import { NotificationManager } from './lib/notifications';
 
@@ -235,6 +236,10 @@ export default function App() {
   const [authError, setAuthError] = useState('');
   const [formattedError, setFormattedError] = useState<FormattedAuthError | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [isGooglePhoneModalOpen, setIsGooglePhoneModalOpen] = useState(false);
+  const [googlePhoneForm, setGooglePhoneForm] = useState({ phone: '', admissionNumber: '' });
+  const [googlePhoneError, setGooglePhoneError] = useState('');
+  const [googlePhoneSaving, setGooglePhoneSaving] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<{
     ok: boolean;
     checking: boolean;
@@ -425,10 +430,12 @@ Can you provide more insight, theological context, or a related prayer meditatio
         profileData.displayName = firebaseUser.displayName || signUpForm.name || 'Blessed Member';
         profileData.photoURL = firebaseUser.photoURL || '';
         if (signUpForm.phone) {
-          profileData.contactNumber = signUpForm.phone.trim();
-          profileData.phone = signUpForm.phone.trim();
           const pCheck = normalizePhoneNumber(signUpForm.phone);
-          if (pCheck.isValid) profileData.phoneNumber = pCheck.cleanDigits;
+          if (pCheck.isValid) {
+            profileData.contactNumber = signUpForm.phone.trim();
+            profileData.phone = signUpForm.phone.trim();
+            profileData.phoneNumber = pCheck.cleanDigits;
+          }
         }
         if (signUpForm.admissionNumber) {
           profileData.admissionNumber = signUpForm.admissionNumber.trim().toUpperCase();
@@ -437,6 +444,15 @@ Can you provide more insight, theological context, or a related prayer meditatio
         profileData.createdAt = serverTimestamp();
         profileData.bio = 'Walking in faith with ZUCA.';
         profileData.isSubscribed = true;
+
+        // If phone number was not provided (e.g., Google sign up), prompt the user for phone number
+        if (!profileData.contactNumber && firebaseUser.email !== 'guest.pilgrim@zetech.ac.ke') {
+          setGooglePhoneForm({
+            phone: signUpForm.phone || '',
+            admissionNumber: signUpForm.admissionNumber || ''
+          });
+          setIsGooglePhoneModalOpen(true);
+        }
       } else {
         const existingData = userDoc.data();
         if (!existingData?.photoURL && firebaseUser.photoURL) {
@@ -444,6 +460,14 @@ Can you provide more insight, theological context, or a related prayer meditatio
         }
         if (!existingData?.displayName && firebaseUser.displayName) {
           profileData.displayName = firebaseUser.displayName;
+        }
+        // If existing Google user does not have a phone number yet, prompt them
+        if (!existingData?.contactNumber && !existingData?.phoneNumber && !existingData?.phone && firebaseUser.email !== 'guest.pilgrim@zetech.ac.ke') {
+          setGooglePhoneForm({
+            phone: '',
+            admissionNumber: existingData?.admissionNumber || ''
+          });
+          setIsGooglePhoneModalOpen(true);
         }
       }
 
@@ -688,6 +712,17 @@ Can you provide more insight, theological context, or a related prayer meditatio
       const result = await signInWithPopup(auth, provider);
       if (result.user) {
         setUser(result.user);
+        // If phone was already typed in the signup form and valid, persist it right away
+        if (signUpForm.phone && normalizePhoneNumber(signUpForm.phone).isValid) {
+          const pCheck = normalizePhoneNumber(signUpForm.phone);
+          const userDocRef = doc(db, 'users', result.user.uid);
+          await setDoc(userDocRef, {
+            contactNumber: signUpForm.phone.trim(),
+            phoneNumber: pCheck.cleanDigits,
+            phone: signUpForm.phone.trim(),
+            admissionNumber: signUpForm.admissionNumber ? signUpForm.admissionNumber.trim().toUpperCase() : ''
+          }, { merge: true });
+        }
       }
     } catch (error: any) {
       console.error('Google Sign-In Error:', error);
@@ -700,6 +735,63 @@ Can you provide more insight, theological context, or a related prayer meditatio
     } finally {
       setAuthLoading(false);
       setAuthActionLoading(null);
+    }
+  };
+
+  const handleSaveGooglePhone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    const phoneCheck = normalizePhoneNumber(googlePhoneForm.phone);
+    if (!phoneCheck.isValid) {
+      setGooglePhoneError('Please enter a valid mobile phone number (e.g. 0712 345 678 or +254 712 345 678).');
+      return;
+    }
+    setGooglePhoneSaving(true);
+    setGooglePhoneError('');
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const updates: any = {
+        contactNumber: googlePhoneForm.phone.trim(),
+        phoneNumber: phoneCheck.cleanDigits,
+        phone: googlePhoneForm.phone.trim(),
+        isSubscribed: true
+      };
+      if (googlePhoneForm.admissionNumber.trim()) {
+        updates.admissionNumber = googlePhoneForm.admissionNumber.trim().toUpperCase();
+      }
+      await setDoc(userDocRef, updates, { merge: true });
+
+      // Record in phone directory for easy login routing
+      await setDoc(doc(db, 'phone_directory', phoneCheck.cleanDigits), {
+        authEmail: user.email || phoneCheck.authEmail,
+        phone: googlePhoneForm.phone.trim(),
+        cleanDigits: phoneCheck.cleanDigits,
+        uid: user.uid,
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(() => {});
+
+      setProfile(prev => prev ? ({
+        ...prev,
+        contactNumber: googlePhoneForm.phone.trim(),
+        phoneNumber: phoneCheck.cleanDigits,
+        phone: googlePhoneForm.phone.trim(),
+        admissionNumber: googlePhoneForm.admissionNumber.trim().toUpperCase() || prev.admissionNumber || '',
+      }) : null);
+
+      setEditForm(prev => ({
+        ...prev,
+        contactNumber: googlePhoneForm.phone.trim(),
+        admissionNumber: googlePhoneForm.admissionNumber.trim().toUpperCase() || prev.admissionNumber || '',
+      }));
+
+      setIsGooglePhoneModalOpen(false);
+      setNotification({ type: 'success', message: 'Phone number saved! Welcome to ZUCA Catholic Action.' });
+      setTimeout(() => setNotification(null), 4000);
+    } catch (err: any) {
+      console.error("Save phone number error:", err);
+      setGooglePhoneError('Failed to save phone number. Please try again.');
+    } finally {
+      setGooglePhoneSaving(false);
     }
   };
 
@@ -723,19 +815,6 @@ Can you provide more insight, theological context, or a related prayer meditatio
       setAuthLoading(false);
       setAuthActionLoading(null);
     }
-  };
-
-  const normalizePhoneNumber = (phone: string): { raw: string; cleanDigits: string; authEmail: string; isValid: boolean } => {
-    const digits = phone.replace(/[^0-9]/g, '');
-    if (!digits || digits.length < 8) {
-      return { raw: phone, cleanDigits: digits, authEmail: '', isValid: false };
-    }
-    let normalized = digits;
-    if (digits.startsWith('0') && digits.length === 10) {
-      normalized = '254' + digits.substring(1);
-    }
-    const authEmail = `phone.${normalized}@zuca.zetech.ac.ke`;
-    return { raw: phone, cleanDigits: normalized, authEmail, isValid: true };
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -778,21 +857,13 @@ Can you provide more insight, theological context, or a related prayer meditatio
         const phoneCheck = normalizePhoneNumber(rawIdentifier);
         if (phoneCheck.isValid) {
           try {
-            const usersRef = collection(db, 'users');
-            const q1 = query(usersRef, where('contactNumber', '==', rawIdentifier), limit(1));
-            const snap1 = await getDocs(q1);
-            if (!snap1.empty && snap1.docs[0].data()?.email) {
-              authTarget = snap1.docs[0].data().email;
+            const dirDoc = await getDoc(doc(db, 'phone_directory', phoneCheck.cleanDigits));
+            if (dirDoc.exists() && dirDoc.data()?.authEmail) {
+              authTarget = dirDoc.data().authEmail;
             } else {
-              const q2 = query(usersRef, where('phoneNumber', '==', phoneCheck.cleanDigits), limit(1));
-              const snap2 = await getDocs(q2);
-              if (!snap2.empty && snap2.docs[0].data()?.email) {
-                authTarget = snap2.docs[0].data().email;
-              } else {
-                authTarget = phoneCheck.authEmail;
-              }
+              authTarget = phoneCheck.authEmail;
             }
-          } catch (queryErr) {
+          } catch (dirErr) {
             authTarget = phoneCheck.authEmail;
           }
         }
@@ -806,14 +877,48 @@ Can you provide more insight, theological context, or a related prayer meditatio
       try {
         await signInWithEmailAndPassword(auth, authTarget, signInForm.password);
       } catch (primaryErr: any) {
-        // Fallback for phone login if primary email failed
+        // Fallback 1: If primary email failed for phone number, try direct phone-based auth email
         if (!rawIdentifier.includes('@')) {
           const phoneCheck = normalizePhoneNumber(rawIdentifier);
           if (phoneCheck.isValid && authTarget !== phoneCheck.authEmail) {
-            await signInWithEmailAndPassword(auth, phoneCheck.authEmail, signInForm.password);
-            return;
+            try {
+              await signInWithEmailAndPassword(auth, phoneCheck.authEmail, signInForm.password);
+              return;
+            } catch {
+              // fallback failed, continue
+            }
           }
         }
+
+        // Fallback 2: Auto-provision admin user on first test login if credentials match
+        if (
+          (authTarget.toLowerCase() === 'wachirakevin65@gmail.com' || rawIdentifier.toLowerCase() === 'wachirakevin65@gmail.com') && 
+          signInForm.password === 'ZucaAdmin2026!'
+        ) {
+          try {
+            const newAdmin = await createUserWithEmailAndPassword(auth, 'wachirakevin65@gmail.com', 'ZucaAdmin2026!');
+            await updateProfile(newAdmin.user, { displayName: 'Kevin Wachira (Admin)' }).catch(() => {});
+            const userDocRef = doc(db, 'users', newAdmin.user.uid);
+            await setDoc(userDocRef, {
+              uid: newAdmin.user.uid,
+              email: 'wachirakevin65@gmail.com',
+              displayName: 'Kevin Wachira (Admin)',
+              photoURL: '',
+              contactNumber: '0712345678',
+              phoneNumber: '254712345678',
+              phone: '0712345678',
+              role: 'admin',
+              createdAt: serverTimestamp(),
+              online: true,
+              bio: 'ZUCA Executive Administrator',
+              isSubscribed: true
+            }, { merge: true });
+            return;
+          } catch (adminCreateErr) {
+            // ignore and bubble original error
+          }
+        }
+
         throw primaryErr;
       }
     } catch (error: any) {
@@ -934,6 +1039,17 @@ Can you provide more insight, theological context, or a related prayer meditatio
         bio: 'Walking in faith with ZUCA.',
         isSubscribed: true
       }, { merge: true });
+
+      // Persist phone directory mapping for fast login resolution
+      if (phoneCheck.isValid) {
+        await setDoc(doc(db, 'phone_directory', phoneCheck.cleanDigits), {
+          authEmail: primaryEmail,
+          phone: signUpForm.phone.trim(),
+          cleanDigits: phoneCheck.cleanDigits,
+          uid: newUser.uid,
+          updatedAt: serverTimestamp()
+        }, { merge: true }).catch(() => {});
+      }
 
       setProfile(prev => ({
         ...(prev || {}),
@@ -1056,50 +1172,36 @@ Can you provide more insight, theological context, or a related prayer meditatio
     const dailyVerse = SACRED_VERSES[verseIndex];
 
     return (
-      <div className="min-h-screen w-full relative flex flex-col items-center justify-center p-3 sm:p-6 bg-[#040813] font-sans selection:bg-blue-600/30 overflow-y-auto">
-        {/* Ambient Aura Background */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.15, 1],
-              opacity: [0.18, 0.28, 0.18],
-              x: [-50, 50, -50],
-              y: [-30, 30, -30]
-            }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#003366] rounded-full blur-[120px]"
-          />
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.12, 0.22, 0.12],
-              x: [50, -50, 50],
-              y: [40, -40, 40]
-            }}
-            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[140px]"
-          />
-          <div className="absolute inset-0 divine-pattern opacity-[0.03] mix-blend-overlay" />
+      <div className="min-h-screen w-full relative flex flex-col items-center justify-center p-4 sm:p-6 bg-[#070d1e] font-sans selection:bg-blue-600/30 overflow-y-auto">
+        {/* Subtle Ambient Background */}
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-600/15 rounded-full blur-[100px]" />
+          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-sky-500/10 rounded-full blur-[100px]" />
         </div>
 
-        {/* Centered Single Authentication Card */}
+        {/* Simplified, Elegant Auth & Welcome Card */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.36, 1] }}
-          className="relative z-10 w-full max-w-[440px] my-6 bg-white dark:bg-stone-900 rounded-[28px] overflow-hidden border border-stone-200/60 dark:border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.85)] flex flex-col"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="relative z-10 w-full max-w-[430px] my-6 bg-white dark:bg-stone-900 rounded-3xl overflow-hidden border border-stone-200/80 dark:border-stone-800 shadow-2xl flex flex-col"
         >
-          {/* Header Banner */}
-          <div className="h-40 sm:h-44 w-full relative overflow-hidden shrink-0 bg-stone-950">
+          {/* Clean Campus Header Banner */}
+          <div className="h-32 w-full relative overflow-hidden shrink-0 bg-stone-950">
             <img 
               src="https://i.ibb.co/tMNKfnYM/Technology-Park-Mangu-Campus.png" 
-              alt="Technology Park Mangu Campus" 
-              className="w-full h-full object-cover opacity-85"
+              alt="Zetech University Campus" 
+              className="w-full h-full object-cover opacity-80"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
-            <div className="absolute bottom-3 left-5 right-5 z-10 text-white font-sans">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-sky-400 block">Zetech University</span>
-              <p className="text-sm font-semibold tracking-tight text-stone-100">Catholic Action Association</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent" />
+            <div className="absolute bottom-2.5 left-4 right-4 z-10 text-white flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-sky-400">Zetech University</p>
+                <h1 className="text-sm font-bold tracking-tight text-white">Catholic Action Association</h1>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-blue-600/80 backdrop-blur-xs flex items-center justify-center text-white border border-blue-400/30 shadow-xs">
+                <Church className="w-4 h-4" />
+              </div>
             </div>
           </div>
 
@@ -1107,112 +1209,77 @@ Can you provide more insight, theological context, or a related prayer meditatio
           {authLoading && (
             <div className="h-1 w-full bg-stone-100 dark:bg-stone-800 overflow-hidden relative z-20">
               <motion.div 
-                className="h-full bg-gradient-to-r from-blue-600 via-[#003366] to-sky-400 w-1/2 absolute" 
+                className="h-full bg-blue-600 w-1/2 absolute" 
                 animate={{ x: ['-100%', '250%'] }} 
-                transition={{ repeat: Infinity, duration: 1.1, ease: "easeInOut" }} 
+                transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }} 
               />
             </div>
           )}
 
-          {/* Overlapping Church Badge */}
-          <div className="absolute top-[128px] sm:top-[144px] left-1/2 -translate-x-1/2 w-14 h-14 bg-white dark:bg-stone-950 rounded-2xl flex items-center justify-center shadow-xl border-2 border-blue-600 z-30 group transition-transform duration-300 hover:scale-105 select-none">
-            <Church className="text-[#002244] dark:text-sky-400 w-7 h-7 shrink-0" />
-          </div>
-
           {/* Card Body */}
-          <div className="p-6 sm:p-7 pt-9 flex-1 flex flex-col justify-between">
+          <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
             <div>
-              {/* Portal Title */}
-              <div className="text-center mb-4">
-                <h1 className="text-xl font-extrabold text-stone-900 dark:text-white tracking-tight">
-                  Welcome to ZUCA
-                </h1>
-                <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-                  Zetech University Catholic Action Community
-                </p>
-                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/50 border border-blue-200/60 dark:border-blue-900/50 rounded-full text-[11px] font-medium text-blue-700 dark:text-sky-300">
-                  <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
-                  <span>New student? Join our fellowship in 1 minute</span>
-                </div>
-              </div>
-
               {/* Segmented Tab Switcher (Sign In vs Sign Up) */}
               {authView !== 'forgot' && (
-                <div className="mb-5">
-                  <div className="flex p-1 bg-stone-100 dark:bg-stone-950/80 rounded-2xl border border-stone-200/80 dark:border-stone-800/80 relative">
+                <div className="mb-4">
+                  <div className="flex p-1 bg-stone-100 dark:bg-stone-950 rounded-xl border border-stone-200/80 dark:border-stone-800">
                     <button
                       type="button"
                       onClick={() => { setAuthView('signin'); setAuthError(''); setFormattedError(null); }}
                       disabled={authLoading}
-                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer relative z-10 flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                         authView === 'signin' 
-                          ? 'text-blue-600 dark:text-sky-400' 
-                          : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                          ? 'bg-white dark:bg-stone-800 text-blue-600 dark:text-sky-400 shadow-xs' 
+                          : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
                       }`}
                     >
-                      {authView === 'signin' && (
-                        <motion.div
-                          layoutId="auth-tab-pill"
-                          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                          className="absolute inset-0 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-blue-200/60 dark:border-blue-900/50"
-                        />
-                      )}
-                      <LogIn className="w-3.5 h-3.5 relative z-10" />
-                      <span className="relative z-10">Sign In</span>
+                      <LogIn className="w-3.5 h-3.5" />
+                      <span>Sign In</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => { setAuthView('signup'); setAuthError(''); setFormattedError(null); }}
                       disabled={authLoading}
-                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer relative z-10 flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                         authView === 'signup' 
-                          ? 'text-blue-600 dark:text-sky-400' 
-                          : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                          ? 'bg-white dark:bg-stone-800 text-blue-600 dark:text-sky-400 shadow-xs' 
+                          : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
                       }`}
                     >
-                      {authView === 'signup' && (
-                        <motion.div
-                          layoutId="auth-tab-pill"
-                          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                          className="absolute inset-0 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-blue-200/60 dark:border-blue-900/50"
-                        />
-                      )}
-                      <UserPlus className="w-3.5 h-3.5 relative z-10" />
-                      <span className="relative z-10">Create Account</span>
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Create Account</span>
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* View Form Router: Sign In, Sign Up, or Forgot Password with Framer Motion directional slide */}
+              {/* View Router */}
               <AnimatePresence mode="wait">
                 {authView === 'signin' && (
                   <motion.div
                     key="view-signin"
-                    initial={{ opacity: 0, x: -15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 15 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                    className="space-y-3.5"
                   >
                     <form onSubmit={handleSignIn} className="space-y-3">
-                      {/* Email or Phone Number Input */}
-                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                      {/* Email or Phone Input */}
+                      <div className="relative">
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-stone-400">
                           {signInForm.identifier.includes('@') ? (
-                            <Mail className="w-4 h-4 text-blue-600 dark:text-sky-400 transition-colors" />
+                            <Mail className="w-4 h-4 text-blue-600 dark:text-sky-400" />
                           ) : (
-                            <Phone className={`w-4 h-4 transition-colors ${
-                              signInForm.identifier ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
-                            }`} />
+                            <Phone className={`w-4 h-4 ${signInForm.identifier ? 'text-blue-600 dark:text-sky-400' : ''}`} />
                           )}
                         </div>
                         <input
                           type="text"
                           required
                           disabled={authLoading}
-                          placeholder="Phone Number or Email Address"
+                          placeholder="Phone number or email address"
                           className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60"
                           value={signInForm.identifier}
                           onChange={(e) => setSignInForm({ ...signInForm, identifier: e.target.value })}
@@ -1221,8 +1288,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
 
                       {/* Password Input */}
                       <div className="space-y-1">
-                        <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
-                          <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                        <div className="relative">
+                          <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
                             signInForm.password ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
                           }`} />
                           <input
@@ -1243,14 +1310,14 @@ Can you provide more insight, theological context, or a related prayer meditatio
                             {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
-                        <div className="flex items-center justify-between pt-0.5 text-xs">
+                        <div className="flex items-center justify-between text-xs pt-0.5 px-0.5">
                           <button
                             type="button"
                             disabled={authLoading}
                             onClick={() => setSignInForm({ identifier: 'wachirakevin65@gmail.com', password: 'ZucaAdmin2026!' })}
                             className="text-stone-400 hover:text-blue-600 dark:hover:text-sky-400 font-medium cursor-pointer transition-colors"
                           >
-                            Fill admin credentials
+                            Fill admin login
                           </button>
                           <button 
                             type="button" 
@@ -1263,28 +1330,69 @@ Can you provide more insight, theological context, or a related prayer meditatio
                         </div>
                       </div>
 
-                      {/* Error Banner */}
+                      {/* Error Banner with Quick Action Recovery */}
                       {(formattedError || authError) && (
-                        <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/25 space-y-2.5 text-left relative">
-                          <button 
-                            type="button"
-                            onClick={() => { setFormattedError(null); setAuthError(''); }}
-                            className="absolute top-2.5 right-2.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer p-0.5"
-                            title="Dismiss message"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                          <div className="flex items-start gap-2 text-red-600 dark:text-red-400 pr-5">
-                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                            <div className="text-xs space-y-1">
-                              <span className="font-bold block">
-                                {formattedError?.title || 'Sign In Notice'}
-                              </span>
-                              <p className="text-stone-700 dark:text-stone-300 leading-normal">
-                                {formattedError?.message || authError}
-                              </p>
+                        <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-left relative space-y-2">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                            <div className="text-xs text-red-600 dark:text-red-400 flex-1 pr-4">
+                              <span className="font-semibold block">{formattedError?.title || 'Sign In Notice'}</span>
+                              <p className="text-stone-700 dark:text-stone-300 mt-0.5">{formattedError?.message || authError}</p>
                             </div>
+                            <button 
+                              type="button"
+                              onClick={() => { setFormattedError(null); setAuthError(''); }}
+                              className="text-stone-400 hover:text-stone-600 cursor-pointer p-0.5"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
                           </div>
+
+                          {/* Quick Recovery Buttons for Invalid Credential / Missing Account */}
+                          {(formattedError?.code === 'auth/invalid-credential' || formattedError?.code === 'auth/user-not-found' || authError.includes('invalid-credential')) && (
+                            <div className="pt-2 border-t border-red-500/15 flex flex-wrap gap-2 text-[11px]">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const id = signInForm.identifier.trim();
+                                  setSignUpForm(prev => ({
+                                    ...prev,
+                                    phone: !id.includes('@') ? id : prev.phone,
+                                    email: id.includes('@') ? id : prev.email,
+                                    password: signInForm.password || prev.password
+                                  }));
+                                  setAuthView('signup');
+                                  setFormattedError(null);
+                                  setAuthError('');
+                                }}
+                                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+                              >
+                                <span>Create Account</span>
+                                <ArrowRight className="w-3 h-3" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAuthView('forgot');
+                                  setForgotEmail(signInForm.identifier.includes('@') ? signInForm.identifier : '');
+                                  setFormattedError(null);
+                                  setAuthError('');
+                                }}
+                                className="px-2.5 py-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 font-semibold rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+                              >
+                                Reset Password
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={handleInstantDemoLogin}
+                                className="px-2.5 py-1 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-semibold rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+                              >
+                                Guest Explore
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -1292,7 +1400,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       <button
                         disabled={authLoading}
                         type="submit"
-                        className={`w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                        className={`w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${
                           authLoading ? 'opacity-80 cursor-wait' : 'active:scale-[0.99]'
                         }`}
                       >
@@ -1303,58 +1411,42 @@ Can you provide more insight, theological context, or a related prayer meditatio
                           </>
                         ) : (
                           <>
-                            <span>Sign In to ZUCA</span>
+                            <span>Sign In</span>
                             <ArrowRight className="w-4 h-4" />
                           </>
                         )}
                       </button>
                     </form>
 
-                    {/* Social & Guest Authentication */}
-                    <div className="space-y-2 pt-1">
+                    {/* Social & Guest Options */}
+                    <div className="pt-2 border-t border-stone-100 dark:border-stone-800 space-y-2">
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={handleLogin}
                           disabled={authLoading}
-                          title="Sign in with Google"
-                          className={`w-full py-2.5 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-200 shadow-sm cursor-pointer ${
-                            authLoading ? 'opacity-70 cursor-wait' : 'hover:border-blue-500/40 active:scale-[0.98]'
-                          }`}
+                          className="w-full py-2 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer shadow-xs"
                         >
                           {authActionLoading === 'google' ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                              <span>Connecting...</span>
-                            </>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
                           ) : (
-                            <>
-                              <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-4 h-4 shrink-0" alt="Google" />
-                              <span>Google</span>
-                            </>
+                            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-3.5 h-3.5" alt="Google" />
                           )}
+                          <span>Google</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={handleInstantDemoLogin}
                           disabled={authLoading}
-                          title="Explore as Guest or New Student"
-                          className={`w-full py-2.5 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 hover:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-300 shadow-sm cursor-pointer ${
-                            authLoading ? 'opacity-70 cursor-wait' : 'hover:border-blue-500/40 active:scale-[0.98]'
-                          }`}
+                          className="w-full py-2 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 hover:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 transition-all text-xs font-semibold flex items-center justify-center gap-1.5 text-stone-700 dark:text-stone-300 cursor-pointer shadow-xs"
                         >
                           {authActionLoading === 'instant-demo' ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                              <span>Entering...</span>
-                            </>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
                           ) : (
-                            <>
-                              <Church className="w-3.5 h-3.5 text-blue-600 dark:text-sky-400 shrink-0" />
-                              <span>Guest / Explore</span>
-                            </>
+                            <Church className="w-3.5 h-3.5 text-blue-600 dark:text-sky-400" />
                           )}
+                          <span>Guest Explore</span>
                         </button>
                       </div>
                     </div>
@@ -1364,16 +1456,16 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 {authView === 'signup' && (
                   <motion.div
                     key="view-signup"
-                    initial={{ opacity: 0, x: 15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -15 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                    className="space-y-3.5"
                   >
-                    <form onSubmit={handleSignUp} className="space-y-3">
+                    <form onSubmit={handleSignUp} className="space-y-2.5">
                       {/* Full Name */}
-                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
-                        <UserIcon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                      <div className="relative">
+                        <UserIcon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
                           signUpForm.name ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
                         }`} />
                         <input
@@ -1388,8 +1480,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       </div>
 
                       {/* Phone Number */}
-                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
-                        <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                      <div className="relative">
+                        <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
                           signUpForm.phone ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
                         }`} />
                         <input
@@ -1404,8 +1496,8 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       </div>
 
                       {/* Email Address */}
-                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
-                        <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                      <div className="relative">
+                        <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
                           signUpForm.email ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
                         }`} />
                         <input
@@ -1419,24 +1511,24 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       </div>
 
                       {/* Admission Number */}
-                      <div className={`relative transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
-                        <Shield className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                      <div className="relative">
+                        <Shield className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
                           signUpForm.admissionNumber ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
                         }`} />
                         <input
                           type="text"
                           disabled={authLoading}
-                          placeholder="Admission Number (Optional)"
+                          placeholder="Admission / Student ID (Optional)"
                           className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all disabled:opacity-60 uppercase"
                           value={signUpForm.admissionNumber}
                           onChange={(e) => setSignUpForm({ ...signUpForm, admissionNumber: e.target.value })}
                         />
                       </div>
 
-                      {/* Password Input & Strength Meter */}
-                      <div className={`space-y-1.5 transition-all duration-200 ${authLoading ? 'opacity-65 pointer-events-none' : ''}`}>
+                      {/* Password Input */}
+                      <div className="space-y-1">
                         <div className="relative">
-                          <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                          <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
                             signUpForm.password ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
                           }`} />
                           <input
@@ -1458,48 +1550,30 @@ Can you provide more insight, theological context, or a related prayer meditatio
                           </button>
                         </div>
 
-                        {/* Password Strength Indicator */}
                         {signUpForm.password && (
-                          <div className="px-1 space-y-1">
-                            <div className="flex items-center justify-between text-[10px]">
-                              <span className="text-stone-400 font-medium">Security Strength:</span>
-                              <span className={`font-bold ${
-                                getPasswordStrength(signUpForm.password).score === 3 
-                                  ? 'text-emerald-500' 
-                                  : getPasswordStrength(signUpForm.password).score === 2 
-                                    ? 'text-amber-500' 
-                                    : 'text-red-500'
-                              }`}>
-                                {getPasswordStrength(signUpForm.password).label}
-                              </span>
-                            </div>
-                            <div className="w-full h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full transition-all duration-300 ${
-                                  getPasswordStrength(signUpForm.password).score === 3 
-                                    ? 'bg-emerald-500' 
-                                    : getPasswordStrength(signUpForm.password).score === 2 
-                                      ? 'bg-amber-500' 
-                                      : 'bg-red-500'
-                                }`}
-                                style={{ width: `${getPasswordStrength(signUpForm.password).percent}%` }}
-                              />
-                            </div>
+                          <div className="px-1 flex items-center justify-between text-[10px] text-stone-400">
+                            <span>Strength:</span>
+                            <span className={`font-semibold ${
+                              getPasswordStrength(signUpForm.password).score === 3 ? 'text-emerald-500' :
+                              getPasswordStrength(signUpForm.password).score === 2 ? 'text-amber-500' : 'text-red-500'
+                            }`}>
+                              {getPasswordStrength(signUpForm.password).label}
+                            </span>
                           </div>
                         )}
                       </div>
 
                       {/* Terms checkbox */}
-                      <div className="p-2.5 bg-stone-50 dark:bg-stone-950/60 rounded-xl border border-stone-200/80 dark:border-stone-800 flex items-start gap-2 select-none">
+                      <div className="p-2 bg-stone-50 dark:bg-stone-950/60 rounded-xl border border-stone-200/80 dark:border-stone-800 flex items-center gap-2 select-none">
                         <input 
                           type="checkbox" 
                           id="signup-page-terms"
                           disabled={authLoading}
-                          className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 border-stone-300 dark:border-stone-700 bg-transparent cursor-pointer"
+                          className="rounded text-blue-600 focus:ring-blue-500 border-stone-300 dark:border-stone-700 bg-transparent cursor-pointer"
                           checked={acceptedTerms}
                           onChange={(e) => setAcceptedTerms(e.target.checked)}
                         />
-                        <label htmlFor="signup-page-terms" className="text-xs text-stone-600 dark:text-stone-400 leading-tight cursor-pointer">
+                        <label htmlFor="signup-page-terms" className="text-xs text-stone-600 dark:text-stone-400 cursor-pointer">
                           I agree to the {' '}
                           <button 
                             type="button" 
@@ -1507,40 +1581,23 @@ Can you provide more insight, theological context, or a related prayer meditatio
                             className="text-blue-600 dark:text-sky-400 underline font-semibold"
                           >
                             Terms & Conditions
-                          </button> of ZUCA.
+                          </button>
                         </label>
                       </div>
 
                       {/* Error Banner */}
                       {(formattedError || authError) && (
-                        <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/25 space-y-2.5 text-left relative">
-                          <button 
-                            type="button"
-                            onClick={() => { setFormattedError(null); setAuthError(''); }}
-                            className="absolute top-2.5 right-2.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer p-0.5"
-                            title="Dismiss message"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                          <div className="flex items-start gap-2 text-red-600 dark:text-red-400 pr-5">
-                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                            <div className="text-xs space-y-1">
-                              <span className="font-bold block">
-                                {formattedError?.title || 'Sign Up Notice'}
-                              </span>
-                              <p className="text-stone-700 dark:text-stone-300 leading-normal">
-                                {formattedError?.message || authError}
-                              </p>
-                            </div>
-                          </div>
+                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-left text-xs text-red-600 dark:text-red-400 flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>{formattedError?.message || authError}</span>
                         </div>
                       )}
 
-                      {/* Create Account Button */}
+                      {/* Submit Button */}
                       <button
                         disabled={authLoading}
                         type="submit"
-                        className={`w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                        className={`w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${
                           authLoading ? 'opacity-80 cursor-wait' : 'active:scale-[0.99]'
                         }`}
                       >
@@ -1551,7 +1608,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                           </>
                         ) : (
                           <>
-                            <span>Create Account & Join</span>
+                            <span>Join ZUCA</span>
                             <UserPlus className="w-4 h-4" />
                           </>
                         )}
@@ -1559,52 +1616,16 @@ Can you provide more insight, theological context, or a related prayer meditatio
                     </form>
 
                     {/* Social Options */}
-                    <div className="space-y-2 pt-1">
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={handleLogin}
-                          disabled={authLoading}
-                          title="Sign up with Google"
-                          className={`w-full py-2.5 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-200 shadow-sm cursor-pointer ${
-                            authLoading ? 'opacity-70 cursor-wait' : 'hover:border-blue-500/40 active:scale-[0.98]'
-                          }`}
-                        >
-                          {authActionLoading === 'google' ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                              <span>Connecting...</span>
-                            </>
-                          ) : (
-                            <>
-                              <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-4 h-4 shrink-0" alt="Google" />
-                              <span>Google</span>
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleInstantDemoLogin}
-                          disabled={authLoading}
-                          title="Explore as Guest or New Student"
-                          className={`w-full py-2.5 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 hover:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-300 shadow-sm cursor-pointer ${
-                            authLoading ? 'opacity-70 cursor-wait' : 'hover:border-blue-500/40 active:scale-[0.98]'
-                          }`}
-                        >
-                          {authActionLoading === 'instant-demo' ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                              <span>Entering...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Church className="w-3.5 h-3.5 text-blue-600 dark:text-sky-400 shrink-0" />
-                              <span>Guest / Explore</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
+                    <div className="pt-2 border-t border-stone-100 dark:border-stone-800">
+                      <button
+                        type="button"
+                        onClick={handleLogin}
+                        disabled={authLoading}
+                        className="w-full py-2 px-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900 transition-all text-xs font-semibold flex items-center justify-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer shadow-xs"
+                      >
+                        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-3.5 h-3.5" alt="Google" />
+                        <span>Sign up with Google</span>
+                      </button>
                     </div>
                   </motion.div>
                 )}
@@ -1612,17 +1633,17 @@ Can you provide more insight, theological context, or a related prayer meditatio
                 {authView === 'forgot' && (
                   <motion.div
                     key="view-forgot"
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                    className="space-y-3.5"
                   >
                     {!forgotSent ? (
                       <>
-                        <div className="text-left">
+                        <div className="text-left space-y-0.5">
                           <h2 className="text-sm font-bold text-stone-900 dark:text-white">Reset Password</h2>
-                          <p className="text-xs text-stone-500">We will email you instructions to reset your password</p>
+                          <p className="text-xs text-stone-500">Enter your registered email to receive a password reset link.</p>
                         </div>
 
                         <form onSubmit={handlePasswordReset} className="space-y-3">
@@ -1639,7 +1660,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                           </div>
 
                           {(formattedError || authError) && (
-                            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-left text-xs text-red-600 dark:text-red-400">
+                            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-left text-xs text-red-600 dark:text-red-400">
                               {formattedError?.message || authError}
                             </div>
                           )}
@@ -1647,20 +1668,20 @@ Can you provide more insight, theological context, or a related prayer meditatio
                           <button
                             type="submit"
                             disabled={authLoading}
-                            className="w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                            className="w-full bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2"
                           >
                             {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send Reset Link'}
                           </button>
                         </form>
                       </>
                     ) : (
-                      <div className="space-y-4 text-center py-4">
-                        <div className="w-12 h-12 bg-emerald-500/15 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
-                          <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                      <div className="space-y-3 text-center py-3">
+                        <div className="w-10 h-10 bg-emerald-500/15 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-0.5">
                           <h3 className="font-bold text-stone-900 dark:text-white text-sm">Reset Link Sent</h3>
-                          <p className="text-xs text-stone-500 px-3">We have sent password reset instructions to your email.</p>
+                          <p className="text-xs text-stone-500 px-2">Check your email inbox for password reset instructions.</p>
                         </div>
                       </div>
                     )}
@@ -1669,7 +1690,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       <button
                         type="button"
                         onClick={() => { setAuthView('signin'); setForgotSent(false); setAuthError(''); setFormattedError(null); }}
-                        className="w-full py-2 text-stone-500 hover:text-blue-600 dark:hover:text-sky-400 text-xs font-semibold block cursor-pointer transition-colors"
+                        className="w-full py-1.5 text-stone-500 hover:text-blue-600 dark:hover:text-sky-400 text-xs font-semibold block cursor-pointer transition-colors"
                       >
                         ← Back to Sign In
                       </button>
@@ -1679,17 +1700,16 @@ Can you provide more insight, theological context, or a related prayer meditatio
               </AnimatePresence>
             </div>
 
-            {/* Daily verse */}
-            <div className="mt-5 p-3 bg-stone-50 dark:bg-stone-950/40 rounded-xl border border-stone-100 dark:border-stone-800 text-left text-xs text-stone-600 dark:text-stone-300 space-y-1 border-l-2 border-l-[#003366] dark:border-l-sky-500 select-none">
-              <span className="text-[9px] font-bold text-[#002244] dark:text-sky-400 uppercase tracking-wider block">Daily Verse</span>
-              <p className="italic leading-snug">"{dailyVerse.text}"</p>
-              <p className="text-[10px] font-bold text-stone-500 dark:text-stone-400 text-right">— {dailyVerse.source}</p>
+            {/* Daily verse footer */}
+            <div className="pt-3 border-t border-stone-100 dark:border-stone-800/80 text-left text-xs text-stone-500 dark:text-stone-400 select-none">
+              <p className="italic text-[11px] leading-relaxed">"{dailyVerse.text}"</p>
+              <p className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 text-right mt-0.5">— {dailyVerse.source}</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Footer */}
-        <p className="text-center text-stone-400 text-xs z-10 mt-3 select-none">
+        {/* Minimal Footer */}
+        <p className="text-center text-stone-400 text-xs z-10 select-none">
           Faith • Unity • Action • Zetech Catholic Action
         </p>
       </div>
@@ -2399,6 +2419,147 @@ Can you provide more insight, theological context, or a related prayer meditatio
               <div className="p-0">
                 <AboutPage />
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Google Sign-Up Phone Number Prompt Modal */}
+      <AnimatePresence>
+        {isGooglePhoneModalOpen && user && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 16 }}
+              className="w-full max-w-md bg-white dark:bg-stone-900 rounded-3xl p-6 md:p-8 shadow-2xl border border-stone-200 dark:border-stone-800 text-left space-y-5"
+            >
+              {/* Header with Google Badge */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center shrink-0">
+                    <Phone className="w-6 h-6 text-blue-600 dark:text-sky-400" />
+                  </div>
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900/50 text-[10px] font-bold text-blue-700 dark:text-sky-300 uppercase tracking-wider mb-1">
+                      <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" className="w-3 h-3" alt="Google" />
+                      Google Connected
+                    </span>
+                    <h2 className="text-lg font-extrabold text-stone-900 dark:text-white">
+                      Enter Phone Number
+                    </h2>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account summary pill */}
+              <div className="p-3 bg-stone-50 dark:bg-stone-950/60 rounded-2xl border border-stone-200/80 dark:border-stone-800 flex items-center gap-3">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt={user.displayName || 'Google User'} className="w-9 h-9 rounded-full object-cover border border-stone-300 dark:border-stone-700" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+                    {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-stone-900 dark:text-white truncate">{user.displayName || 'Catholic Pilgrim'}</p>
+                  <p className="text-[11px] text-stone-500 truncate">{user.email}</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
+                Please enter your active mobile phone number to complete your <strong>ZUCA Catholic Action</strong> registration and activate your digital fellowship ID.
+              </p>
+
+              <form onSubmit={handleSaveGooglePhone} className="space-y-3.5">
+                {/* Phone Input */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 block">
+                    Mobile Phone Number *
+                  </label>
+                  <div className="relative">
+                    <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                      googlePhoneForm.phone ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                    }`} />
+                    <input
+                      type="tel"
+                      required
+                      autoFocus
+                      disabled={googlePhoneSaving}
+                      placeholder="e.g. 0712 345 678 or +254 712 345 678"
+                      value={googlePhoneForm.phone}
+                      onChange={(e) => {
+                        setGooglePhoneForm({ ...googlePhoneForm, phone: e.target.value });
+                        if (googlePhoneError) setGooglePhoneError('');
+                      }}
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-stone-500 dark:text-stone-400">
+                    Safaricom, Airtel, or Telkom format accepted.
+                  </p>
+                </div>
+
+                {/* Admission Number */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 block">
+                    Zetech Admission / Student ID (Optional)
+                  </label>
+                  <div className="relative">
+                    <Shield className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                      googlePhoneForm.admissionNumber ? 'text-blue-600 dark:text-sky-400' : 'text-stone-400'
+                    }`} />
+                    <input
+                      type="text"
+                      disabled={googlePhoneSaving}
+                      placeholder="e.g. BIT/2024/1234"
+                      value={googlePhoneForm.admissionNumber}
+                      onChange={(e) => setGooglePhoneForm({ ...googlePhoneForm, admissionNumber: e.target.value })}
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-sm text-stone-900 dark:text-white outline-none placeholder:text-stone-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-stone-900 transition-all uppercase"
+                    />
+                  </div>
+                </div>
+
+                {/* Error Banner */}
+                {googlePhoneError && (
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{googlePhoneError}</span>
+                  </div>
+                )}
+
+                {/* Submit & Cancel Actions */}
+                <div className="pt-2 space-y-2">
+                  <button
+                    type="submit"
+                    disabled={googlePhoneSaving}
+                    className="w-full py-3 bg-[#002244] hover:bg-[#003366] active:bg-[#001a33] text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
+                  >
+                    {googlePhoneSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-current" />
+                        <span>Saving Registration...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Complete Registration</span>
+                        <CheckCircle2 className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsGooglePhoneModalOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full py-2 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 text-xs font-semibold cursor-pointer text-center"
+                  >
+                    Cancel / Sign Out
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

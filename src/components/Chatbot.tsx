@@ -24,7 +24,7 @@ export default function Chatbot({ userName, aiContext, onClearContext }: { userN
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isAiConfigured, setIsAiConfigured] = useState<boolean | null>(null);
-  const [liveModelName, setLiveModelName] = useState<string>('gemini-2.5-flash');
+  const [liveModelName, setLiveModelName] = useState<string>('gemini-3.7-flash');
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 

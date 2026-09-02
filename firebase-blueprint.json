@@ -9,6 +9,10 @@
         "email": { "type": "string", "format": "email", "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", "maxLength": 120, "minLength": 5 },
         "displayName": { "type": "string", "maxLength": 100 },
         "photoURL": { "type": "string", "description": "URL to profile picture or base64 image.", "maxLength": 600000 },
+        "contactNumber": { "type": "string", "description": "User mobile contact phone number.", "maxLength": 30 },
+        "phoneNumber": { "type": "string", "description": "Clean digits of mobile phone number.", "maxLength": 30 },
+        "phone": { "type": "string", "description": "Phone number string.", "maxLength": 30 },
+        "admissionNumber": { "type": "string", "description": "Zetech student admission ID.", "maxLength": 50 },
         "bio": { "type": "string", "description": "A short spiritual bio.", "maxLength": 500 },
         "isSubscribed": { "type": "boolean", "description": "Whether the user wants to receive automatic email updates." },
         "role": { "type": "string", "enum": ["admin", "member"] },
@@ -192,10 +196,22 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "subject", "message", "type", "timestamp"]
+    },
+    "PhoneDirectory": {
+      "title": "Phone Directory",
+      "description": "Public phone-to-email mapping for member sign-in resolution.",
+      "type": "object",
+      "properties": {
+        "authEmail": { "type": "string" },
+        "phone": { "type": "string" },
+        "cleanDigits": { "type": "string" }
+      },
+      "required": ["authEmail", "cleanDigits"]
     }
   },
   "firestore": {
     "/users/{userId}": { "schema": "User", "description": "Users." },
+    "/phone_directory/{phoneId}": { "schema": "PhoneDirectory", "description": "Phone number directory for fast login routing." },
     "/sacred_materials/{id}": { "schema": "SacredMaterial", "description": "Shared church materials." },
     "/users/{userId}/chatHistory/{messageId}": { "schema": "ChatMessage", "description": "Chat." },
     "/petitions/{id}": { "schema": "PrayerPetition", "description": "Prayer requests." },
