@@ -59,6 +59,7 @@ import NotificationTicker from './components/NotificationTicker';
 import UserGuide from './components/UserGuide';
 import JoinUs from './components/JoinUs';
 import DigitalMembershipCard from './components/DigitalMembershipCard';
+import christianSanctuaryImg from './assets/images/christian_sanctuary_altar_1794293022810.jpg';
 
 import { 
   LogIn, 
@@ -1173,38 +1174,115 @@ Can you provide more insight, theological context, or a related prayer meditatio
     const dailyVerse = SACRED_VERSES[verseIndex];
 
     return (
-      <div className="min-h-screen w-full relative flex flex-col items-center justify-center p-4 sm:p-6 bg-[#070d1e] font-sans selection:bg-blue-600/30 overflow-y-auto">
-        {/* Subtle Ambient Background */}
+      <div className="min-h-screen w-full relative flex flex-col items-center justify-center p-4 sm:p-6 bg-[#070d1e] font-sans selection:bg-amber-500/30 overflow-y-auto">
+        {/* Sacred Cathedral Ambient Background */}
         <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-600/15 rounded-full blur-[100px]" />
-          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-sky-500/10 rounded-full blur-[100px]" />
+          <img 
+            src={christianSanctuaryImg} 
+            alt="Cathedral Sanctuary" 
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-cover opacity-20 filter blur-[2px] scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#070d1e]/90 via-[#070d1e]/85 to-[#070d1e]/95" />
+          <div className="absolute -top-32 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px]" />
+          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-600/15 rounded-full blur-[120px]" />
         </div>
 
-        {/* Simplified, Elegant Auth & Welcome Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-          className="relative z-10 w-full max-w-[430px] my-6 bg-white dark:bg-stone-900 rounded-3xl overflow-hidden border border-stone-200/80 dark:border-stone-800 shadow-2xl flex flex-col"
-        >
-          {/* Clean Campus Header Banner */}
-          <div className="h-32 w-full relative overflow-hidden shrink-0 bg-stone-950">
-            <img 
-              src="https://i.ibb.co/tMNKfnYM/Technology-Park-Mangu-Campus.png" 
-              alt="Zetech University Campus" 
-              className="w-full h-full object-cover opacity-80"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent" />
-            <div className="absolute bottom-2.5 left-4 right-4 z-10 text-white flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-sky-400">Zetech University</p>
-                <h1 className="text-sm font-bold tracking-tight text-white">Catholic Action Association</h1>
+        {/* Landing Page Content Container */}
+        <div className="relative z-10 w-full max-w-5xl my-6 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 lg:gap-8">
+          {/* Desktop Sacred Sanctuary Hero Showcase */}
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="hidden lg:flex flex-1 flex-col justify-between relative rounded-3xl overflow-hidden border border-amber-500/30 shadow-2xl bg-stone-950 min-h-[580px]"
+          >
+            {/* Background Altar Sanctuary Image */}
+            <div className="absolute inset-0">
+              <img 
+                src={christianSanctuaryImg} 
+                alt="Sacred Christian Sanctuary & Golden Cross Altar" 
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover object-center filter brightness-95"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/45 to-stone-950/25" />
+              <div className="absolute inset-0 bg-gradient-to-r from-stone-950/40 via-transparent to-stone-950/40" />
+            </div>
+
+            {/* Top Badge */}
+            <div className="relative z-10 p-6 flex items-center justify-between">
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-900/80 backdrop-blur-md border border-amber-500/30 text-amber-300 text-xs font-semibold shadow-md">
+                <Church className="w-4 h-4 text-amber-400" />
+                <span>Sanctuary & Fellowship</span>
               </div>
-              <div className="w-8 h-8 rounded-xl bg-blue-600/80 backdrop-blur-xs flex items-center justify-center text-white border border-blue-400/30 shadow-xs">
-                <Church className="w-4 h-4" />
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-950/80 backdrop-blur-md border border-blue-400/30 text-sky-300 text-xs font-medium shadow-md">
+                <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                <span>Zetech Catholic Action</span>
               </div>
             </div>
-          </div>
+
+            {/* Bottom Content & Scripture */}
+            <div className="relative z-10 p-8 space-y-5 text-white">
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-widest font-bold text-amber-400 drop-shadow-sm">Faith • Unity • Action</p>
+                <h2 className="text-2xl xl:text-3xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md">
+                  Walking Together in Faith, Prayer & Christian Community
+                </h2>
+                <p className="text-sm text-stone-300 leading-relaxed max-w-lg">
+                  Welcome to Zetech University Catholic Action Association. Empowering students through the Holy Mass, spiritual growth, choir, community outreach, and deep Christian brotherhood.
+                </p>
+              </div>
+
+              {/* Inspiring Daily Scripture Card */}
+              <div className="p-4 rounded-2xl bg-stone-900/85 backdrop-blur-md border border-amber-500/25 shadow-lg space-y-1.5">
+                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Daily Holy Scripture</span>
+                </div>
+                <p className="italic text-xs text-stone-200 leading-relaxed font-serif">
+                  "{dailyVerse.text}"
+                </p>
+                <p className="text-[11px] font-semibold text-amber-300 text-right">— {dailyVerse.source}</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Simplified, Elegant Auth & Welcome Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="relative z-10 w-full max-w-[430px] my-2 bg-white dark:bg-stone-900 rounded-3xl overflow-hidden border border-stone-200/80 dark:border-stone-800 shadow-2xl flex flex-col"
+          >
+            {/* Sacred Christian Header Banner */}
+            <div className="h-36 sm:h-40 w-full relative overflow-hidden shrink-0 bg-stone-950">
+              <img 
+                src={christianSanctuaryImg} 
+                alt="Sacred Christian Sanctuary Altar" 
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover object-center transform transition-transform duration-700 hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/45 to-transparent" />
+              <div className="absolute top-3 left-3 z-10">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 backdrop-blur-md border border-amber-400/30 text-amber-200 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                  <Church className="w-3 h-3 text-amber-400" />
+                  Holy Sanctuary
+                </span>
+              </div>
+              <div className="absolute bottom-3 left-4 right-4 z-10 text-white flex items-end justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 drop-shadow-sm">Zetech University</p>
+                  <h1 className="text-base font-extrabold tracking-tight text-white drop-shadow-md">Catholic Action Association</h1>
+                  <p className="text-[10px] text-stone-300 flex items-center gap-1 mt-0.5">
+                    <Heart className="w-3 h-3 text-rose-400 fill-rose-400" />
+                    <span>One Family in Christ</span>
+                  </p>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 backdrop-blur-md flex items-center justify-center text-amber-300 border border-amber-400/40 shadow-md">
+                  <Church className="w-5 h-5 text-amber-300" />
+                </div>
+              </div>
+            </div>
 
           {/* Loading Progress Bar */}
           {authLoading && (
@@ -1708,6 +1786,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
             </div>
           </div>
         </motion.div>
+      </div>
 
         {/* Minimal Footer */}
         <p className="text-center text-stone-400 text-xs z-10 select-none">
