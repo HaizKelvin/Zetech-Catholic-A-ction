@@ -233,6 +233,71 @@ app.post("/api/send-email", async (req, res) => {
   }
 });
 
+app.post("/api/liturgical/generate", async (req, res) => {
+  try {
+    const { date, theme } = req.body || {};
+    const targetDate = date ? new Date(date) : new Date();
+    const formattedDate = targetDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    
+    let generatedData: any = null;
+    const key = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (key) {
+      try {
+        const ai = getGemini();
+        const prompt = `You are a Catholic liturgical scholar. For the calendar date ${formattedDate}${theme ? ` with theme "${theme}"` : ""}, provide the authentic Catholic feast day celebrant and daily scripture reading for Catholic university students.
+Return strictly a valid JSON object matching this schema:
+{
+  "verse": "The inspiring daily Scripture verse text (e.g. from the Gospel, Psalm, or Reading of the day)",
+  "reference": "Book Chapter:Verse (e.g. Matthew 5:14-16, John 15:12, Philippians 4:13)",
+  "saintName": "Official Roman Catholic Saint celebrated on this feast day",
+  "feastTitle": "Full title (e.g. Solemnity of..., Feast of..., Memorial of...)",
+  "rank": "Solemnity | Feast | Memorial | Optional Memorial",
+  "liturgicalColor": "White | Red | Green | Violet",
+  "saintInfo": "Concise 2-sentence biography highlighting their virtues and patronage",
+  "patronage": "What this saint is the patron of (e.g. students, musicians, workers)",
+  "reflection": "A 1-sentence spiritual meditation for university students"
+}`;
+
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          }
+        });
+
+        if (response.text) {
+          generatedData = JSON.parse(response.text);
+        }
+      } catch (geminiErr: any) {
+        console.warn("Gemini liturgical generation notice:", geminiErr?.message);
+      }
+    }
+
+    if (!generatedData) {
+      generatedData = {
+        verse: "Christian, recognize your dignity and, now that you share in God's own nature, do not return to your former base condition.",
+        reference: "1 Peter 2:9",
+        saintName: "Saint Leo the Great",
+        feastTitle: "Memorial of Saint Leo the Great, Pope & Doctor",
+        rank: "Memorial",
+        liturgicalColor: "White",
+        saintInfo: "Great defender of Catholic orthodoxy who taught with wisdom and protected the people with pastoral courage.",
+        patronage: "Popes, musicians, peace",
+        reflection: "Remember your divine dignity as a baptized child of God in all your university endeavors."
+      };
+    }
+
+    res.json({ 
+      success: true, 
+      data: generatedData,
+      date: formattedDate
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

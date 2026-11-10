@@ -23,9 +23,13 @@ import {
   ChevronDown,
   ChevronUp,
   Award,
-  Image as ImageIcon
+  Image as ImageIcon,
+  CreditCard,
+  QrCode,
+  Sparkles
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import DigitalMembershipCard from './DigitalMembershipCard';
 
 export interface RegisteredMember {
   id: string;
@@ -380,6 +384,7 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
   const [showDirectory, setShowDirectory] = useState(false);
+  const [viewMode, setViewMode] = useState<'digitalCard' | 'enroll'>('digitalCard');
 
   // Real-time listener for registrations
   useEffect(() => {
@@ -578,20 +583,52 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
               </p>
             </div>
 
-            {currentUser && (
-              <div className="px-3.5 py-2 rounded-xl bg-white/10 border border-white/15 text-xs text-stone-200 shrink-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 block">Logged In Profile</span>
-                <span className="font-semibold">{currentUser.displayName || 'Member'}</span>
-                {currentUser.contactNumber && (
-                  <span className="block text-[11px] text-stone-300">{currentUser.contactNumber}</span>
-                )}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5 p-1 bg-white/10 rounded-2xl border border-white/15">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('digitalCard')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                    viewMode === 'digitalCard'
+                      ? 'bg-amber-400 text-stone-950 shadow-md'
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Digital ID Card & QR</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('enroll')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                    viewMode === 'enroll'
+                      ? 'bg-amber-400 text-stone-950 shadow-md'
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Enrollment Form</span>
+                </button>
               </div>
-            )}
+
+              {currentUser && (
+                <div className="px-3.5 py-1.5 rounded-xl bg-white/10 border border-white/15 text-xs text-stone-200 shrink-0 hidden sm:block">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-sky-400 block">Logged In</span>
+                  <span className="font-semibold text-white">{currentUser.displayName || 'Member'}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Card Body - Dual Responsive Pane */}
-        <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {viewMode === 'digitalCard' ? (
+          <div className="p-4 sm:p-6 md:p-8">
+            <DigitalMembershipCard currentUser={currentUser} embedded={true} />
+          </div>
+        ) : (
+          <>
+            {/* Card Body - Dual Responsive Pane */}
+            <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Enrollment Form & Options */}
           <div className="lg:col-span-6 space-y-5">
@@ -920,6 +957,8 @@ export default function JoinUs({ currentUser }: JoinUsProps) {
             </div>
           </div>
         </div>
+        </>
+        )}
 
         {/* Collapsible Enrolled Students Directory Footer */}
         <div className="border-t border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-950/40 p-6 md:p-8">

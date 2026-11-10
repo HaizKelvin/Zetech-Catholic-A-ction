@@ -58,6 +58,7 @@ import ContactUs from './components/ContactUs';
 import NotificationTicker from './components/NotificationTicker';
 import UserGuide from './components/UserGuide';
 import JoinUs from './components/JoinUs';
+import DigitalMembershipCard from './components/DigitalMembershipCard';
 
 import { 
   LogIn, 
@@ -118,7 +119,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type TabType = 'home' | 'materials' | 'schedule' | 'petitions' | 'join' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
+type TabType = 'home' | 'materials' | 'schedule' | 'petitions' | 'join' | 'idcard' | 'payments' | 'trivia' | 'chat' | 'admin' | 'gallery' | 'contact' | 'about' | 'guide';
 
 function SocialLink({ href, icon }: { href: string, icon: React.ReactNode }) {
   return (
@@ -1778,6 +1779,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
               <NavItem active={activeTab === 'materials'} onClick={() => handleTabChange('materials')} icon={<BookOpen className="w-4 h-4" />} label="Songbook & Prayers" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'schedule'} onClick={() => handleTabChange('schedule')} icon={<Calendar className="w-4 h-4" />} label="Mass & Schedules" isOpen={isSidebarOpen} />
               <NavItem active={activeTab === 'gallery'} onClick={() => handleTabChange('gallery')} icon={<ImageIcon className="w-4 h-4" />} label="Photo Gallery" isOpen={isSidebarOpen} />
+              <NavItem active={activeTab === 'idcard'} onClick={() => handleTabChange('idcard')} icon={<CreditCard className="w-4 h-4" />} label="Digital ID Card" isOpen={isSidebarOpen} />
             </div>
 
             <div className="space-y-1">
@@ -1818,6 +1820,7 @@ Can you provide more insight, theological context, or a related prayer meditatio
                       >
                         <div className="p-2 space-y-1">
                           <SubNavItem active={activeTab === 'about'} onClick={() => handleTabChange('about')} label="Who We Are" />
+                          <SubNavItem active={activeTab === 'idcard'} onClick={() => handleTabChange('idcard')} label="Digital ID & QR Card" />
                           <SubNavItem active={activeTab === 'join'} onClick={() => handleTabChange('join')} label="Student Enrollment" />
                           <SubNavItem active={activeTab === 'payments'} onClick={() => handleTabChange('payments')} label="Offerings & Support" />
                           <SubNavItem active={activeTab === 'guide'} onClick={() => handleTabChange('guide')} label="Student Guide & FAQ" />
@@ -2121,6 +2124,25 @@ Can you provide more insight, theological context, or a related prayer meditatio
           {activeTab === 'join' && (
             <div key="join">
               <JoinUs currentUser={profile} />
+            </div>
+          )}
+          {activeTab === 'idcard' && (
+            <div key="idcard">
+              <DigitalMembershipCard 
+                currentUser={profile} 
+                onSaveProfile={async (data) => {
+                  if (user) {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    await updateDoc(userDocRef, {
+                      displayName: data.displayName,
+                      admissionNumber: data.admissionNumber,
+                      contactNumber: data.contactNumber,
+                      photoURL: data.photoURL
+                    });
+                    setProfile(prev => prev ? ({ ...prev, ...data }) : null);
+                  }
+                }}
+              />
             </div>
           )}
           {activeTab === 'payments' && (

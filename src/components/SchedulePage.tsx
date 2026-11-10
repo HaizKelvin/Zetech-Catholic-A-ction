@@ -13,9 +13,14 @@ import {
   FileText,
   MessageCircle,
   Pencil,
-  Zap
+  Zap,
+  Sparkles,
+  CalendarDays,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { autoPopulateSaintFeastsToEvents } from '../lib/liturgicalCalendar';
 import { 
   collection, 
   query, 
@@ -145,6 +150,27 @@ export default function SchedulePage({ isAdmin, user }: { isAdmin: boolean, user
     downloadUrl: ''
   });
   const [isWhatsAppAutoSync, setIsWhatsAppAutoSync] = useState(false);
+  const [isAutoPopulatingFeasts, setIsAutoPopulatingFeasts] = useState(false);
+  const [populateFeedback, setPopulateFeedback] = useState<string | null>(null);
+
+  const handleAutoPopulateMonthFeasts = async () => {
+    setIsAutoPopulatingFeasts(true);
+    try {
+      const res = await autoPopulateSaintFeastsToEvents(
+        currentMonth.getFullYear(), 
+        currentMonth.getMonth(), 
+        user?.displayName || 'Catholic Liturgy Engine'
+      );
+      setPopulateFeedback(`Automatically added ${res.addedCount} Saint Feast Celebrants for ${format(currentMonth, 'MMMM yyyy')}!`);
+      setTimeout(() => setPopulateFeedback(null), 4500);
+    } catch (err) {
+      console.error("Auto populate feasts error:", err);
+      setPopulateFeedback('Could not auto-add feasts. Please check connection.');
+      setTimeout(() => setPopulateFeedback(null), 4000);
+    } finally {
+      setIsAutoPopulatingFeasts(false);
+    }
+  };
 
   useEffect(() => {
     NotificationManager.requestPermission();
@@ -365,43 +391,83 @@ _United in Spirit and Faith._ 🙏🕊️`;
             </p>
           </div>
 
-          {isAdmin && (
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={async () => {
-                  try {
-                    await setDoc(doc(db, 'control', 'settings'), { isWhatsAppAutoSync: !isWhatsAppAutoSync }, { merge: true });
-                  } catch (e) {
-                    console.error(e);
-                  }
-                }}
-                className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer ${
-                  isWhatsAppAutoSync 
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                    : 'bg-white/10 text-white/60 hover:bg-white/20 border border-white/10'
-                }`}
-              >
-                <Zap className={`w-4 h-4 ${isWhatsAppAutoSync ? 'animate-pulse' : 'opacity-50'}`} />
-                <span>{isWhatsAppAutoSync ? 'Auto WhatsApp On' : 'Auto WhatsApp Off'}</span>
-              </motion.button>
+          <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2.5 w-full md:w-auto">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={isAutoPopulatingFeasts}
+              onClick={handleAutoPopulateMonthFeasts}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 px-4 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer disabled:opacity-50"
+            >
+              {isAutoPopulatingFeasts ? (
+                <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
+              ) : (
+                <CalendarDays className="w-4 h-4 text-stone-950" />
+              )}
+              <span>Auto-Add Saint Feasts</span>
+            </motion.button>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  setNewActivity(prev => ({ ...prev, date: format(new Date(), "yyyy-MM-dd'T'12:00") }));
-                  setIsAddModalOpen(true);
-                }}
-                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add New Event</span>
-              </motion.button>
-            </div>
-          )}
+            {isAdmin && (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={async () => {
+                    try {
+                      await setDoc(doc(db, 'control', 'settings'), { isWhatsAppAutoSync: !isWhatsAppAutoSync }, { merge: true });
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }}
+                  className={`flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer ${
+                    isWhatsAppAutoSync 
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                      : 'bg-white/10 text-white/60 hover:bg-white/20 border border-white/10'
+                  }`}
+                >
+                  <Zap className={`w-4 h-4 ${isWhatsAppAutoSync ? 'animate-pulse' : 'opacity-50'}`} />
+                  <span>{isWhatsAppAutoSync ? 'Auto WhatsApp On' : 'Auto WhatsApp Off'}</span>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setNewActivity(prev => ({ ...prev, date: format(new Date(), "yyyy-MM-dd'T'12:00") }));
+                    setIsAddModalOpen(true);
+                  }}
+                  className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Event</span>
+                </motion.button>
+              </>
+            )}
+          </div>
         </div>
+
+        {/* Auto-Populate Feedback Banner */}
+        <AnimatePresence>
+          {populateFeedback && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mt-4 p-3.5 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-bold flex items-center justify-between gap-3 shadow-lg"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{populateFeedback}</span>
+              </div>
+              <button 
+                onClick={() => setPopulateFeedback(null)} 
+                className="text-stone-300 hover:text-white text-xs cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-1 md:px-0">

@@ -52,7 +52,7 @@ service cloud.firestore {
     // --- Application Control & Settings ---
     match /control/{docId} {
       allow read: if true;
-      allow write: if isAdmin() || (docId == "booth_qr" && isAuthenticated());
+      allow write: if isAdmin() || (docId == "booth_qr" && isAuthenticated()) || (docId == "daily_bread" && isAuthenticated());
     }
 
     // --- User Profiles (Prevents Unauthorized Role Escalation & Enforces Valid Email Pattern) ---

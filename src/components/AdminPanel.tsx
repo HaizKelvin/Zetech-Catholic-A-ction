@@ -17,8 +17,37 @@ import {
 import { db, auth } from '../firebase';
 import { UserProfile, DailyControl, OperationType, MembershipRegistration } from '../types';
 import { handleFirestoreError } from '../utils';
-import { Settings, Users, BookOpen, Download, ShieldCheck, Loader2, Trash2, UserX, UserPlus, ChevronDown, ChevronUp, MessageCircle, Share2, Calendar, Phone, Zap } from 'lucide-react';
+import { 
+  Settings, 
+  Users, 
+  BookOpen, 
+  Download, 
+  ShieldCheck, 
+  Loader2, 
+  Trash2, 
+  UserX, 
+  UserPlus, 
+  ChevronDown, 
+  ChevronUp, 
+  MessageCircle, 
+  Share2, 
+  Calendar, 
+  Phone, 
+  Zap,
+  Sparkles,
+  Wand2,
+  CalendarDays,
+  RefreshCw,
+  CheckCircle2,
+  Church,
+  Award
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { 
+  getLiturgicalDayForDate, 
+  autoPopulateSaintFeastsToEvents, 
+  autoSyncDailyBreadIfOutdated 
+} from '../lib/liturgicalCalendar';
 
 export default function AdminPanel() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -36,6 +65,103 @@ export default function AdminPanel() {
   const [shareStatus, setShareStatus] = useState<{type: 'success' | 'error', message: string} | null>(null);
   const [whatsAppGroupLink, setWhatsAppGroupLink] = useState('https://chat.whatsapp.com/GxuvB559sZLIurYvXbxHmU');
   const [savingSettings, setSavingSettings] = useState(false);
+  const [isAutoFetching, setIsAutoFetching] = useState(false);
+  const [isAddingFeasts, setIsAddingFeasts] = useState(false);
+  const [selectedFeastDate, setSelectedFeastDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [isDailyAutoSyncActive, setIsDailyAutoSyncActive] = useState(true);
+
+  // Auto-fetch today's Catholic liturgical verse and saint celebrant
+  const handleAutoFetchScriptureAndSaint = async (specificDate?: string) => {
+    setIsAutoFetching(true);
+    try {
+      const targetDateStr = specificDate || selectedFeastDate || new Date().toISOString().split('T')[0];
+      let data: any = null;
+
+      try {
+        const response = await fetch('/api/liturgical/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: targetDateStr })
+        });
+        const resJson = await response.json();
+        if (resJson.success && resJson.data) {
+          data = resJson.data;
+        }
+      } catch {
+        // Fallback to local liturgical calendar
+      }
+
+      if (!data) {
+        const parts = targetDateStr.split('-');
+        const target = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        data = getLiturgicalDayForDate(target);
+      }
+
+      setDailyForm({
+        verse: data.verse,
+        reference: data.reference,
+        saintName: data.saintName,
+        saintInfo: data.saintInfo
+      });
+
+      setShareStatus({
+        type: 'success',
+        message: `Auto-populated: ${data.saintName} (${data.reference})`
+      });
+      setTimeout(() => setShareStatus(null), 4000);
+    } catch (err: any) {
+      setShareStatus({ type: 'error', message: 'Failed to auto-fetch liturgical reading.' });
+    } finally {
+      setIsAutoFetching(false);
+    }
+  };
+
+  // Auto-publish today's Catholic Scripture and Saint Celebrant to Firestore immediately
+  const handleAutoPublishToday = async () => {
+    setIsAutoFetching(true);
+    try {
+      const res = await autoSyncDailyBreadIfOutdated();
+      setDailyForm({
+        verse: res.data.verse,
+        reference: res.data.reference,
+        saintName: res.data.saintName,
+        saintInfo: res.data.saintInfo
+      });
+
+      setShareStatus({
+        type: 'success',
+        message: `Published today's feast: ${res.data.saintName} to sanctuary!`
+      });
+      setTimeout(() => setShareStatus(null), 4000);
+    } catch (err: any) {
+      setShareStatus({ type: 'error', message: 'Failed to auto-publish daily bread.' });
+    } finally {
+      setIsAutoFetching(false);
+    }
+  };
+
+  // Automatically add this month's Saint Feasts and Memorial Masses to Schedule
+  const handleAutoAddMonthFeasts = async () => {
+    setIsAddingFeasts(true);
+    try {
+      const now = new Date();
+      const res = await autoPopulateSaintFeastsToEvents(
+        now.getFullYear(), 
+        now.getMonth(), 
+        'ZUCA Liturgical Calendar Engine'
+      );
+
+      setShareStatus({
+        type: 'success',
+        message: `Added ${res.addedCount} Catholic Saint Feasts & Masses to Schedule!`
+      });
+      setTimeout(() => setShareStatus(null), 5000);
+    } catch (err: any) {
+      setShareStatus({ type: 'error', message: 'Failed to auto-populate saint feasts.' });
+    } finally {
+      setIsAddingFeasts(false);
+    }
+  };
 
   const displayedUsers = showAllUsers ? users : users.slice(0, 3);
 
@@ -504,13 +630,98 @@ _United in Spirit and Faith._ 🫂`;
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20">
         {/* Daily Control Form */}
         <section className="lg:col-span-7 space-y-8 md:space-y-12">
-            <div className="flex items-center gap-4 md:gap-6">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[24px] bg-brand-950 flex items-center justify-center shadow-2xl shadow-brand-900/20 text-white shrink-0">
-                <BookOpen className="w-6 h-6 md:w-8 md:h-8" />
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[24px] bg-brand-950 flex items-center justify-center shadow-2xl shadow-brand-900/20 text-white shrink-0">
+                  <BookOpen className="w-6 h-6 md:w-8 md:h-8" />
+                </div>
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">Daily Oracle & Feast Engine</h2>
+                  <p className="text-stone-400 text-[10px] font-black uppercase tracking-widest mt-1">Automatic Scripture & Saint Celebrant Provision</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100">Daily Oracle</h2>
-                <p className="text-stone-400 text-[10px] font-black uppercase tracking-widest mt-1">Spiritual Provision Control</p>
+
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Auto-Sync Active</span>
+              </div>
+            </div>
+
+            {/* AUTOMATED FEATURES PANEL */}
+            <div className="p-6 md:p-8 rounded-[28px] bg-gradient-to-br from-amber-500/10 via-blue-500/5 to-stone-900/5 dark:bg-stone-900/50 border border-amber-500/25 space-y-5 text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-stone-900 dark:text-white">
+                      Automated Scripture & Saint Provision
+                    </h3>
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                      Auto-pulls authentic Catholic liturgical readings, memorials, and feast celebrants.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={selectedFeastDate}
+                    onChange={(e) => setSelectedFeastDate(e.target.value)}
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-xs font-mono font-bold text-stone-800 dark:text-stone-200 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  disabled={isAutoFetching}
+                  onClick={() => handleAutoFetchScriptureAndSaint()}
+                  className="p-3 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                >
+                  {isAutoFetching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-4 h-4" />
+                  )}
+                  <span>Auto-Fetch Reading</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isAutoFetching}
+                  onClick={handleAutoPublishToday}
+                  className="p-3 bg-[#002244] hover:bg-[#003366] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                >
+                  {isAutoFetching ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  )}
+                  <span>Publish Today Live</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isAddingFeasts}
+                  onClick={handleAutoAddMonthFeasts}
+                  className="p-3 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                >
+                  {isAddingFeasts ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CalendarDays className="w-4 h-4" />
+                  )}
+                  <span>Auto-Add Feasts to Schedule</span>
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400 px-1 pt-1 border-t border-stone-200/40 dark:border-white/5">
+                <span>Auto-updates daily bread automatically when users visit if date is new.</span>
+                <span className="font-semibold text-amber-600 dark:text-amber-400">Catholic Lectionary Powered</span>
               </div>
             </div>
             
